@@ -1,0 +1,8 @@
+{
+  "projects": {
+    "default": "task4task-app",
+    "task4task": "task4task-app"
+  },
+  "targets": {},
+  "etags": {}
+}
