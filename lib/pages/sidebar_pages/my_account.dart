@@ -66,9 +66,49 @@ class _MyAccountState extends State<MyAccount> {
 
   @override
   Widget build(BuildContext context) {
-    User? user = auth.currentUser;
-    ColorScheme theme = Theme.of(context).colorScheme;
-    TextTheme textTheme = Theme.of(context).textTheme;
+    final userProvider = context.watch<UserProvider>();
+    final currentUser = userProvider.currentUser;
+    final User? user = auth.currentUser;
+    final theme = Theme.of(context).colorScheme;
+    final textTheme = Theme.of(context).textTheme;
+
+    // 🔹 Show loading indicator while fetching
+    if (userProvider.isCurrentUserLoading && currentUser == null) {
+      return Scaffold(
+        appBar: AppBar(
+          title: const Text('My Profile', style: TextStyle(fontSize: 18)),
+          systemOverlayStyle: SystemUiOverlayStyle(
+            statusBarColor: theme.surfaceTint,
+            statusBarIconBrightness: Brightness.light,
+          ),
+        ),
+        body: Center(child: CircularProgressIndicator(color: theme.onPrimaryContainer)),
+      );
+    }
+
+    // 🔹 Show "No Internet" UI if loading is done and user is null
+    if (currentUser == null) {
+      return Scaffold(
+        appBar: AppBar(
+          title: const Text('My Profile', style: TextStyle(fontSize: 18)),
+          systemOverlayStyle: SystemUiOverlayStyle(
+            statusBarColor: theme.surfaceTint,
+            statusBarIconBrightness: Brightness.light,
+          ),
+        ),
+        body: Center(
+          child: Ui.buildNoInternetUI(
+            theme,
+            textTheme,
+            false,
+            'No internet connection',
+            'Can\'t reach server. Please check your internet connection',
+            Icons.wifi_off,
+                () => userProvider.fetchCurrentUser(),
+          ),
+        ),
+      );
+    }
 
     return Scaffold( backgroundColor: theme.primaryFixed,
         appBar: AppBar(title: const Text('My Profile', style: TextStyle(fontSize: 18)),
@@ -79,15 +119,9 @@ class _MyAccountState extends State<MyAccount> {
         body: RefreshIndicator(
             color: theme.onPrimaryContainer,
             onRefresh: () async {
-              await _userProvider.fetchCurrentUser();
+              await userProvider.fetchCurrentUser();
             },
-            child: _userProvider!.isCurrentUserLoading
-                ? Center(child: CircularProgressIndicator(color: theme.onPrimaryContainer,)) // ⏳ Loader while fetching data
-                : _userProvider.currentUser == null
-                ?    Center(child: Ui.buildNoInternetUI(theme, textTheme, false, 'No internet connection',
-                'Can\'t reach server. Please check your internet connection', Icons.wifi_off,
-                    ()=> _userProvider.fetchCurrentUser()))
-                : SingleChildScrollView(
+            child: SingleChildScrollView(
                   child: Column(mainAxisAlignment: MainAxisAlignment.center,
                                 children: [
                               Center(
@@ -104,7 +138,7 @@ class _MyAccountState extends State<MyAccount> {
                                 ),
                               ),
                   SizedBox(height: 10,),
-                  Text(_userProvider.currentUser!.name, style: textTheme.labelMedium?.copyWith(fontSize: 25, color: theme.onPrimaryContainer),),
+                  Text(userProvider.currentUser!.name, style: textTheme.labelMedium?.copyWith(fontSize: 25, color: theme.onPrimaryContainer),),
                   
                   Column(
                     children: List.generate(_profileData.length, (index) {

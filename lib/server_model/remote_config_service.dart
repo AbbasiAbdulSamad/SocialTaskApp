@@ -17,8 +17,9 @@ class RemoteConfigService {
     );
 
     await _remoteConfig.setDefaults({
-      // 'api_url': 'https://socialtask-server.fly.dev',
-      'minimum_app_version': '1.0.5',
+      // 'api_url': 'http://10.156.78.48:3000',
+      'api_url': 'https://socialtask-server.fly.dev',
+      'minimum_app_version': '1.0.7',
     });
 
     await _remoteConfig.fetchAndActivate();
@@ -27,14 +28,14 @@ class RemoteConfigService {
   String get baseUrl {
     final baseUrl = _remoteConfig.getString('api_url');
     return baseUrl.isNotEmpty
-        ? 'http://10.71.110.75:3000'
-        : 'http://10.71.110.75:3000';
-        // ? baseUrl
-        // : 'https://socialtask-server.fly.dev';
+        // ? 'http://10.156.78.48:3000'
+        // : 'http://10.156.78.48:3000';
+        ? baseUrl
+        : 'https://socialtask-server.fly.dev';
   }
 
   String get minimumRequiredVersion {
     final version = _remoteConfig.getString('minimum_app_version');
-    return version.isNotEmpty ? version : '1.0.5';
+    return version.isNotEmpty ? version : '1.0.7';
   }
 }

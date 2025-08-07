@@ -43,6 +43,9 @@ class ApiPoints {
   // Premium Subscription
   static String get premiumSubAPi => '${AppConfig.baseUrl}/api/premium/subscribe';
 
+  // Buy Tickets
+  static String get buyTickets => '${AppConfig.baseUrl}/api/purchase/buy-tickets';
+
   // App Version Checking
   // static String get appVersionUpdate => '${AppConfig.baseUrl}/api/app-version';
 }

@@ -1,104 +1,156 @@
+import 'package:app/config/config.dart';
+import 'package:app/server_model/functions_helper.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:http/http.dart' as http;
+import 'package:in_app_purchase/in_app_purchase.dart';
 import '../../ui/button.dart';
 
-class BuyTickets extends StatelessWidget {
-  BuyTickets({super.key});
-  /// List of ticket packages with price, discount, and click actions.
- final List <Map<String, dynamic>> _ticketPrice = [
-   {'tickets':'400', 'originalPrice':'1.00', 'discount':'1', 'price':'0.99', 'img':'1xTickets.webp', 'onCLick':(){debugPrint('400 tickets');}},
-   {'tickets':'1,000', 'originalPrice':'2.50', 'discount':'2', 'price':'2.45', 'img':'2xTickets.webp', 'onCLick':(){debugPrint('1000 tickets');}},
-   {'tickets':'2,000', 'originalPrice':'5.00', 'discount':'5', 'price':'4.75', 'img':'3xTickets.webp', 'onCLick':(){debugPrint('2000 tickets');}},
-   {'tickets':'3,000', 'originalPrice':'7.50', 'discount':'10', 'price':'6.75', 'img':'4xTickets.webp', 'onCLick':(){debugPrint('3000 tickets');}},
-   {'tickets':'5,000', 'originalPrice':'12.50', 'discount':'15', 'price':'10.63', 'img':'5xTickets.webp', 'onCLick':(){debugPrint('5000 tickets');}},
-   {'tickets':'8,000', 'originalPrice':'20.00', 'discount':'20', 'price':'16.00', 'img':'6xTickets.webp', 'onCLick':(){debugPrint('8000 tickets');}},
-   {'tickets':'10,000', 'originalPrice':'25.00', 'discount':'25', 'price':'18.75', 'img':'7xTickets.webp', 'onCLick':(){debugPrint('10000 tickets');}},
-   {'tickets':'30,000', 'originalPrice':'75.50', 'discount':'30', 'price':'52.50', 'img':'8xTickets.webp', 'onCLick':(){debugPrint('30000 tickets');}},
- ];
+class BuyTickets extends StatefulWidget {
+  const BuyTickets({super.key});
+
+  @override
+  State<BuyTickets> createState() => _BuyTicketsState();
+}
+
+class _BuyTicketsState extends State<BuyTickets> {
+  final InAppPurchase _iap = InAppPurchase.instance;
+  bool _available = false;
+  List<ProductDetails> _products = [];
+
+  final List<Map<String, dynamic>> _ticketPrice = [
+    {'tickets': '500', 'discount': '1', 'img': '1xTickets.webp', 'id': 'tickets_500'},
+    {'tickets': '1,000', 'discount': '2', 'img': '2xTickets.webp', 'id': '1000_tickets'},
+    {'tickets': '2,000', 'discount': '5', 'img': '3xTickets.webp', 'id': 'tickets_2000'},
+    {'tickets': '3,000', 'discount': '10', 'img': '4xTickets.webp', 'id': 'tickets_3000'},
+    {'tickets': '5,000', 'discount': '15', 'img': '5xTickets.webp', 'id': '5000_tickets'},
+    {'tickets': '10,000', 'discount': '20', 'img': '6xTickets.webp', 'id': 'tickets_10000'},
+    // {'tickets': '25,000', 'discount': '30', 'img': '7xTickets.webp', 'id': 'tickets_25000'},
+    // {'tickets': '50,000', 'discount': '50', 'img': '8xTickets.webp', 'id': 'tickets_50000'},
+  ];
+
+  @override
+  void initState() {
+    super.initState();
+    _initializeIAP();
+    _iap.purchaseStream.listen(_onPurchaseUpdate);
+  }
+
+  Future<void> _initializeIAP() async {
+    _available = await _iap.isAvailable();
+    if (!_available) return;
+
+    final ids = _ticketPrice.map((e) => e['id'].toString()).toSet();
+    final response = await _iap.queryProductDetails(ids);
+
+    if (response.error != null) {
+      debugPrint("IAP Error: ${response.error}");
+      return;
+    }
+
+    setState(() {
+      _products = response.productDetails;
+    });
+  }
+
+  void _onPurchaseUpdate(List<PurchaseDetails> purchases) async {
+    String? userEmail = await Helper.getFirebaseEmail();
+
+    for (var purchase in purchases) {
+      if (purchase.status == PurchaseStatus.purchased) {
+        try {
+          final response = await http.post(
+            Uri.parse(ApiPoints.buyTickets),
+            body: {
+              "productId": purchase.productID,
+              "purchaseToken": purchase.verificationData.serverVerificationData,
+              "userEmail": userEmail,
+            },
+          );
+
+          if (response.statusCode == 200) {
+            ScaffoldMessenger.of(context).showSnackBar(
+              const SnackBar(content: Text("Tickets Purchased successfully!")),
+            );
+            await _iap.completePurchase(purchase); // confirm the purchase
+          } else {
+            ScaffoldMessenger.of(context).showSnackBar(
+              SnackBar(content: Text("❌ Verification failed: ${response.body}")),
+            );
+          }
+        } catch (e) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(content: Text("❌ Error: $e")),
+          );
+        }
+      } else if (purchase.status == PurchaseStatus.error) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text("❌ Purchase failed")),
+        );
+      }
+    }
+  }
+
+
+
+  void _buyProduct(String productId) {
+    final product = _products.firstWhere((p) => p.id == productId, orElse: () => throw Exception("Product not found"));
+    final param = PurchaseParam(productDetails: product);
+    _iap.buyConsumable(purchaseParam: param);
+  }
 
   @override
   Widget build(BuildContext context) {
     ColorScheme theme = Theme.of(context).colorScheme;
-    return Scaffold( backgroundColor: Theme.of(context).colorScheme.primaryFixed,
-      appBar: AppBar(title: const Text('Purchase Tickets', style: TextStyle(fontSize: 18)),
+    return Scaffold(
+      backgroundColor: theme.primaryFixed,
+      appBar: AppBar(
+        title: const Text('Purchase Tickets', style: TextStyle(fontSize: 18)),
         systemOverlayStyle: SystemUiOverlayStyle(
           statusBarColor: theme.surfaceTint,
-          statusBarIconBrightness: Brightness.light,),
-      ),
-      body:SingleChildScrollView(
-      child: Column(
-      mainAxisAlignment: MainAxisAlignment.center,
-      children: [
-
-        ListView.builder(
-          shrinkWrap: true,
-          physics: const NeverScrollableScrollPhysics(),
-          itemCount: (_ticketPrice.length / 2).ceil(),
-          itemBuilder: (context, index) {
-            int firstIndex = index * 2;
-            int secondIndex = firstIndex + 1;
-
-            return Column(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                const SizedBox(height: 30),
-                SingleChildScrollView( // Horizontal scrolling for the row
-                  scrollDirection: Axis.horizontal,
-                  child: Row(spacing: 30,
-                    children: [
-                      /// First ticket box
-                      Container(
-                        child: _buyTicketBox(
-                          context,
-                          _ticketPrice[firstIndex]['tickets'],
-                          _ticketPrice[firstIndex]['originalPrice'],
-                          _ticketPrice[firstIndex]['discount'],
-                          _ticketPrice[firstIndex]['price'],
-                          _ticketPrice[firstIndex]['img'],
-                          _ticketPrice[firstIndex]['onCLick'],
-                        ),
-                      ),
-                      if (secondIndex < _ticketPrice.length) // Check to avoid index error
-                      /// Second ticket box if available
-                        Container(
-                          child: _buyTicketBox(
-                            context,
-                            _ticketPrice[secondIndex]['tickets'],
-                            _ticketPrice[secondIndex]['originalPrice'],
-                            _ticketPrice[secondIndex]['discount'],
-                            _ticketPrice[secondIndex]['price'],
-                            _ticketPrice[secondIndex]['img'],
-                            _ticketPrice[secondIndex]['onCLick'],
-                          ),
-                        )
-                      else
-                        const SizedBox(width: 160), // Adds a dummy box when no second item
-                    ],
-                  ),
-                ),
-                const SizedBox(height: 50),
-              ],
-            );
-          },
+          statusBarIconBrightness: Brightness.light,
         ),
-      ],
-    ),
-    ),
+      ),
+      body: _available
+          ? Padding(
+        padding: const EdgeInsets.symmetric(vertical: 30, horizontal: 16),
+        child: Center(
+          child: Wrap(
+            alignment: WrapAlignment.center,
+            spacing: 20,
+            runSpacing: 50,
+            children: _ticketPrice.map((ticket) {
+              return _buyTicketBox(context, ticket, _getPrice(ticket['id']));
+            }).toList(),
+          ),
+        ),
+      )
+          : const Center(child: CircularProgressIndicator()),
     );
   }
 
-  ///🔹Creates a ticket purchase UI with price, discount, and buy button.
-  static Widget _buyTicketBox(BuildContext context, String tickets, String originalPrice,
-      String discount, String price, String img, VoidCallback onClick,) {
+  String _getPrice(String productId) {
+    try {
+      return _products.firstWhere((e) => e.id == productId).price;
+    } catch (e) {
+      return "loading...";
+    }
+  }
+
+
+  Widget _buyTicketBox(BuildContext context, Map<String, dynamic> data, String livePrice) {
     ColorScheme theme = Theme.of(context).colorScheme;
+    final tickets = data['tickets'];
+    final original = data['originalPrice'];
+    final discount = data['discount'];
+    final img = data['img'];
+    final id = data['id'];
 
     return SizedBox(
       width: 150,
       child: Stack(
         children: [
           const SizedBox(width: 140, height: 170),
-
-          //🔹 Background container Transparent
           Positioned(
             top: 30,
             child: Container(
@@ -108,12 +160,10 @@ class BuyTickets extends StatelessWidget {
                 color: Colors.yellow.shade200,
                 borderRadius: BorderRadius.circular(7),
                 border: Border.all(color: Colors.black, width: 1),
-                  boxShadow: [BoxShadow(color: theme.onPrimaryFixed, offset: Offset(0, -3), blurRadius: 3, spreadRadius: 3)]
+                boxShadow: [BoxShadow(color: theme.onPrimaryFixed, offset: const Offset(0, 7), blurRadius: 10, spreadRadius: 2)],
               ),
             ),
           ),
-
-          //🔹 Tickets number background
           Positioned(
             top: 45,
             child: Container(
@@ -121,13 +171,14 @@ class BuyTickets extends StatelessWidget {
               height: 35,
               decoration: const BoxDecoration(
                 color: Colors.yellow,
-                border: Border(left: BorderSide(color: Colors.black, width: 1),
-                    bottom: BorderSide(color: Colors.black, width: 1),right: BorderSide(color: Colors.black, width: 1)),
+                border: Border(
+                  left: BorderSide(color: Colors.black, width: 1),
+                  bottom: BorderSide(color: Colors.black, width: 1),
+                  right: BorderSide(color: Colors.black, width: 1),
+                ),
               ),
             ),
           ),
-
-          //🔹 Tickets number text with icon
           Positioned(
             top: 47,
             child: SizedBox(
@@ -137,19 +188,16 @@ class BuyTickets extends StatelessWidget {
                 children: [
                   const Icon(Icons.payments_outlined, size: 20, color: Colors.black),
                   const SizedBox(width: 5),
-                  Text(tickets, style: Theme.of(context).textTheme.labelMedium?.
-                  copyWith(fontSize: 22, color: Colors.black,),
-                  ),
-                ],),
+                  Text(tickets, style: Theme.of(context).textTheme.labelMedium?.copyWith(fontSize: 22, color: Colors.black)),
+                ],
+              ),
             ),
           ),
-
-          //🔹 Original price
           Positioned(
             top: 87,
             child: SizedBox(
               width: 140,
-              height: 20,
+              height: 24,
               child: Container(
                 margin: const EdgeInsets.symmetric(horizontal: 10),
                 alignment: Alignment.center,
@@ -158,22 +206,17 @@ class BuyTickets extends StatelessWidget {
                     colors: [Colors.yellow.shade200, Colors.amber, Colors.yellow.shade200],
                   ),
                 ),
-                child: Text('Price: \$$originalPrice',
-                  style: Theme.of(context).textTheme.displaySmall?.copyWith(fontSize: 16, color: Colors.red,),),
+                child: Text('$livePrice', style: Theme.of(context).textTheme.displaySmall?.copyWith(fontSize: 20, color: Color(0xFF006506))),
               ),
             ),
           ),
-
-          //🔹Discount text
           Positioned(
-            top: 113,
+            top: 114,
             left: 0,
             right: 0,
             child: Text('Discount $discount%', textAlign: TextAlign.center,
-              style: Theme.of(context).textTheme.displaySmall?.copyWith(fontSize: 14, color: Colors.black,),),
+                style: Theme.of(context).textTheme.displaySmall?.copyWith(fontSize: 13, fontWeight: FontWeight.bold, color: Colors.black)),
           ),
-
-          //🔹Buy Button
           Positioned(
             top: 135,
             child: SizedBox(
@@ -183,22 +226,27 @@ class BuyTickets extends StatelessWidget {
                 padding: const EdgeInsets.symmetric(horizontal: 13),
                 child: MyButton(
                   ico: Icons.shopping_cart_outlined,
-                  txt: 'Buy \$$price',
+                  txt: 'Buy Now',
                   pading: const EdgeInsets.symmetric(horizontal: 10, vertical: 0),
-                  bgColor: theme.primaryContainer, borderColor: theme.primaryFixed,
-                  borderLineOn: true, borderLineSize: 0.5, txtColor: theme.primaryFixed,
-                  borderRadius: 5, icoSize: 16, txtSize: 14, onClick: onClick,
+                  bgColor: theme.primaryContainer,
+                  borderColor: theme.primaryFixed,
+                  borderLineOn: true,
+                  borderLineSize: 0.5,
+                  txtColor: theme.primaryFixed,
+                  borderRadius: 5,
+                  icoSize: 16,
+                  txtSize: 14,
+                  onClick: () => _buyProduct(id),
                 ),
               ),
             ),
           ),
-
-          //🔹Ticket image
           Positioned(
             top: 0,
             child: SizedBox(
               width: 140,
-              child: Align(alignment: Alignment.center,
+              child: Align(
+                alignment: Alignment.center,
                 child: Image.asset('assets/ico/$img', width: 70),
               ),
             ),

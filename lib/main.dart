@@ -5,6 +5,7 @@ import 'package:app/server_model/provider/leaderboard_reward.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:flutter/material.dart';
+import 'package:in_app_purchase/in_app_purchase.dart';
 import 'package:provider/provider.dart';
 import 'pages/sidebar_pages/earn_rewards.dart';
 import 'screen/intro_screen/flash.dart';
@@ -31,6 +32,8 @@ Future<void> _firebaseMessagingBackgroundHandler(RemoteMessage message) async {
 
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
+  InAppPurchase.instance.isAvailable();
+
   await Firebase.initializeApp();
 
   // 🔹 Initialize Firebase Remote Config

@@ -67,6 +67,7 @@ flutter {
 
 dependencies {
     implementation("com.google.android.material:material:1.11.0")
+    implementation("com.android.billingclient:billing:6.1.0")
     implementation("androidx.multidex:multidex:2.0.1")
     implementation("com.google.android.play:integrity:1.4.0")
     coreLibraryDesugaring("com.android.tools:desugar_jdk_libs:2.1.4")

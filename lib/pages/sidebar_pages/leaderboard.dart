@@ -122,7 +122,7 @@ class _LeaderboardScreenState extends State<LeaderboardScreen> {
   Widget build(BuildContext context) {
     ColorScheme theme = Theme.of(context).colorScheme;
     TextTheme textTheme = Theme.of(context).textTheme;
-    final userProvider = Provider.of<UserProvider>(context, listen: false);
+    final userProvider = context.watch<UserProvider>();
 
     return Scaffold(
       appBar: AppBar(title: const Text('Leaderboard'),
@@ -191,7 +191,7 @@ class _LeaderboardScreenState extends State<LeaderboardScreen> {
                                 Text('Score', style: textTheme.labelSmall?.copyWith(color: theme.primaryFixed, fontSize: 18)),
                               ],),
                             ),
-                            (_isLoading)? Container(
+                            (_isLoading || userProvider.isCurrentUserLoading)? Container(
                                 alignment: Alignment.center,
                                 margin: EdgeInsets.only(top: 100),
                                 child: CircularProgressIndicator(color: theme.onPrimaryContainer,)):

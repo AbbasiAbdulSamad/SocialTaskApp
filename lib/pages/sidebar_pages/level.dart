@@ -24,6 +24,7 @@ class _LevelState extends State<Level> {
   late LevelDataProvider _levelDataProvider;
   late UserProvider _userProvider;
   late LevelUpProvider _levelUpAPI;
+  bool _isLoading = true;
 
   @override
   void initState() {
@@ -59,6 +60,7 @@ class _LevelState extends State<Level> {
     });
   }
 
+
   @override
   void dispose() {
     super.dispose();
@@ -66,22 +68,35 @@ class _LevelState extends State<Level> {
 
   @override
   Widget build(BuildContext context) {
-    final theme = Theme.of(context).colorScheme;
+    ColorScheme theme = Theme.of(context).colorScheme;
     final textTheme = Theme.of(context).textTheme;
     final titleText = textTheme.labelMedium;
-
     final userProvider = context.watch<UserProvider>();
     final levelProvider = context.watch<LevelDataProvider>();
     final currentUser = userProvider.currentUser;
 
-    // ✅ If user is null, show message in body (but app bar stays)
+    if (userProvider.isCurrentUserLoading && currentUser == null) {
+      return Scaffold(
+        appBar: AppBar(title: const Text('Level')),
+        body: Center(child: CircularProgressIndicator(color: theme.onPrimaryContainer)),
+      );
+    }
+
     if (currentUser == null) {
       return Scaffold(
-        appBar: AppBar(title: const Text('Level'),),
-        body: Center(child: Ui.buildNoInternetUI(theme, textTheme, false, 'No internet connection',
-            'Can\'t reach server. Please check your internet connection', Icons.wifi_off,
-                ()=> userProvider.fetchCurrentUser())),
-      );}
+        appBar: AppBar(title: const Text('Level')),
+        body: Center(child: Ui.buildNoInternetUI(
+          theme,
+          textTheme,
+          false,
+          'No internet connection',
+          'Can\'t reach server. Please check your internet connection',
+          Icons.wifi_off,
+              () => userProvider.fetchCurrentUser(),
+        )),
+      );
+    }
+
 
     // ✅ Now it's safe to use currentUser!
     double levelProgress = (currentUser.levelData.achieveScore >= currentUser.levelData.targetScore) ? 1.0

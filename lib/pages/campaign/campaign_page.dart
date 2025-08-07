@@ -206,7 +206,7 @@ class _CampaignPageState extends State<CampaignPage> {
                                             context: context,
                                             title: campaign['title']!,
                                             videoUrl: campaign['videoUrl']!,
-                                            watchTime: campaign['watchTime'],
+                                            watchTime: (campaign['social']=="YouTube")?campaign['watchTime']:0,
                                             quantity: campaign['quantity'],
                                             selectedOption: campaign['selectedOption'],
                                             campaignImg: campaign['campaignImg'],

@@ -46,6 +46,8 @@ class EarnTickets extends StatelessWidget {
   Widget build(BuildContext context) {
     // Theme and text styles
     ColorScheme theme = Theme.of(context).colorScheme;
+    final userProvider = Provider.of<UserProvider>(context);
+    final isLoading = userProvider.isCurrentUserLoading;
 
     return Scaffold(backgroundColor: theme.primaryFixed,
         appBar: AppBar(title: const Text('Earn Rewards', style: TextStyle(fontSize: 18)),
@@ -53,55 +55,70 @@ class EarnTickets extends StatelessWidget {
             statusBarColor: theme.surfaceTint,
             statusBarIconBrightness: Brightness.light,),
         ),
-        body:  SingleChildScrollView(
-          child: Column(
-            children: [
-            BgBox(
-                wth: double.infinity,
-                margin: const EdgeInsets.symmetric(horizontal: 12, vertical: 12),
-                allRaduis: 8,
-                child: Column(children: [
-            // Box heading icon/text function
-                  boxHeading(context, 'challenge.svg', 'Regular Challenges'),
-                  Ui.line(),
-            // Childs
-                  earnReward(context, Icons.wallet_giftcard_sharp, 'Daily Reward', '20+', (){
-                    showRewardPopup(context);
-                  }, Colors.green),
-                  Ui.lightLine(),
-                  earnReward(context, Icons.video_collection, 'Watch a short video', '10+', (){
-                    serviceNotFound(context);
-                  }, Colors.indigo),
-                  Ui.lightLine(),
-                  earnReward(context, Icons.message, 'Invite and Earn', '1000+', (){
-                    Navigator.push(context, MaterialPageRoute(builder: (context)=> const Invite()));
-                  }, theme.onPrimaryFixed),
-                  Ui.lightLine(),
-                  earnReward(context, Icons.download, 'Download App', '1000+', (){
-                    serviceNotFound(context);
-                  }, theme.onPrimaryFixed),
-                ],)
+        body:  Stack(
+          children: [
+            SingleChildScrollView(
+              child: Column(
+                children: [
+                BgBox(
+                    wth: double.infinity,
+                    margin: const EdgeInsets.symmetric(horizontal: 12, vertical: 12),
+                    allRaduis: 8,
+                    child: Column(children: [
+                // Box heading icon/text function
+                      boxHeading(context, 'challenge.svg', 'Regular Challenges'),
+                      Ui.line(),
+                // Childs
+                      earnReward(context, Icons.wallet_giftcard_sharp, 'Daily Reward', '20+', (){
+                        showRewardPopup(context);
+                      }, Colors.green),
+                      Ui.lightLine(),
+                      earnReward(context, Icons.video_collection, 'Watch a short video', '10+', (){
+                        serviceNotFound(context);
+                      }, Colors.indigo),
+                      Ui.lightLine(),
+                      earnReward(context, Icons.message, 'Invite and Earn', '1000+', (){
+                        Navigator.push(context, MaterialPageRoute(builder: (context)=> const Invite()));
+                      }, theme.onPrimaryFixed),
+                      Ui.lightLine(),
+                      earnReward(context, Icons.download, 'Download App', '1000+', (){
+                        serviceNotFound(context);
+                      }, theme.onPrimaryFixed),
+                    ],)
+                ),
+
+                  Container(
+                      width: double.infinity,
+                      margin: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+                      child: Column(children: [
+                  //Box heading icon/text function
+                       boxHeading(context, 'heart.svg', 'Follow Offical Social'),
+                        Ui.line(),
+                  // Childs
+                        earnReward(context, Icons.facebook, 'Facebook Page', '5+', (){ launchUrl(Uri.parse('https://web.facebook.com/SocialTaskApp'));}, Colors.blueAccent),
+                        Ui.lightLine(),
+                        earnReward(context, Icons.play_arrow, 'Subscribe Channel', '5+', (){ launchUrl(Uri.parse('https://www.youtube.com/@SocialTaskApp'));}, Colors.red),
+                        Ui.lightLine(),
+                        earnReward(context, Icons.tiktok, 'Follow TikTok', '5+', (){ launchUrl(Uri.parse('https://www.tiktok.com/@socialtaskapp'));}, theme.onPrimaryFixed),
+                        Ui.lightLine(),
+                        earnReward(context, Icons.telegram, 'Join Telegram', '5+', (){ launchUrl(Uri.parse('https://t.me/SocialTaskApp'));}, Colors.lightBlue),
+                      ],)
+                  ),
+                  const SizedBox(height: 20,)
+              ],),
             ),
 
-              Container(
-                  width: double.infinity,
-                  margin: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
-                  child: Column(children: [
-              //Box heading icon/text function
-                   boxHeading(context, 'heart.svg', 'Follow Offical Social'),
-                    Ui.line(),
-              // Childs
-                    earnReward(context, Icons.facebook, 'Facebook Page', '5+', (){ launchUrl(Uri.parse('https://web.facebook.com/SocialTaskApp'));}, Colors.blueAccent),
-                    Ui.lightLine(),
-                    earnReward(context, Icons.play_arrow, 'Subscribe Channel', '5+', (){ launchUrl(Uri.parse('https://www.youtube.com/@SocialTaskApp'));}, Colors.red),
-                    Ui.lightLine(),
-                    earnReward(context, Icons.tiktok, 'Follow TikTok', '5+', (){ launchUrl(Uri.parse('https://www.tiktok.com/@socialtaskapp'));}, theme.onPrimaryFixed),
-                    Ui.lightLine(),
-                    earnReward(context, Icons.telegram, 'Join Telegram', '5+', (){ launchUrl(Uri.parse('https://t.me/SocialTaskApp'));}, Colors.lightBlue),
-                  ],)
+            // 🔄 Loading overlay
+            if (isLoading)
+              Positioned.fill(
+                child: Container(
+                  color: Colors.black.withOpacity(0.4),
+                  child: const Center(
+                    child: CircularProgressIndicator(color: Colors.white),
+                  ),
+                ),
               ),
-              const SizedBox(height: 20,)
-          ],),
+          ],
         )
     );
   }
