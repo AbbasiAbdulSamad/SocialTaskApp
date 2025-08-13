@@ -118,7 +118,7 @@ class _CampaignPageState extends State<CampaignPage> {
             color: theme.onPrimaryContainer,
             onRefresh: () => campaignProvider.fetchCampaigns(forceRefresh: true), // 🔄 Pull-to-Refresh
             child: campaignProvider.isLoading
-                ? Center(child: CircularProgressIndicator(color: theme.onPrimaryContainer)) // ✅ Loader
+                ? Ui.loading(context) // ✅ Loader
                 : campaignProvider.errorMessage.isNotEmpty
                 ? Center(child: Text(campaignProvider.errorMessage, style: const TextStyle(color: Colors.red))) // ⚠️ Error Message
                 : campaignProvider.campaigns.isEmpty
@@ -279,7 +279,9 @@ class _CampaignPageState extends State<CampaignPage> {
                                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                                   children: [
                                     Row(spacing: 3, children: [
-                                      (campaign['social']=="YouTube")?Image.asset('assets/ico/youtube_icon.webp', width: 17,):Image.asset('assets/ico/tiktok_icon.webp', width: 17,),
+                                      (campaign['social']=="YouTube")?Image.asset('assets/ico/youtube_icon.webp', width: 17,):
+                                      (campaign['social']=="TikTok")?Image.asset('assets/ico/tiktok_icon.webp', width: 17,)
+                                      :Image.asset('assets/ico/instagram_icon.webp', width: 17,),
                                       Text("${campaign['selectedOption']}", maxLines: 1, overflow: TextOverflow.ellipsis, style: textTheme.displaySmall?.copyWith(fontSize: 12),),
                                       Text('${campaign['quantity']} / ${campaign['viewers'] != null ? campaign['viewers'].length : 0}', style: textTheme.displaySmall?.copyWith(fontSize: 12, fontWeight: FontWeight.w800),),
                                       (campaign['status']=="Completed")?Icon(Icons.check_circle_rounded, color: Colors.green, size: 15,):SizedBox(),
@@ -331,6 +333,10 @@ class _CampaignPageState extends State<CampaignPage> {
                         Ui.DropdownManu(context, youtube, _selectedOption, 'YouTube', _onDropdownChanged),
                         Ui.lightLine(),
                         Ui.DropdownManu(context, tiktok, _selectedOption, 'TikTok', _onDropdownChanged),
+                        Ui.lightLine(),
+                        Ui.DropdownManu(context, instagram, _selectedOption, 'Instagram', _onDropdownChanged),
+                        Ui.lightLine(),
+                        Ui.DropdownManu(context, webvisit, _selectedOption, 'Website SEO & Visitors', _onDropdownChanged),
                       ],
                     ),
                   ),

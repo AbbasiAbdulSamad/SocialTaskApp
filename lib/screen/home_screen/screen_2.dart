@@ -31,9 +31,9 @@ class _Screen2State extends State<Screen2> with WidgetsBindingObserver{
   @override
   void initState() {
     super.initState();
+    _fetchDataFuture = FetchDataService.fetchData(context, forceRefresh: true);
 
     WidgetsBinding.instance.addObserver(this);
-    _fetchDataFuture = FetchDataService.fetchData(context, forceRefresh: true);
    }
   @override
   void dispose() {
@@ -124,7 +124,7 @@ class _Screen2State extends State<Screen2> with WidgetsBindingObserver{
                     ()=> FetchDataService.fetchData(context, forceRefresh: true));
           }
           if (snapshot.connectionState == ConnectionState.waiting) {
-            return Center(child: CircularProgressIndicator(color: theme.onPrimaryContainer,),);
+            return Ui.loading(context);
           }
 
           return Consumer<AllCampaignsProvider>(
@@ -133,7 +133,7 @@ class _Screen2State extends State<Screen2> with WidgetsBindingObserver{
                   return  Center(child: CircularProgressIndicator(color: theme.onPrimaryContainer,),);
                 } else if (allCampaignsProvider.errorMessage.isNotEmpty) {
                   return Ui.buildNoInternetUI(theme, textTheme, true, allCampaignsProvider.errorMessage.toString(),
-                      'An error has occurred, something went wrong due to which the SocialTask is not working.', Icons.error,
+                      'Unstable network connection. Request timed out. Please check your internet connection.', Icons.portable_wifi_off_rounded,
                           ()=> FetchDataService.fetchData(context, forceRefresh: true));
                 } else if (allCampaignsProvider.allCampaigns.isEmpty) {
                   return Ui.buildNoInternetUI(theme, textTheme, false, 'No Tasks Found',
@@ -178,8 +178,11 @@ class _Screen2State extends State<Screen2> with WidgetsBindingObserver{
                                 child: Ui.networkImage(context, "${campaign['campaignImg']}", 'assets/ico/image_loading.png', 120, 120)
                               ),
                             ),
-                            Image.asset('assets/ico/${campaign['social'] == "YouTube"?'youtube_icon.webp':
-                            'tiktok_icon.webp'}', width: 30,),
+                            Image.asset('assets/ico/${campaign['social'] == "YouTube"
+                                ? 'youtube_icon.webp'
+                                : campaign['social'] == "TikTok"
+                                ? 'tiktok_icon.webp'
+                                : 'instagram_icon.webp'}', width: 30,),
 
                             const SizedBox(height: 10,),
                             Text('${campaign['title']?? 'Unknow'}', maxLines: 1, overflow: TextOverflow.ellipsis,
@@ -211,7 +214,8 @@ class _Screen2State extends State<Screen2> with WidgetsBindingObserver{
 
                               Center(
                                 child: Image.asset('assets/ico/${campaign['social'] == "YouTube"?'youtube_icon.webp':
-                                    'tiktok_icon.webp'}', width: 80,),
+                                campaign['social'] == "TikTok" ? "tiktok_icon.webp"
+                                    : 'instagram_icon.webp'}', width: 80,),
                               ),
                             ],
                           ),
@@ -290,7 +294,7 @@ class _Screen2State extends State<Screen2> with WidgetsBindingObserver{
                                       : campaign['selectedOption'] == "Comments"
                                       ? 'Comment'
                                       : 'Subscribe')
-                                      : campaign['social'] == "TikTok"
+                                      : campaign['social'] == "TikTok" || campaign['social'] == "Instagram"
                                       ? (campaign['selectedOption'] == "Likes"
                                       ? 'Like'
                                       : campaign['selectedOption'] == "Favorites"
@@ -314,7 +318,7 @@ class _Screen2State extends State<Screen2> with WidgetsBindingObserver{
                                       : campaign['selectedOption'] == "Comments"
                                       ? Icons.comment
                                       : Icons.subscriptions_rounded)
-                                      : campaign['social'] == "TikTok"
+                                      : campaign['social'] == "TikTok"|| campaign['social'] == "Instagram"
                                       ? (campaign['selectedOption'] == "Likes"
                                       ? Icons.favorite
                                       : campaign['selectedOption'] == "Favorites"

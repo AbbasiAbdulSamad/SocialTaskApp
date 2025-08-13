@@ -82,7 +82,7 @@ class _MyAccountState extends State<MyAccount> {
             statusBarIconBrightness: Brightness.light,
           ),
         ),
-        body: Center(child: CircularProgressIndicator(color: theme.onPrimaryContainer)),
+        body: Ui.loading(context),
       );
     }
 

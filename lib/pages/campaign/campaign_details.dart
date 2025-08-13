@@ -180,7 +180,9 @@ class _CampaignDetailsState extends State<CampaignDetails> {
                     children: [
                     Row(spacing: 5,
                       children: [
-                        Image.asset('assets/ico/${(widget.social=="YouTube")?"youtube_icon.webp":"tiktok_icon.webp"}', width: 20,),
+                        Image.asset('assets/ico/${(widget.social=="YouTube")?"youtube_icon.webp"
+                            : (widget.social=="TikTok")?"tiktok_icon.webp"
+                            :"instagram_icon.webp"}', width: 20,),
                         Text("${widget.social}", maxLines: 1, overflow: TextOverflow.ellipsis, style: textTheme.displaySmall?.copyWith(fontSize: 14),),
                       ],
                     ),

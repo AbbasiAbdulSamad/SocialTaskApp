@@ -1,30 +1,190 @@
+import 'dart:convert';
+
+import 'package:app/ui/flash_message.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_svg/svg.dart';
+import 'package:http/http.dart' as http;
+import 'package:in_app_purchase/in_app_purchase.dart';
+import '../../config/config.dart';
+import '../../server_model/functions_helper.dart';
 import '../../server_model/premium.dart';
 import '../../ui/bg_box.dart';
 import '../../ui/ui_helper.dart';
 
-class PremiumAccount extends StatelessWidget {
+class PremiumAccount extends StatefulWidget {
    PremiumAccount({super.key});
-   // List of premium plans with details
-  final List<Map<String, dynamic>> _planList = [
-    {'plan':'Weekly Premium', 'textLine':'7-days Unlocked Premium', 'originalPrice':'3.00', 'price':'1.95',
-      'discount':'35', 'onClick':() async{await PremiumSubscription.subscribeToPremium("weekly");
-    }},
 
-    {'plan':'Monthly Premium', 'textLine':'30-days Unlocked Premium', 'originalPrice':'12.00', 'price':'5.99',
-      'discount':'50', 'onClick':() async{await PremiumSubscription.subscribeToPremium("monthly"); }},
+  @override
+  State<PremiumAccount> createState() => _PremiumAccountState();
+}
 
-    {'plan':'Yearly Premium', 'textLine':'360-days+60-days Extra Free', 'originalPrice':'144.00', 'price':'28.80',
-      'discount':'80', 'onClick':() async{await PremiumSubscription.subscribeToPremium("yearly"); }},
+class _PremiumAccountState extends State<PremiumAccount> {
+  final InAppPurchase _iap = InAppPurchase.instance;
+  List<ProductDetails> _products = [];
+  List<Map<String, dynamic>> _planList = [];
+  bool _loading = true;
 
-    {'plan':'Lifetime Plane', 'textLine':'Unlocked Premium Features', 'originalPrice':'1,440', 'price':'71.99',
-      'discount':'95', 'onClick':() async{await PremiumSubscription.subscribeToPremium("lifetime"); }},
-  ];
+  Set<String> _productIds = {'premium_weekly', 'premium_monthly', 'premium_yearly',};
+
+  @override
+  void initState() {
+    super.initState();
+    _initStore();
+    _iap.purchaseStream.listen(_handlePurchaseUpdates);
+  }
+
+  Future<void> _initStore() async {
+    final available = await _iap.isAvailable();
+    if (!available) {
+      setState(() => _loading = false);
+      return;
+    }
+
+    final response = await _iap.queryProductDetails(_productIds);
+    print("Not Found IDs: ${response.notFoundIDs}");
+    print("Fetched products:");
+    response.productDetails.forEach((p) => print("${p.id} - ${p.title} - ${p.price}"));
+
+    setState(() {
+      _products = response.productDetails;
+
+      // Product details ko product ID ke hisaab se group karna
+      Map<String, List<ProductDetails>> groupedProducts = {};
+
+      for (var p in _products) {
+        if (!groupedProducts.containsKey(p.id)) {
+          groupedProducts[p.id] = [];
+        }
+        groupedProducts[p.id]!.add(p);
+      }
+
+      _planList = [];
+
+      groupedProducts.forEach((productId, productList) {
+        // Price ke hisaab se sort karna (numeric price nikal ke)
+        productList.sort((a, b) {
+          double priceA = double.tryParse(_extractDigits(a.price)) ?? 0;
+          double priceB = double.tryParse(_extractDigits(b.price)) ?? 0;
+          return priceA.compareTo(priceB);
+        });
+
+        // Sabse kam price discounted, sabse zyada price original price hoga
+        final discountedProduct = productList.first;
+        final originalProduct = productList.last;
+
+        double originalPriceNum = double.tryParse(_extractDigits(originalProduct.price)) ?? 0;
+        double discountedPriceNum = double.tryParse(_extractDigits(discountedProduct.price)) ?? 0;
+        int discountPercent = 0;
+        if (originalPriceNum > 0) {
+          discountPercent = (((originalPriceNum - discountedPriceNum) / originalPriceNum) * 100).round();
+        }
+
+        _planList.add({
+          'plan': cleanTitle(discountedProduct.title),
+          'textLine': discountedProduct.description,
+          'originalPrice': originalProduct.price,
+          'price': discountedProduct.price,
+          'discount': discountPercent.toString(),
+          'onClick': () => _buy(discountedProduct),
+        });
+      });
+
+      // Ab custom sort lagayen — "Weekly Premium" sabse pehle aayega
+      _planList.sort((a, b) {
+        if (a['plan'].toString().toLowerCase().contains('weekly')) {
+          return -1;  // a ko b se pehle rakho
+        } else if (b['plan'].toString().toLowerCase().contains('weekly')) {
+          return 1;   // b ko a se pehle rakho
+        } else {
+          return 0;   // baki order jaisa hai waise hi rehne do
+        }
+      });
+
+      _loading = false;
+    });
+  }
+// Clean (Social Task Name)
+  String cleanTitle(String title) {
+    return title.replaceAll(RegExp(r'\s*\(Social Task\)'), '');
+  }
+// Helper function jo price string me se digits nikalti hai
+  String _extractDigits(String price) {
+    return price.replaceAll(RegExp(r'[^\d.]'), '');
+  }
+
+
+  void _buy(ProductDetails product) {
+    final purchaseParam = PurchaseParam(productDetails: product);
+    _iap.buyNonConsumable(purchaseParam: purchaseParam);
+  }
+
+  void _handlePurchaseUpdates(List<PurchaseDetails> purchaseDetailsList) async {
+    for (var purchase in purchaseDetailsList) {
+      if (purchase.status == PurchaseStatus.purchased) {
+        // Plan ID
+        String planId = purchase.productID;
+
+        // Backend API call
+        final result = await subscribeToPremium(planId, purchase.verificationData.serverVerificationData,);
+
+        // SnackBar message show
+        if (result.containsKey("error")) {
+          _showSnackBar(context, result["error"], isError: true);
+        } else {
+          _showSnackBar(context, "Premium subscription active successful!", isError: false);
+        }
+
+        // Complete purchase
+        InAppPurchase.instance.completePurchase(purchase);
+      }
+    }
+  }
+
+  void _showSnackBar(BuildContext context, String message, {bool isError = false}) {
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Text(message, style: TextStyle(fontSize: 16),),
+        backgroundColor: isError ? Colors.red : Colors.green,
+        behavior: SnackBarBehavior.floating,
+        duration: Duration(seconds: 3),
+      ),
+    );
+  }
+
+  Future<Map<String, dynamic>> subscribeToPremium(String planId, String purchaseToke) async {
+    try {
+      String? userEmail = await Helper.getFirebaseEmail();
+      if (userEmail == null) {
+        return {"error": "User not authenticated"};
+      }
+
+      // Send API request to subscribe to premium
+      final response = await http.post(
+        Uri.parse(ApiPoints.premiumSubAPi),
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: jsonEncode({
+          "plan": planId,
+          "purchaseToken": purchaseToke,
+          "userEmail": userEmail,
+        }),
+      );
+      // Handle response
+      if (response.statusCode == 200) {
+        AlertMessage.flashMsg(context, "Your premium account has been activated.", "Congratulations!", Icons.workspace_premium, 10);
+        return jsonDecode(response.body);
+      } else {
+        return {"error": "Failed to subscribe: ${response.body}"};
+      }
+    } catch (e) {
+      return {"error": "Error: $e"};
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -74,8 +234,8 @@ class PremiumAccount extends StatelessWidget {
                               rows: [
                                 DataRow(cells: [
                                   DataCell(Text('AutoPlay', style: textStyle,)),
-                                  DataCell(Center(child: Icon(Icons.close, color: theme.secondaryFixedDim,))),
-                                  DataCell(Center(child: Icon(Icons.done, color: theme.errorContainer,))),
+                                  DataCell(Center(child: Text('20', style: textStyleFree,))),
+                                  DataCell(Center(child: Text('1000', style: textStyleVip,))),
                                 ]),
                                 DataRow(cells: [
                                   DataCell(Text('Ads', style: textStyle,)),
@@ -84,8 +244,8 @@ class PremiumAccount extends StatelessWidget {
                                 ]),
                                 DataRow(cells: [
                                   DataCell(Text('Daily Tickets', style: textStyle,)),
-                                  DataCell(Center(child: Text('1x', style: textStyleFree,))),
-                                  DataCell(Center(child: Text('10x', style: textStyleVip,))),
+                                  DataCell(Center(child: Text('20', style: textStyleFree,))),
+                                  DataCell(Center(child: Text('100', style: textStyleVip,))),
                                 ]),
                                 DataRow(cells: [
                                   DataCell(Text('Bonus', style: textStyle,)),
@@ -113,12 +273,12 @@ class PremiumAccount extends StatelessWidget {
                                   DataCell(Center(child: Text('Fast', style: textStyleVip,))),
                                 ]),
                                 DataRow(cells: [
-                                  DataCell(Text('Task CountDown', style: textStyle,)),
-                                  DataCell(Center(child: Text('Full', style: textStyleFree,))),
-                                  DataCell(Center(child: Text('Half', style: textStyleVip,))),
+                                  DataCell(Text('Rewards', style: textStyle,)),
+                                  DataCell(Center(child: Text('1x', style: textStyleFree,))),
+                                  DataCell(Center(child: Text('10x', style: textStyleVip,))),
                                 ]),
                               ],),
-                            const SizedBox(height: 540,)
+                            const SizedBox(height: 400,)
                           ],),
                       ),
                     ),
@@ -149,20 +309,26 @@ class PremiumAccount extends StatelessWidget {
                               child: Text('PREMIUM PLANS',style: textStyle?.copyWith(color: theme.primaryFixed, fontSize: 20))),
 
                           // List of premium plans
-                         ListView.builder(
-                             physics: const NeverScrollableScrollPhysics(), // Disables scrolling
-                             shrinkWrap: true, // Ensures proper height inside Column
-                             itemCount: _planList.length,
-                             itemBuilder: (context, index){
-                           return _premiumPlan(context,
-                               _planList[index]['plan'] ?? 'loading...',
-                               _planList[index]['textLine'] ?? 'loading...',
-                               _planList[index]['originalPrice'] ?? 'loading...',
-                               _planList[index]['price'] ?? '',
-                               _planList[index]['discount'] ?? '',
-                               _planList[index]['onClick']);
-                         }),
-                          const SizedBox(height: 20,),
+                    _planList.isEmpty
+                        ? Ui.loading(context)
+                        : ListView.builder(
+                      shrinkWrap: true,
+                      physics: NeverScrollableScrollPhysics(),
+                      itemCount: _planList.length,
+                      itemBuilder: (context, index) {
+                        final plan = _planList[index];
+                        return _premiumPlan(
+                          context,
+                          plan['plan'],
+                          plan['textLine'],
+                          plan['originalPrice'],
+                          plan['price'],
+                          plan['discount'],
+                          plan['onClick'],
+                        );
+                      },
+                    ),
+                    const SizedBox(height: 20,),
 
                           // Subscription renewal info
                           Container(
@@ -206,7 +372,6 @@ class PremiumAccount extends StatelessWidget {
     );
   }
 
-
    // Premium Plan List Widget
    Widget _premiumPlan(BuildContext context, String planName, String textLine,
        String originalPrice, String price, String discount, VoidCallback onClick){
@@ -216,7 +381,7 @@ class PremiumAccount extends StatelessWidget {
        onTap: onClick,
        child: Container(
          padding: const EdgeInsets.symmetric(horizontal: 5, vertical: 5),
-         margin: const EdgeInsets.symmetric(horizontal: 20, vertical: 6),
+         margin: const EdgeInsets.symmetric(horizontal: 20, vertical: 8),
          width: double.infinity,
          decoration: BoxDecoration(
            gradient: LinearGradient(colors: [Colors.orange, Colors.yellow.shade100]),
@@ -252,11 +417,9 @@ class PremiumAccount extends StatelessWidget {
                          ),
                        ),
 
-                       // Dollar sign
-                       Text('\$', style: textStyle?.copyWith(fontSize: 20, height: 1, color: Colors.black),),
 
                        // Original price with strikethrough
-                       Text(originalPrice, style: textStyle?.copyWith(fontSize: 22, color: Colors.black,
+                       Text(originalPrice, style: textStyle?.copyWith(fontSize: 18, color: Colors.black,
                          decoration: TextDecoration.lineThrough, decorationThickness: 2,
                          decorationColor: Colors.red,
                        ),),
@@ -269,12 +432,12 @@ class PremiumAccount extends StatelessWidget {
 
              // Right-side price box
              Container(
-               padding: const EdgeInsets.only(top: 1),
+               padding: const EdgeInsets.symmetric(horizontal: 3, vertical: 1),
                decoration: BoxDecoration(color: Colors.amber, borderRadius: BorderRadius.circular(7),),
                child: Column(
                  children: [
                    // Discounted price
-                   Text('\$$price', style: textStyle?.copyWith(fontSize: 20, color: Colors.black),),
+                   Text('$price', style: textStyle?.copyWith(fontSize: 20, color: Colors.black),),
 
                    // Discount percentage box
                    Container(

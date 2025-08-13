@@ -1,6 +1,7 @@
 import 'package:app/server_model/functions_helper.dart';
 import 'package:app/server_model/provider/daily_reward.dart';
 import 'package:app/server_model/provider/leaderboard_reward.dart';
+import 'package:app/server_model/remote_config_service.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../server_model/provider/fetch_taskts.dart';
@@ -8,7 +9,7 @@ import '../server_model/provider/level_update_api.dart';
 import '../server_model/provider/users_provider.dart';
 import '../server_model/internet_provider.dart';
 import '../ui/pop_reward.dart';
-import 'update_App_version.dart';
+import 'update_checking_playstore.dart';
 
 class FetchDataService with ChangeNotifier{
   static bool _isApiCalled = false;
@@ -40,6 +41,7 @@ class FetchDataService with ChangeNotifier{
       if (!_isApiCalled) {
         _isApiCalled = true;
         VersionChecker().checkAppVersion(context);
+        RemoteConfigService().checkManullayUpdate(context);
         await userProvider.trackActiveUsers();
       }
 

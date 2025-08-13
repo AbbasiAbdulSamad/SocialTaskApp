@@ -1,10 +1,12 @@
 import 'package:app/config/config.dart';
 import 'package:app/server_model/functions_helper.dart';
+import 'package:app/ui/flash_message.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:http/http.dart' as http;
 import 'package:in_app_purchase/in_app_purchase.dart';
 import '../../ui/button.dart';
+import '../../ui/ui_helper.dart';
 
 class BuyTickets extends StatefulWidget {
   const BuyTickets({super.key});
@@ -17,6 +19,7 @@ class _BuyTicketsState extends State<BuyTickets> {
   final InAppPurchase _iap = InAppPurchase.instance;
   bool _available = false;
   List<ProductDetails> _products = [];
+  int buyedTickets = 0;
 
   final List<Map<String, dynamic>> _ticketPrice = [
     {'tickets': '500', 'discount': '1', 'img': '1xTickets.webp', 'id': 'tickets_500'},
@@ -61,6 +64,9 @@ class _BuyTicketsState extends State<BuyTickets> {
         try {
           final response = await http.post(
             Uri.parse(ApiPoints.buyTickets),
+            headers: {
+              "Content-Type": "application/json",
+            },
             body: {
               "productId": purchase.productID,
               "purchaseToken": purchase.verificationData.serverVerificationData,
@@ -69,24 +75,34 @@ class _BuyTicketsState extends State<BuyTickets> {
           );
 
           if (response.statusCode == 200) {
-            ScaffoldMessenger.of(context).showSnackBar(
-              const SnackBar(content: Text("Tickets Purchased successfully!")),
-            );
             await _iap.completePurchase(purchase); // confirm the purchase
+            if(purchase.productID=="tickets_500"){
+              setState((){buyedTickets = 500;});
+            }else if(purchase.productID=="1000_tickets"){
+              setState((){buyedTickets = 1000;});
+            }else if(purchase.productID=="tickets_2000"){
+              setState((){buyedTickets = 2000;});
+            }else if(purchase.productID=="tickets_3000"){
+              setState((){buyedTickets = 3000;});
+            }else if(purchase.productID=="5000_tickets"){
+              setState((){buyedTickets = 5000;});
+            }else if(purchase.productID=="tickets_10000"){
+              setState((){buyedTickets = 10000;});
+            }
+            AlertMessage.snackMsg(context: context, message: "$buyedTickets Tickets Purchased successfully!");
+
+            Future.delayed(Duration(milliseconds: 10000), () async {
+              setState((){buyedTickets = 0;});
+            });
+
           } else {
-            ScaffoldMessenger.of(context).showSnackBar(
-              SnackBar(content: Text("❌ Verification failed: ${response.body}")),
-            );
+            AlertMessage.snackMsg(context: context, message: "Verification failed: ${response.body}");
           }
         } catch (e) {
-          ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(content: Text("❌ Error: $e")),
-          );
+          AlertMessage.snackMsg(context: context, message: "! Error: $e");
         }
       } else if (purchase.status == PurchaseStatus.error) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text("❌ Purchase failed")),
-        );
+        AlertMessage.snackMsg(context: context, message: "Purchase canceled");
       }
     }
   }
@@ -102,30 +118,40 @@ class _BuyTicketsState extends State<BuyTickets> {
   @override
   Widget build(BuildContext context) {
     ColorScheme theme = Theme.of(context).colorScheme;
-    return Scaffold(
-      backgroundColor: theme.primaryFixed,
-      appBar: AppBar(
-        title: const Text('Purchase Tickets', style: TextStyle(fontSize: 18)),
-        systemOverlayStyle: SystemUiOverlayStyle(
-          statusBarColor: theme.surfaceTint,
-          statusBarIconBrightness: Brightness.light,
-        ),
-      ),
-      body: _available
-          ? Padding(
-        padding: const EdgeInsets.symmetric(vertical: 30, horizontal: 16),
-        child: Center(
-          child: Wrap(
-            alignment: WrapAlignment.center,
-            spacing: 20,
-            runSpacing: 50,
-            children: _ticketPrice.map((ticket) {
-              return _buyTicketBox(context, ticket, _getPrice(ticket['id']));
-            }).toList(),
+    return Stack(
+      children: [
+        Scaffold(
+          backgroundColor: theme.primaryFixed,
+          appBar: AppBar(
+            title: const Text('Purchase Tickets', style: TextStyle(fontSize: 18)),
+            systemOverlayStyle: SystemUiOverlayStyle(
+              statusBarColor: theme.surfaceTint,
+              statusBarIconBrightness: Brightness.light,
+            ),
           ),
+          body: _available
+              ? Padding(
+            padding: const EdgeInsets.symmetric(vertical: 30, horizontal: 16),
+            child: Center(
+              child: Wrap(
+                alignment: WrapAlignment.center,
+                spacing: 20,
+                runSpacing: 50,
+                children: _ticketPrice.map((ticket) {
+                  return _buyTicketBox(context, ticket, _getPrice(ticket['id']));
+                }).toList(),
+              ),
+            ),
+          )
+              : Ui.loading(context)
         ),
-      )
-          : const Center(child: CircularProgressIndicator()),
+
+        (buyedTickets>0)?
+        Positioned(left: 0, right: 0, top: 200,
+            child: Ui.bgShineRays(context, buyedTickets))
+            :SizedBox()
+
+      ],
     );
   }
 

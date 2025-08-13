@@ -112,12 +112,11 @@ class EarnTickets extends StatelessWidget {
             if (isLoading)
               Positioned.fill(
                 child: Container(
-                  color: Colors.black.withOpacity(0.4),
-                  child: const Center(
-                    child: CircularProgressIndicator(color: Colors.white),
-                  ),
-                ),
-              ),
+                  height: double.infinity,
+                  width: double.infinity,
+                  color: Colors.black.withOpacity(0.3),
+                  child: Ui.loading(context)),
+              )
           ],
         )
     );

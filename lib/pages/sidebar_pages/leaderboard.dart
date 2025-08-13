@@ -131,7 +131,7 @@ class _LeaderboardScreenState extends State<LeaderboardScreen> {
           statusBarIconBrightness: Brightness.light,),
       ),
 
-      body: (userProvider.currentUser == null)?
+      body: (userProvider.currentUser == null && !userProvider.isCurrentUserLoading)?
       Center(child: Ui.buildNoInternetUI(theme, textTheme, false, 'No internet connection',
           'Can\'t reach server. Please check your internet connection', Icons.wifi_off,
               ()=> userProvider.fetchCurrentUser())):
@@ -194,7 +194,7 @@ class _LeaderboardScreenState extends State<LeaderboardScreen> {
                             (_isLoading || userProvider.isCurrentUserLoading)? Container(
                                 alignment: Alignment.center,
                                 margin: EdgeInsets.only(top: 100),
-                                child: CircularProgressIndicator(color: theme.onPrimaryContainer,)):
+                                child: Ui.loading(context)):
                             Expanded(
                               child: SingleChildScrollView(
                                 child: ListView.builder(

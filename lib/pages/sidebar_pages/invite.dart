@@ -84,7 +84,7 @@ class _InviteState extends State<Invite> {
           await userProvider.fetchCurrentUser();
         },
           child: SingleChildScrollView(
-            child: userProvider.currentUser == null
+            child: (userProvider.currentUser == null && !userProvider.isCurrentUserLoading)
                 ? Container(width: double.infinity, height: 600, alignment: Alignment.center,
                 child: Ui.buildNoInternetUI(theme, textTheme, false, 'No internet connection',
                 'Can\'t reach server. Please check your internet connection', Icons.wifi_off,
@@ -172,8 +172,8 @@ class _InviteState extends State<Invite> {
                       ),
                     ),
 
-                             isLoading
-                    ? Container(width: double.infinity, height: 200, alignment: Alignment.center,child: CircularProgressIndicator( color: theme.onPrimaryContainer,))
+                    isLoading
+                    ? Container(width: double.infinity, height: 200, alignment: Alignment.center,child: Ui.loading(context))
                     : referrals.isEmpty
                     ? const Column(
                       children: [

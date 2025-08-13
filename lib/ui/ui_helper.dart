@@ -9,6 +9,20 @@ import 'package:url_launcher/url_launcher.dart';
 import 'button.dart';
 
 class Ui{
+  static loading(BuildContext context){
+    ColorScheme theme = Theme.of(context).colorScheme;
+    return Center(
+      child: Column(spacing: 12,
+        mainAxisAlignment: MainAxisAlignment.center,
+        crossAxisAlignment: CrossAxisAlignment.center,
+        children: [
+          CircularProgressIndicator(color: theme.onPrimaryContainer,),
+          Text('Loading...', style: TextStyle(fontFamily: '3rdRoboto', fontSize: 16, color: theme.onPrimaryContainer,),)
+        ],
+      ),
+    );
+  }
+
   /// ✅ No Internet UI
  static buildNoInternetUI(ColorScheme theme, TextTheme textTheme,bool errorEx, String title, String dec, IconData icon, VoidCallback onClick){
     return Container(
@@ -34,6 +48,7 @@ class Ui{
 //🔹Sidebar Page Label Widget
   static sidebarLabel(IconData icon, String text, VoidCallback onclick) {
     return ListTile(
+      minTileHeight: 45,
       leading: Container(margin: const EdgeInsets.only(left: 10),
           child: Icon(icon, size: 22,)
       ),

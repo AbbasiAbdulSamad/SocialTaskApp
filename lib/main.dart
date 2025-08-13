@@ -26,7 +26,6 @@ String? incomingReferralCode;
 
 /// Firebase background handler
 Future<void> _firebaseMessagingBackgroundHandler(RemoteMessage message) async {
-  await Firebase.initializeApp();
   debugPrint("🔙 Handling background message: ${message.messageId}");
 }
 

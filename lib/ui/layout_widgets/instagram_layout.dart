@@ -8,12 +8,16 @@ import '../flash_message.dart';
 import '../bg_box.dart';
 import '../button.dart';
 import '../ui_helper.dart';
-class TiktokLayout extends StatelessWidget {
+class InstagramLayout extends StatelessWidget {
   final String thumbnailUrl;
   final String videoTitle;
   final String accountName;
-  final String accountUrl;
+  final String accountProfile;
   final String taskUrl;
+  final int videoViews;
+  final int videoLikes;
+  final int Followers;
+  final bool isReel;
 
   final GlobalKey formKey;
   final ValueNotifier<String?> selectedCategory;
@@ -25,13 +29,26 @@ class TiktokLayout extends StatelessWidget {
   final String ytService;
   final IconData ytServiceIcon;
 
-  TiktokLayout({super.key, required this.thumbnailUrl, required this.videoTitle, required this.accountName, required this.accountUrl,
+  InstagramLayout({super.key, required this.thumbnailUrl, required this.videoTitle, required this.accountName, required this.accountProfile,
     required this.taskUrl, required this.formKey, required this.selectedCategory, required this.quantitySubscribers,
-    required this.buttonAction, required this.totalNotifier, required this.discountNotifier, required this.updateTotal, required this.ytService, required this.ytServiceIcon})
+    required this.buttonAction, required this.totalNotifier, required this.discountNotifier, required this.updateTotal,
+    required this.ytService, required this.ytServiceIcon, required this.videoViews, required this.videoLikes,
+    required this.Followers, required this.isReel,})
   { // initState auto start Value Listener
     quantitySubscribers.addListener(updateTotal);
     selectedCategory.addListener(updateTotal);
   }
+
+  String formatCount(int views) {
+    if (views >= 1000000) {
+      return "${(views / 1000000).toStringAsFixed(1)}M";
+    } else if (views >= 1000) {
+      return "${(views / 1000).toStringAsFixed(1)}k";
+    } else {
+      return views.toString();
+    }
+  }
+
 
   @override
   Widget build(BuildContext context) {
@@ -59,34 +76,58 @@ class TiktokLayout extends StatelessWidget {
                   left: 0, right: 0, bottom: 10,
                   child: Padding(
                     padding:const EdgeInsets.symmetric(horizontal: 20),
-                    child: Column(
+                    child: Column( crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
                         Padding(
                           padding:const EdgeInsets.symmetric(horizontal: 10),
-                          child: Text(videoTitle, maxLines: 4, overflow: TextOverflow.ellipsis,
-                            style: textTheme.displaySmall?.copyWith(
-                              fontSize: 16, fontWeight: FontWeight.bold, color: Colors.white,),
+                          child: Row(crossAxisAlignment: CrossAxisAlignment.end,
+                            spacing: 5,
+                            children: [
+                              Expanded(
+                                child: Text(videoTitle, maxLines: 2, overflow: TextOverflow.ellipsis,
+                                  style: textTheme.displaySmall?.copyWith(
+                                    fontSize: 16, fontWeight: FontWeight.bold, color: Colors.white,),
+                                ),
+                              ),
+                              Column(
+                                children: [
+                                 const Icon(Icons.supervised_user_circle_sharp, size: 25, color: Colors.white),
+                                  Text(formatCount(Followers), style: TextStyle(fontSize: 15, color: Colors.white, fontWeight: FontWeight.bold)),
+                                 const SizedBox(height: 10,),
+                                 const Icon(Icons.favorite, size: 25, color: Colors.white),
+                                  Text(formatCount(videoLikes), style: TextStyle(fontSize: 15, fontWeight: FontWeight.bold, color: Colors.white)),
+                                ],
+                              ),
+
+                            ],
                           ),
                         ),
                         const SizedBox(height: 6),
 
                         InkWell(
-                          onTap: ()=> launchUrl(Uri.parse(accountUrl)),
+                          onTap: ()=> launchUrl(Uri.parse('https://www.instagram.com/$accountName')),
                           child: Container(
                             color: Colors.black54,
-                            padding:const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
-                            child: Row(children: [
-                              Container(width: 40,
+                            padding: EdgeInsets.symmetric(horizontal: 10, vertical: 5),
+                            child: Row(spacing: 3,
+                                children: [
+                              Container(width: 40, height: 40,
                                 decoration: BoxDecoration(shape: BoxShape.circle,
                                   border: Border.all(color: Colors.white, width: 1,),),
                                 child: ClipOval(
-                                  child: Image.asset('assets/ico/tiktok_icon.webp', fit: BoxFit.cover,),
+                                  child: Ui.networkImage(context, accountProfile, 'assets/ico/user_profile.webp', 50, 50),
                                 ),
                               ),
                               const SizedBox(width: 8),
                               Expanded(
                                 child: Text(accountName, maxLines: 1, overflow: TextOverflow.ellipsis, style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: Colors.white,),),
                               ),
+                                  (isReel)?Row(spacing: 3,
+                                children: [
+                                  const Icon(Icons.remove_red_eye_outlined, size: 16, color: Colors.white,),
+                                  Text(formatCount(videoViews), style: TextStyle(fontSize: 16, color: Colors.white),),
+                                ],
+                               ):const SizedBox(),
                             ]),
                           ),
                         ),
@@ -95,12 +136,13 @@ class TiktokLayout extends StatelessWidget {
                   ),
                 ),
 
-
+                (isReel)?
                 Positioned(
                     left: 0, right: 0, top: 215,
                     child: InkWell(
                         onTap: ()=> launchUrl(Uri.parse(taskUrl)),
-                        child: Image.asset("assets/ico/tiktok_play_icon.webp", width: 70, height: 70,)))
+                        child: Image.asset("assets/ico/tiktok_play_icon.webp", width: 70, height: 70,))
+                ):const SizedBox()
               ],
             ),
             // Title and Profile Box

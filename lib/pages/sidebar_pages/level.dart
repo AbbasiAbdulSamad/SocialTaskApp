@@ -78,7 +78,7 @@ class _LevelState extends State<Level> {
     if (userProvider.isCurrentUserLoading && currentUser == null) {
       return Scaffold(
         appBar: AppBar(title: const Text('Level')),
-        body: Center(child: CircularProgressIndicator(color: theme.onPrimaryContainer)),
+        body: Ui.loading(context)
       );
     }
 

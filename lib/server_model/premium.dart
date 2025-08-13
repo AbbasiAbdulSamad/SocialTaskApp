@@ -17,7 +17,6 @@ class PremiumSubscription {
         Uri.parse(ApiPoints.premiumSubAPi),
         headers: {
           "Content-Type": "application/json",
-          "Authorization": "Bearer $token",
         },
         body: jsonEncode({
           "plan": plan,
@@ -26,7 +25,8 @@ class PremiumSubscription {
 
       // Handle response
       if (response.statusCode == 200) {
-        return jsonDecode(response.body); // Success response
+
+        return jsonDecode(response.body);
       } else {
         return {"error": "Failed to subscribe: ${response.body}"}; // Error response
       }

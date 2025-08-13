@@ -19,7 +19,7 @@ import '../../server_model/functions_helper.dart';
 import '../../server_model/internet_provider.dart';
 import '../../server_model/provider/users_provider.dart';
 import 'package:in_app_update/in_app_update.dart';
-import '../../server_model/update_App_version.dart';
+import '../../server_model/update_checking_playstore.dart';
 import '../../ui/flash_message.dart';
 import '../home.dart';
 import 'onboarding.dart';
@@ -120,9 +120,9 @@ class _FlashState extends State<Flash> {
           Navigator.pushNamed(context, widget.initialRoute!);
         });
       }
-
       final userProvider = Provider.of<UserProvider>(context, listen: false);
-      await userProvider.fetchCurrentUser();
+           userProvider.fetchCurrentUser();
+
     } else {
       _navigateTo(context, Authentication());
     }
@@ -172,20 +172,6 @@ class _FlashState extends State<Flash> {
                       const Text(
                         "No Internet Connection",
                         style: TextStyle(color: Colors.white, fontSize: 18),
-                      ),
-                      const SizedBox(height: 20),
-                      MyButton(
-                        txt: 'Retry',
-                        bgColor: theme.secondary,
-                        borderRadius: 20,
-                        pading: const EdgeInsets.symmetric(vertical: 0, horizontal: 40),
-                        borderLineOn: true,
-                        shadowOn: true,
-                        onClick: () {
-                          setState(() {
-                            _initialized = false;
-                          });
-                        },
                       ),
                     ],
                   ),

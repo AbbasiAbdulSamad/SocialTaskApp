@@ -89,7 +89,7 @@ class _HomeState extends State<Home> {
     List<String> selectedCategories = List.from(provider.selectedCategories ?? []);
     List<String> selectedOptions = List.from(provider.selectedOptions ?? []);
 
-    final List<String> socialList = ["YouTube", "TikTok"];
+    final List<String> socialList = ["YouTube", "TikTok", "Instagram"];
     final List<String> optionList = ["Likes", "Subscribers",  "Followers", "Comments", "Favorites", "WatchTime"];
     final List<String> categoryList = [
       "Education", "Gaming", "Technology", "Entertainment", "Health",
@@ -144,7 +144,7 @@ class _HomeState extends State<Home> {
           (_currentIndex==2)?
           SizedBox():
           Container(
-            padding: const EdgeInsets.symmetric(vertical: 0, horizontal: 10),
+            padding: const EdgeInsets.only(left: 5, right: 10),
             width: double.infinity,
             color: theme.shadow,
             child: Row(
@@ -285,6 +285,25 @@ class _HomeState extends State<Home> {
                       provider.clearFilters();
                       AlertMessage.snackMsg(context: context, message: "Filters have been reset", time: 1);
                     }, icon: Icon(Icons.refresh, size: 25, color: theme.errorContainer,)),
+                  ),
+
+                  Tooltip(
+                    message: "Social Logins",
+                    child: IconButton(onPressed: (){
+
+                      Ui.Add_campaigns_pop(context, "Login Your Social Accounts",
+                      Container(
+                        width: double.infinity,
+                        height: 250,
+                        color: theme.primaryFixed,
+                        child: Column(children: [
+
+
+
+                        ],),
+                      ));
+
+                      }, icon: Icon(Icons.login, size: 25, color: theme.onPrimaryContainer,)),
                   )
                 ],
               ),

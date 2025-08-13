@@ -46,6 +46,9 @@ class ApiPoints {
   // Buy Tickets
   static String get buyTickets => '${AppConfig.baseUrl}/api/purchase/buy-tickets';
 
+  // Social Data
+  static String get socialInstagramData => '${AppConfig.baseUrl}/api/instagram';
+
   // App Version Checking
   // static String get appVersionUpdate => '${AppConfig.baseUrl}/api/app-version';
 }

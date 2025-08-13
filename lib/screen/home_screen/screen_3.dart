@@ -14,6 +14,7 @@ import '../../ui/ui_helper.dart';
 import '../task_screen/Tiktok_Task/tiktok_task_handler.dart';
 import '../task_screen/YT_Tasks/yt_auto_task_screen.dart';
 import '../task_screen/YT_Tasks/yt_task_screen.dart';
+import '../task_screen/instagram_Task/instagram_task_screen.dart';
 
 class Screen3 extends StatefulWidget {
   const Screen3({super.key});
@@ -30,9 +31,9 @@ class _Screen3State extends State<Screen3> with WidgetsBindingObserver{
   @override
   void initState() {
     super.initState();
+    _fetchDataFuture = FetchDataService.fetchData(context, forceRefresh: true);
 
     WidgetsBinding.instance.addObserver(this);
-    _fetchDataFuture = FetchDataService.fetchData(context, forceRefresh: true);
   }
 
   @override
@@ -76,10 +77,10 @@ class _Screen3State extends State<Screen3> with WidgetsBindingObserver{
         return Consumer<AllCampaignsProvider>(
           builder: (context, allCampaignsProvider, child) {
             if (allCampaignsProvider.isLoading) {
-              return  Center(child: CircularProgressIndicator(color: _theme.onPrimaryContainer,),);
+              return  Ui.loading(context);
             } else if (allCampaignsProvider.errorMessage.isNotEmpty) {
               return Ui.buildNoInternetUI(_theme, _textTheme, true, allCampaignsProvider.errorMessage.toString(),
-                  'An error has occurred, something went wrong due to which the SocialTask is not working.', Icons.error,
+                  'Unstable network connection. Request timed out. Please check your internet connection.', Icons.portable_wifi_off_rounded,
                       ()=> FetchDataService.fetchData(context, forceRefresh: true));
             } else if (allCampaignsProvider.allCampaigns.isEmpty) {
               return Ui.buildNoInternetUI(_theme, _textTheme, false, 'No Tasks Found',
@@ -109,8 +110,13 @@ class _Screen3State extends State<Screen3> with WidgetsBindingObserver{
                             reward: campaign['CostPer'],
                             screenFrom: 1,
                           );
-                        }else{
+                        }else if(campaign['social']=="Instagram"){
 
+                          Navigator.push(context, MaterialPageRoute(builder: (context)=>
+                              Instagram_Task_Screen(taskUrl: campaign['videoUrl'], selectedOption: campaign['selectedOption'],
+                            reward: campaign['CostPer'], campaignId: campaign['_id'], screenFrom: 1,)));
+                        }
+                        else{
                           final autoButton = Provider.of<UserProvider>(context, listen: false).autoTask;
                           if(autoButton){
                             if(userAutoLimit==0){
@@ -119,13 +125,8 @@ class _Screen3State extends State<Screen3> with WidgetsBindingObserver{
                             }else{
                               Navigator.push(context, MaterialPageRoute(
                                 builder: (context) => YT_Auto_Task_Screen(
-                                  taskUrl: campaign['videoUrl'],
-                                  selectedOption: campaign['selectedOption'],
-                                  watchTime: campaign['watchTime'],
-                                  reward: campaign['CostPer'],
-                                  campaignId: campaign['_id'],
-                                  screenFrom: 1,
-                                ),
+                                  taskUrl: campaign['videoUrl'], selectedOption: campaign['selectedOption'], watchTime: campaign['watchTime'],
+                                  reward: campaign['CostPer'], campaignId: campaign['_id'], screenFrom: 1,),
                               ),);
                             }
                           }else{
@@ -178,7 +179,9 @@ class _Screen3State extends State<Screen3> with WidgetsBindingObserver{
                                       child: Row(spacing: 3,
                                         mainAxisAlignment: MainAxisAlignment.start,
                                         children: [
-                                          Image.asset("assets/ico/${(campaign["social"]=="YouTube")?"youtube_icon.webp":"tiktok_icon.webp"}",width: 20,),
+                                          Image.asset("assets/ico/${(campaign["social"]=="YouTube") ?"youtube_icon.webp":
+                                          (campaign["social"]=="TikTok")?"tiktok_icon.webp":
+                                          "instagram_icon.webp"}",width: 20,),
                                           Icon(Icons.arrow_forward_ios, size: 16, color: _theme.onPrimaryContainer,),
 
                                           Icon(campaign["social"] == "YouTube"
@@ -190,11 +193,11 @@ class _Screen3State extends State<Screen3> with WidgetsBindingObserver{
                                               ? Icons.comment
                                               : Icons.subscriptions)
 
-                                              : campaign["social"] == "TikTok"
+                                              : campaign["social"] == "TikTok" || campaign["social"] == "Instagram"
                                               ? (campaign['selectedOption'] == "Likes"
-                                              ? Icons.favorite  // 👈 TikTok Like icon
+                                              ? Icons.favorite
                                               : campaign['selectedOption'] == "Favorites"
-                                              ? Icons.bookmark  // or similar
+                                              ? Icons.bookmark
                                               : campaign['selectedOption'] == "Comments"
                                               ? Icons.chat_bubble_outline
                                               : Icons.person_add_alt_1)
@@ -207,7 +210,7 @@ class _Screen3State extends State<Screen3> with WidgetsBindingObserver{
                                                 ? Colors.red
                                                 : _theme.onPrimaryContainer)
 
-                                                : campaign["social"] == "TikTok"
+                                                : campaign["social"] == "TikTok" || campaign["social"] == "Instagram"
                                                 ? (campaign['selectedOption'] == "Likes"
                                                 ? Colors.pinkAccent
                                                 : campaign['selectedOption'] == "Favorites"
@@ -226,7 +229,7 @@ class _Screen3State extends State<Screen3> with WidgetsBindingObserver{
                                                 : campaign['selectedOption'] == "Comments"
                                                 ? 'Comment'
                                                 : 'Subscribe'
-                                                : campaign["social"] == "TikTok"
+                                                : campaign["social"] == "TikTok" || campaign["social"] == "Instagram"
                                                 ? campaign['selectedOption'] == "Likes"
                                                 ? 'Like'
                                                 : campaign['selectedOption'] == "Comments"
