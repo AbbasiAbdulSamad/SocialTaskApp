@@ -7,7 +7,6 @@ import '../../../server_model/provider/task_complete.dart';
 import '../../../ui/button.dart';
 import '../../../ui/flash_message.dart';
 import '../../../ui/pop_alert.dart';
-import 'comment_list.dart';
 
 class YT_Task_Screen extends StatefulWidget {
   final String taskUrl;
@@ -26,6 +25,7 @@ class YT_Task_Screen extends StatefulWidget {
 
 class _YT_Task_ScreenState extends State<YT_Task_Screen> {
   late InAppWebViewController _controller;
+  double progress = 0;
   bool _isLoading = true;
   final CookieManager _cookieManager = CookieManager();
   late int _remainingTime;
@@ -122,6 +122,7 @@ class _YT_Task_ScreenState extends State<YT_Task_Screen> {
 
     if (!isLoggedIn) {
       debugPrint("🔴 User not logged in. Redirecting to YouTube Login...");
+
       if (_controller != null) {
         await _controller.loadUrl(
           urlRequest: URLRequest(
@@ -413,16 +414,13 @@ class _YT_Task_ScreenState extends State<YT_Task_Screen> {
                       ],
                       ),
                     ),
-                    if (_isLoading)
-                      LinearProgressIndicator(
-                        backgroundColor: Color(0xFF2c2c2c),
-                        valueColor: AlwaysStoppedAnimation<Color>(Colors.redAccent),
-                      ),
                   ],
                 ),
               ),
               body: Column(
                 children: [
+                  if (progress < 1.0)
+                    LinearProgressIndicator(value: progress, color: Colors.red, minHeight: 6),
                   Expanded(
                     child: Stack(
                       children: [
@@ -439,6 +437,11 @@ class _YT_Task_ScreenState extends State<YT_Task_Screen> {
                           onLoadStart: (controller, url) {
                             setState(() {
                               _isLoading = true;
+                            });
+                          },
+                          onProgressChanged: (controller, progressValue) {
+                            setState(() {
+                              progress = progressValue / 100;
                             });
                           },
                           onLoadStop: (controller, url) async {

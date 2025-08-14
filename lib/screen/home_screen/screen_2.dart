@@ -13,6 +13,7 @@ import '../../ui/ui_helper.dart';
 import '../task_screen/Tiktok_Task/tiktok_task_handler.dart';
 import '../task_screen/YT_Tasks/yt_auto_task_screen.dart';
 import '../task_screen/YT_Tasks/yt_task_screen.dart';
+import '../task_screen/instagram_Task/instagram_task_screen.dart';
 
 class Screen2 extends StatefulWidget {
   const Screen2({super.key});
@@ -86,6 +87,16 @@ class _Screen2State extends State<Screen2> with WidgetsBindingObserver{
             reward: reward,
             screenFrom: 0,
           );
+        }else if(social=="Instagram"){
+          Navigator.push(context, MaterialPageRoute(
+              builder: (context) => Instagram_Task_Screen(
+            taskUrl: taskUrl,
+            selectedOption: selectedOption,
+            reward: reward,
+            campaignId: campaignId,
+            screenFrom: 0,)
+          ),);
+
         }else{
           Navigator.push(context, MaterialPageRoute(
             builder: (context) => YT_Task_Screen(

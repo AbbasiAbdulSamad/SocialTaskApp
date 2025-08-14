@@ -169,9 +169,11 @@ class _CampaignDetailsState extends State<CampaignDetails> {
                           ),
                         ),
 
+                        widget.videoUrl.contains("https://www.instagram.com/reel/") ?
                         Positioned(
                             left: 0, right: 0, top: 150,
                             child: Image.asset("assets/ico/tiktok_play_icon.webp", width: 60, height: 60,))
+                            :SizedBox()
                       ],
                     ),
                   ),

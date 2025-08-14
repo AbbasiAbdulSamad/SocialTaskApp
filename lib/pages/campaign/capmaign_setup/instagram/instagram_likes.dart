@@ -63,7 +63,7 @@ class Instagram_likes extends StatelessWidget {
       if (internetProvider.isConnected) {
       await campaignProvider.createCampaign(
         context: context,
-        title: videoTitle!,
+        title: videoTitle ?? accountName!,
         videoUrl: taskLink!,
         watchTime: 0,
         quantity: int.tryParse(quantitySubscribers.text) ?? 0,

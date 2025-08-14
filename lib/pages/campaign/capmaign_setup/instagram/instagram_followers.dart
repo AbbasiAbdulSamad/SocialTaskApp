@@ -65,7 +65,7 @@ class Instagram_followers extends StatelessWidget {
       if (internetProvider.isConnected) {
         await campaignProvider.createCampaign(
           context: context,
-          title: videoTitle!,
+          title: accountName ?? '',
           videoUrl: accountLink,
           watchTime: 0,
           quantity: int.tryParse(quantitySubscribers.text) ?? 0,

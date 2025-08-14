@@ -1,3 +1,4 @@
+import 'package:app/screen/social_login.dart';
 import 'package:app/ui/flash_message.dart';
 import 'package:curved_navigation_bar/curved_navigation_bar.dart';
 import 'package:dropdown_button2/dropdown_button2.dart';
@@ -296,9 +297,24 @@ class _HomeState extends State<Home> {
                         width: double.infinity,
                         height: 250,
                         color: theme.primaryFixed,
-                        child: Column(children: [
+                        child: Column(spacing: 15,
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          children: [
+                          MyButton(txt: 'YouTube Login', img: 'youtube_icon.webp', bgColor: theme.secondary,
+                              borderLineOn: true, borderColor: theme.onPrimaryContainer, borderLineSize: 0.5, borderRadius: 20,
+                              txtColor: Colors.white, txtSize: 15, icoSize: 30, pading: EdgeInsets.symmetric(horizontal: 30),
+                              onClick: (){
+                            Navigator.push(context, MaterialPageRoute(builder: (context)=>
+                                SocialLogins(loginSocial: "YouTube")));
+                              }),
 
-
+                            MyButton(txt: 'Instagram Login', img: 'instagram_icon.webp', bgColor: theme.secondary,
+                                borderLineOn: true, borderColor: theme.onPrimaryContainer, borderLineSize: 0.5, borderRadius: 20,
+                                txtColor: Colors.white, txtSize: 15, icoSize: 30, pading: EdgeInsets.symmetric(horizontal: 30),
+                                onClick: (){
+                                  Navigator.push(context, MaterialPageRoute(builder: (context)=>
+                                      SocialLogins(loginSocial: "Instagram")));
+                                })
 
                         ],),
                       ));

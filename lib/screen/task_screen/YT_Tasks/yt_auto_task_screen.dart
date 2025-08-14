@@ -40,6 +40,7 @@ class _YT_Auto_Task_ScreenState extends State<YT_Auto_Task_Screen> {
   late InAppWebViewController _controller;
   bool _isLoading = true;
   final CookieManager _cookieManager = CookieManager();
+  double progress = 0;
   late int _remainingTime;
   bool _isUserLoggedIn = false;
   bool _loginChecked = false;
@@ -525,91 +526,99 @@ class _YT_Auto_Task_ScreenState extends State<YT_Auto_Task_Screen> {
                       ],
                       ),
                     ),
-                    if (_isLoading)
-                      LinearProgressIndicator(
-                        backgroundColor: Color(0xFF2c2c2c),
-                        valueColor: AlwaysStoppedAnimation<Color>(Colors.redAccent),
-                      ),
                   ],
                 ),
               ),
-              body: Stack(
+              body: Column(
                 children: [
-                  InAppWebView(
-                    initialUrlRequest: URLRequest(url: WebUri(taskUrl)),
-                    initialSettings: InAppWebViewSettings(
-                        javaScriptEnabled: true,
-                        supportMultipleWindows: true,
-                        userAgent: "Mozilla/5.0 (Linux; Android 13; Pixel 7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/126.0.6478.120 Mobile Safari/537.36"
+                  if (progress < 1.0)
+                    LinearProgressIndicator(value: progress, color: Colors.red, minHeight: 6),
+                  Expanded(
+                    child: Stack(
+                      children: [
+                        InAppWebView(
+                          initialUrlRequest: URLRequest(url: WebUri(taskUrl)),
+                          initialSettings: InAppWebViewSettings(
+                              javaScriptEnabled: true,
+                              supportMultipleWindows: true,
+                              userAgent: "Mozilla/5.0 (Linux; Android 13; Pixel 7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/126.0.6478.120 Mobile Safari/537.36"
+                          ),
+                          onWebViewCreated: (controller) {
+                            _controller = controller;
+                          },
+                          onLoadStart: (controller, url) {
+                            setState(() {
+                              _isLoading = true;
+                            });
+                          },
+                          onProgressChanged: (controller, progressValue) {
+                            setState(() {
+                              progress = progressValue / 100;
+                            });
+                          },
+                          onLoadStop: (controller, url) async {
+                            _startTimer();
+                            if (!_loginChecked) {
+                              _checkLoginStatus();
+                              setState(() {
+                                _isLoading = false;
+                                _loginChecked = true;
+                              });
+                            }
+
+                            // ✅ Detect login page
+                            String? currentUrl = url?.toString().trim();
+                            bool isLoginPage = currentUrl != null &&
+                                (currentUrl.contains("accounts.google.com") ||
+                                    currentUrl.contains("accounts.youtube.com/accounts/"));
+                            if (isLoginPage) {
+                              debugPrint("🔴 Login page detected");
+                              setState(() {
+                                _remainingTime = 999;
+                              });
+                              return;
+                            }
+
+                            // ✅ Initialize timer only once
+                            if (!_timerInitialized) {
+                              debugPrint("✅ Starting timer once");
+                              setState(() {
+                                _remainingTime = watchTime;
+                                _timerInitialized = true;
+                              });
+                            } else {
+                              debugPrint("⏳ Timer already initialized. Skipping reset.");
+                            }
+
+                            // ✅ Handle YouTube homepage auto-close
+                            bool isHomePage = currentUrl == "https://www.youtube.com" ||
+                                currentUrl == "https://m.youtube.com" ||
+                                currentUrl == "https://.youtube.com/" ||
+                                currentUrl == "https://m.youtube.com/";
+                            if (isHomePage) {
+                              setState(() {
+                                _loginChecked = false;
+                                _isUserLoggedIn = true;
+                                _showOverlay = true;
+                                _remainingTime = watchTime;
+                              });
+                              await _controller.loadUrl(urlRequest: URLRequest(url: WebUri(taskUrl)),);
+                              _startTimer();
+                              AlertMessage.snackMsg(context: context, message: 'Login to YouTube successfully.', time: 2);
+                            }
+                          },
+                        ),
+
+                        if (_showOverlay && _remainingTime > 0)
+                          InkWell(
+                            onTap: ()=> AlertMessage.snackMsg(context: context, message: 'Reward ${reward} tickets. Auto Task is running...'),
+                            child: Container(color: Colors.black.withOpacity(0.0)),
+                          ),
+
+
+                      ],
                     ),
-                    onWebViewCreated: (controller) {
-                      _controller = controller;
-                    },
-                    onLoadStart: (controller, url) {
-                      setState(() {
-                        _isLoading = true;
-                      });
-                    },
-                    onLoadStop: (controller, url) async {
-                      _startTimer();
-                      if (!_loginChecked) {
-                        _checkLoginStatus();
-                        setState(() {
-                          _isLoading = false;
-                          _loginChecked = true;
-                        });
-                      }
-
-                      // ✅ Detect login page
-                      String? currentUrl = url?.toString().trim();
-                      bool isLoginPage = currentUrl != null &&
-                          (currentUrl.contains("accounts.google.com") ||
-                              currentUrl.contains("accounts.youtube.com/accounts/"));
-                      if (isLoginPage) {
-                        debugPrint("🔴 Login page detected");
-                        setState(() {
-                          _remainingTime = 999;
-                        });
-                        return;
-                      }
-
-                      // ✅ Initialize timer only once
-                      if (!_timerInitialized) {
-                        debugPrint("✅ Starting timer once");
-                        setState(() {
-                          _remainingTime = watchTime;
-                          _timerInitialized = true;
-                        });
-                      } else {
-                        debugPrint("⏳ Timer already initialized. Skipping reset.");
-                      }
-
-                      // ✅ Handle YouTube homepage auto-close
-                      bool isHomePage = currentUrl == "https://www.youtube.com" ||
-                          currentUrl == "https://m.youtube.com" ||
-                          currentUrl == "https://.youtube.com/" ||
-                          currentUrl == "https://m.youtube.com/";
-                      if (isHomePage) {
-                        setState(() {
-                          _loginChecked = false;
-                          _isUserLoggedIn = true;
-                          _showOverlay = true;
-                          _remainingTime = watchTime;
-                        });
-                        await _controller.loadUrl(urlRequest: URLRequest(url: WebUri(taskUrl)),);
-                        _startTimer();
-                        AlertMessage.snackMsg(context: context, message: 'Login to YouTube successfully.', time: 2);
-                      }
-                    },
                   ),
-
-                  if (_showOverlay && _remainingTime > 0)
-                    InkWell(
-                      onTap: ()=> AlertMessage.snackMsg(context: context, message: 'Reward ${reward} tickets. Auto Task is running...'),
-                      child: Container(color: Colors.black.withOpacity(0.0)),
-                    ),
-
-
                 ],
               ),
             ),

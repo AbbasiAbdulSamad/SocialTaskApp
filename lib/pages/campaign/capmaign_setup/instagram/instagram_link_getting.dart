@@ -89,7 +89,7 @@ class _instagram_LinkGettingState extends State<instagram_LinkGetting> {
     } catch (e) {
       setState(() => _loading = false);
       print("❌ API Call Error: $e");
-      AlertMessage.errorMsg(context, "Something went wrong: $e", "Error");
+      AlertMessage.errorMsg(context, "Something went wrong: Please try a link to another post.", "Error");
     }
   }
 
@@ -274,8 +274,11 @@ class _instagram_LinkGettingState extends State<instagram_LinkGetting> {
 
                                       return InkWell(
                                         onTap: () async {
-                                          setState(() => _loading = true);
-                                          await _analyzeInstagramLink(_videoLink = campaign['videoUrl']!);
+                                          setState((){
+                                            _loading = true;
+                                            _videoLink = campaign['videoUrl'];
+                                          });
+                                          await _analyzeInstagramLink(_videoLink!);
                                         },
                                         child: Card(
                                           elevation: 3,

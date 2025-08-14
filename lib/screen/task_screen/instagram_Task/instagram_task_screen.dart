@@ -7,6 +7,7 @@ import '../../../server_model/provider/task_complete.dart';
 import '../../../ui/button.dart';
 import '../../../ui/flash_message.dart';
 import '../../../ui/pop_alert.dart';
+import '../../social_login.dart';
 import 'insta_comment_list.dart';
 
 class Instagram_Task_Screen extends StatefulWidget {
@@ -25,16 +26,14 @@ class Instagram_Task_Screen extends StatefulWidget {
 
 class _Instagram_Task_ScreenState extends State<Instagram_Task_Screen> {
   late InAppWebViewController _controller;
+  double progress = 0;
   bool _isLoading = true;
   final CookieManager _cookieManager = CookieManager();
   bool _showReturnButton = false;
   bool _isUserLoggedIn = false;
   bool _loginChecked = false;
-  bool _justLoggedIn = false;
   bool _buttonLoading = false;
-  bool _timerInitialized = false;
   bool _hasUserCommented = false;
-  bool _hasLiked =  false;
 
 
   @override
@@ -75,48 +74,55 @@ class _Instagram_Task_ScreenState extends State<Instagram_Task_Screen> {
   }
 
   void _checkLoginStatus() async {
-    setState(() {_showReturnButton = false;});
+    setState(() {
+      _showReturnButton = false;
+    });
 
-    List<Cookie> cookies = await _cookieManager.getCookies(url: WebUri("https://www.instagram.com"),);
+    List<Cookie> cookies = await _cookieManager.getCookies(
+      url: WebUri("https://www.instagram.com"),
+    );
 
-    // Instagram direct login cookies
     bool isInstagramLoggedIn = cookies.any((cookie) =>
-    cookie.name.toLowerCase() == "sessionid" || cookie.name.toLowerCase() == "ds_user_id");
+    cookie.name.toLowerCase() == "sessionid" &&
+        cookie.value.isNotEmpty) &&
+        cookies.any((cookie) =>
+        cookie.name.toLowerCase() == "ds_user_id" &&
+            cookie.value.isNotEmpty);
 
-    // Facebook via Instagram login cookies
-    bool isFacebookLoggedIn = cookies.any((cookie) => cookie.name.toLowerCase() == "csrftoken" ||
-        cookie.name.toLowerCase() == "mid");
+    // Check Facebook session cookies (for login via FB)
+    List<Cookie> fbCookies = await _cookieManager.getCookies(
+      url: WebUri("https://www.facebook.com"),
+    );
+
+    bool isFacebookLoggedIn = fbCookies.any((cookie) =>
+    (cookie.name.toLowerCase() == "c_user" ||
+        cookie.name.toLowerCase() == "fr") &&
+        cookie.value.isNotEmpty);
 
     bool isLoggedIn = isInstagramLoggedIn || isFacebookLoggedIn;
+
     debugPrint("User is logged in: $isLoggedIn");
 
     if (!isLoggedIn) {
       debugPrint("🔴 User not logged in. Redirecting to Instagram Login...");
-      if (_controller != null) {
-        await _controller.loadUrl(
-          urlRequest: URLRequest(
-            url: WebUri("https://www.instagram.com/accounts/login/"),
-          ),);
 
-        AlertMessage.snackMsg(context: context,
-          message: 'Please log in to your Instagram or Facebook account to continue.', time: 10,);
-      }
+      Navigator.push(context, MaterialPageRoute(builder: (context)=>
+          SocialLogins(loginSocial: "Instagram")));
+
     } else {
-      setState(() {
-        _isUserLoggedIn = true;
-        _justLoggedIn = true;
-      });
+      setState(() {_isUserLoggedIn = true;});
 
       if (!_loginChecked) {
         _loginChecked = true;
         if (_controller != null) {
-          await _controller.loadUrl(
+          await _controller!.loadUrl(
             urlRequest: URLRequest(url: WebUri(widget.taskUrl)),
           );
         }
       }
     }
   }
+
 
   void _taskChecking(BuildContext context) async {
     setState(() {_buttonLoading = true;});
@@ -131,6 +137,8 @@ class _Instagram_Task_ScreenState extends State<Instagram_Task_Screen> {
       checkInstagramLikeAndCompleteTask();
     }else if(widget.selectedOption=="Followers"){
       checkInstagramFollow();
+    }else if(widget.selectedOption=="Comments"){
+      taskDone();
     }
 
     setState(() {_buttonLoading = false;});
@@ -182,7 +190,6 @@ class _Instagram_Task_ScreenState extends State<Instagram_Task_Screen> {
 
 
 
-
   Future<void> checkInstagramLikeAndCompleteTask() async {
     String? result = await _controller.evaluateJavascript(source: '''
     (function() {
@@ -200,7 +207,6 @@ class _Instagram_Task_ScreenState extends State<Instagram_Task_Screen> {
     debugPrint("Instagram like status: $result");
 
     if(result == "liked") {
-      setState(() {_hasLiked = true;});
       taskDone();
     } else if(result == "not_liked") {
       AlertMessage.flashMsg(context, "Please like this post to complete the task.", "Like", Icons.favorite, 3);
@@ -254,7 +260,7 @@ class _Instagram_Task_ScreenState extends State<Instagram_Task_Screen> {
       ''');
 
         // 10 second after state update complete task
-        Future.delayed(Duration(seconds: 10), () {
+        Future.delayed(Duration(seconds: 8), () {
           if (mounted) {
             setState(() {
               _hasUserCommented = true;
@@ -318,8 +324,6 @@ class _Instagram_Task_ScreenState extends State<Instagram_Task_Screen> {
                           ),
                         ),
                         const SizedBox(width: 5),
-                        (_justLoggedIn==false)?SizedBox():
-                        const SizedBox(width: 5),
                         Row(children: [
                           Image.asset('assets/ico/1xTickets.webp', width: 30,),
                           Text("${widget.reward}", style: textStyle.displaySmall?.copyWith(color: Colors.white, fontSize: 22,))
@@ -352,16 +356,13 @@ class _Instagram_Task_ScreenState extends State<Instagram_Task_Screen> {
                       ],
                       ),
                     ),
-                    if (_isLoading)
-                      LinearProgressIndicator(
-                        backgroundColor: Color(0xFF2c2c2c),
-                        valueColor: AlwaysStoppedAnimation<Color>(Colors.redAccent),
-                      ),
                   ],
                 ),
               ),
               body: Column(
                 children: [
+                  if (progress < 1.0)
+                    LinearProgressIndicator(value: progress, color: Colors.red, minHeight: 6),
                   Expanded(
                     child: Stack(
                       children: [
@@ -380,40 +381,50 @@ class _Instagram_Task_ScreenState extends State<Instagram_Task_Screen> {
                               _isLoading = true;
                             });
                           },
+                          onProgressChanged: (controller, progressValue) {
+                            setState(() {
+                              progress = progressValue / 100;
+                            });
+                          },
                           onLoadStop: (controller, url) async {
-                            if (!_loginChecked) {_checkLoginStatus();
-                              setState(() {_isLoading = false;_loginChecked = true;});}
-                            taskListening();
-
-
+                            if (!_loginChecked) {
+                              _checkLoginStatus();
+                              setState(() {
+                                _isLoading = false;
+                                _loginChecked = true;});
+                            }else{
+                              taskListening();
+                            }
                           },
                         ),
 
+                        if (_showReturnButton)
+                          Positioned(bottom: 0, left: 0, right: 0,
+                            child: Container(
+                              width: double.infinity,
+                              padding: const EdgeInsets.symmetric(horizontal: 0, vertical: 10),
+                              color: theme.background,
+                              child: Column(
+                                children: [
+                                  SizedBox(height: 30, width: 180,
+                                    child: MyButton(txt: 'Complete Task', ico: Icons.check_circle_rounded, txtSize: 15, icoSize: 17, borderLineOn: true, borderRadius: 8, bgColor: theme.onPrimary,
+                                      onClick:(){
+                                        _taskChecking(context);
+                                      },
+                                    ),
+                                  ),
+                                  const SizedBox(height: 12,),
+                                  Text('Please complete this task and collect ${widget.reward} Tickets', style: textStyle.displaySmall?.
+                                  copyWith(fontSize: 15, color: theme.onPrimaryContainer),),
+                                  const SizedBox(height: 12,),
+                                ],
+                              ),
+                            ),
+                          ),
                       ],
                     ),
                   ),
 
-                  if (_showReturnButton)
-                    Container(
-                      width: double.infinity,
-                      padding: const EdgeInsets.symmetric(horizontal: 0, vertical: 10),
-                      color: theme.background,
-                      child: Column(
-                        children: [
-                          SizedBox(height: 30, width: 180,
-                            child: MyButton(txt: 'Complete Task', ico: Icons.check_circle_rounded, txtSize: 15, icoSize: 17, borderLineOn: true, borderRadius: 8, bgColor: theme.onPrimary,
-                              onClick:(){
-                                _taskChecking(context);
-                              },
-                            ),
-                          ),
-                          const SizedBox(height: 12,),
-                          Text('Please complete this task and collect ${widget.reward} Tickets', style: textStyle.displaySmall?.
-                          copyWith(fontSize: 15, color: theme.onPrimaryContainer),),
-                          const SizedBox(height: 12,),
-                        ],
-                      ),
-                    ),
                 ],
               ),
             ),
