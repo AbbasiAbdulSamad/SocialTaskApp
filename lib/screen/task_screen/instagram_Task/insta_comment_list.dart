@@ -1,5 +1,6 @@
+
 class InstaComment{
-  List<String> instagramComments = [
+ static List<String> instagramComments = [
     "Love it 😍",
     "So cute 🥰",
     "Wow 🔥",
@@ -93,4 +94,8 @@ class InstaComment{
     "I hope you keep sharing moments like this, they’re truly inspiring ❤️✨",
     "This will forever be one of my favorite posts from you 😍📷",
   ];
+
+  static String getInstaComment() {
+    return (instagramComments..shuffle()).first;
+  }
 }

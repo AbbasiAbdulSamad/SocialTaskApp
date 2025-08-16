@@ -39,6 +39,7 @@ class _MyAccountState extends State<MyAccount> {
             {'title': 'Tickets','icon': Icons.payments_outlined, 'data': "${user.coin}"},
             {'title': 'Level','icon': Icons.trending_up, 'data': "${user.levelData.level}"},
             {'title': 'YouTube Tasks','icon': Icons.done_outline, 'data': "${user.youtubeTasks}"},
+            {'title': 'Instagram Tasks','icon': Icons.done_outline, 'data': "${user.instagramTasks}"},
             {'title': 'TikTok Tasks','icon': Icons.done_outline, 'data': "${user.tiktokTasks}"},
             {'title': 'Total Campaigns','icon': Icons.payments_outlined, 'data': "${user.campaigns}"},
             {'title': 'Weekly Score', 'icon': Icons.sports_score, 'data': user.leaderboardScore},

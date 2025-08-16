@@ -14,29 +14,40 @@ class RemoteConfigService {
   final FirebaseRemoteConfig _remoteConfig = FirebaseRemoteConfig.instance;
 
   Future<void> initialize() async {
-    await _remoteConfig.setConfigSettings(
-      RemoteConfigSettings(
-        fetchTimeout: Duration(seconds: 10),
-        minimumFetchInterval: Duration(minutes: 1),
-      ),
-    );
+    try {
+      await _remoteConfig.setConfigSettings(
+        RemoteConfigSettings(
+          fetchTimeout: const Duration(seconds: 10),
+          minimumFetchInterval: const Duration(minutes: 1),
+        ),
+      );
 
-    await _remoteConfig.setDefaults({
-      'api_url': 'http://10.230.117.48:3000',
-      // 'api_url': 'https://socialtask-server.fly.dev',
-      'minimum_app_version': '1.1.1',
-    });
+      await _remoteConfig.setDefaults({
+        'api_url': 'http://10.230.117.48:3000',
+        'minimum_app_version': '1.1.1',
+      });
 
-    await _remoteConfig.fetchAndActivate();
+      /// ✅ Try fetching remote config
+      bool updated = await _remoteConfig.fetchAndActivate();
+      debugPrint("✅ Remote Config fetched: $updated");
+    } catch (e, s) {
+      debugPrint("🔥 Remote Config fetch error: $e");
+      debugPrint("$s");
+
+      /// fallback defaults (taake crash na ho)
+      await _remoteConfig.setDefaults({
+        'api_url': 'http://10.230.117.48:3000',
+        'minimum_app_version': '1.1.1',
+      });
+    }
   }
 
   String get baseUrl {
     final baseUrl = _remoteConfig.getString('api_url');
     return baseUrl.isNotEmpty
+        // ? baseUrl
         ? 'http://10.230.117.48:3000'
         : 'http://10.230.117.48:3000';
-        // ? baseUrl
-        // : 'https://socialtask-server.fly.dev';
   }
 
   String get minimumRequiredVersion {
@@ -44,19 +55,12 @@ class RemoteConfigService {
     return version.isNotEmpty ? version : '1.1.1';
   }
 
-
-
-
-
-
   /// 🚀 Check for Update and Show Popup
   Future<void> checkManullayUpdate(BuildContext context) async {
     try {
-      // Get current app version
       PackageInfo packageInfo = await PackageInfo.fromPlatform();
       String currentVersion = packageInfo.version;
 
-      // Compare versions
       if (_isVersionLower(currentVersion, minimumRequiredVersion)) {
         _showUpdateDialog(context);
       }
@@ -65,7 +69,6 @@ class RemoteConfigService {
     }
   }
 
-  /// Compare versions (e.g., 1.0.8 < 1.0.9)
   bool _isVersionLower(String current, String minRequired) {
     List<int> currentParts =
     current.split('.').map((e) => int.tryParse(e) ?? 0).toList();
@@ -79,7 +82,8 @@ class RemoteConfigService {
     return false;
   }
 
-  /// Show Update Dialog
+
+/// Show Update Dialog
   void _showUpdateDialog(BuildContext context) {
     ColorScheme theme = Theme.of(context).colorScheme;
     showDialog(

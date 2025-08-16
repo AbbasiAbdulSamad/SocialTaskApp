@@ -25,7 +25,7 @@ class Instagram_Task_Screen extends StatefulWidget {
 }
 
 class _Instagram_Task_ScreenState extends State<Instagram_Task_Screen> {
-  late InAppWebViewController _controller;
+  InAppWebViewController? _controller;
   double progress = 0;
   bool _isLoading = true;
   final CookieManager _cookieManager = CookieManager();
@@ -34,13 +34,9 @@ class _Instagram_Task_ScreenState extends State<Instagram_Task_Screen> {
   bool _loginChecked = false;
   bool _buttonLoading = false;
   bool _hasUserCommented = false;
+  Timer? _timer;
 
 
-  @override
-  void initState() {
-    super.initState();
-    Provider.of<InternetProvider>(context, listen: false).addListener(_handleInternetChange);
-  }
 
   void taskListening(){
 
@@ -156,7 +152,7 @@ class _Instagram_Task_ScreenState extends State<Instagram_Task_Screen> {
 
 
   Future<void> checkInstagramFollow() async {
-    String? result = await _controller.evaluateJavascript(source: '''
+    String? result = await _controller?.evaluateJavascript(source: '''
     (function() {
       const buttons = Array.from(document.querySelectorAll('button'));
       for (let btn of buttons) {
@@ -174,24 +170,16 @@ class _Instagram_Task_ScreenState extends State<Instagram_Task_Screen> {
     if(result == "followed") {
         taskDone();
     } else if(result == "not_followed") {
-      AlertMessage.snackMsg(
-        context: context,
-        message: "Please follow this account to complete the task.",
-        time: 3,
-      );
+      AlertMessage.flashMsg(context, "Please follow this account to complete the task.", "Follow", Icons.add, 3);
     } else {
-      AlertMessage.snackMsg(
-        context: context,
+      AlertMessage.snackMsg(context: context,
         message: "Follow button not found. Please check the account.",
-        time: 3,
-      );
+        time: 3,);
     }
   }
 
-
-
   Future<void> checkInstagramLikeAndCompleteTask() async {
-    String? result = await _controller.evaluateJavascript(source: '''
+    String? result = await _controller?.evaluateJavascript(source: '''
     (function() {
       const likeSvg = document.querySelector('svg[aria-label="Like"], svg[aria-label="Unlike"]');
       if(!likeSvg) return "not_found";
@@ -218,13 +206,13 @@ class _Instagram_Task_ScreenState extends State<Instagram_Task_Screen> {
   }
 
   void _startListeningForInstagramCommentBox() {
-    Timer.periodic(Duration(seconds: 2), (timer) async {
-      if (_hasUserCommented) {
-        timer.cancel();
-        return;
-      }
+    _timer = Timer.periodic(Duration(seconds: 2), (t) async {
+        if (!mounted || _hasUserCommented) {
+          t.cancel();
+          return;
+        }
 
-      String? result = await _controller.evaluateJavascript(source: '''
+      String? result = await _controller?.evaluateJavascript(source: '''
       (function() {
         // Instagram comment box selectors
         const textarea = document.querySelector('textarea[aria-label="Add a comment…"]') 
@@ -240,12 +228,10 @@ class _Instagram_Task_ScreenState extends State<Instagram_Task_Screen> {
 
       if (result != null && result.contains("user_started_typing")) {
         // Random comment select karo
-        final comments = InstaComment();
-        final randomComment = comments.instagramComments[
-        DateTime.now().millisecondsSinceEpoch % comments.instagramComments.length];
+        String randomComment = InstaComment.getInstaComment();
 
         // Comment fill karna input me
-        await _controller.evaluateJavascript(source: '''
+        await _controller?.evaluateJavascript(source: '''
         (function() {
           const textarea = document.querySelector('textarea[aria-label="Add a comment…"]') 
                         || document.querySelector('textarea[placeholder="Add a comment…"]') 
@@ -268,17 +254,15 @@ class _Instagram_Task_ScreenState extends State<Instagram_Task_Screen> {
             });
           }
         });
-        timer.cancel();
       }
     });
   }
 
 
-
-
-
   @override
   void dispose() {
+    _timer?.cancel();
+    _controller?.dispose();
     super.dispose();
   }
 

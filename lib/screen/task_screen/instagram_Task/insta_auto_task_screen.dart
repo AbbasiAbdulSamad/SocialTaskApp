@@ -11,24 +11,24 @@ import '../../../ui/button.dart';
 import '../../../ui/flash_message.dart';
 import '../../../ui/pop_alert.dart';
 import '../../home.dart';
-import 'comment_list.dart';
+import '../../social_login.dart';
+import 'insta_comment_list.dart';
 
-class YT_Auto_Task_Screen extends StatefulWidget {
+class Instagram_Auto_Task_Screen extends StatefulWidget {
   final String taskUrl;
   final String selectedOption;
-  final int watchTime;
   final int reward;
   final String campaignId;
   final int screenFrom;
 
-  const YT_Auto_Task_Screen({Key? key, required this.taskUrl, required this.selectedOption, required this.watchTime,
+  const Instagram_Auto_Task_Screen({Key? key, required this.taskUrl, required this.selectedOption,
     required this.reward, required this.campaignId, required this.screenFrom,}) : super(key: key);
 
   @override
-  _YT_Auto_Task_ScreenState createState() => _YT_Auto_Task_ScreenState();
+  _Instagram_Auto_Task_ScreenState createState() => _Instagram_Auto_Task_ScreenState();
 }
 
-class _YT_Auto_Task_ScreenState extends State<YT_Auto_Task_Screen> {
+class _Instagram_Auto_Task_ScreenState extends State<Instagram_Auto_Task_Screen> {
   late String taskUrl;
   late String selectedOption;
   late int watchTime;
@@ -37,7 +37,7 @@ class _YT_Auto_Task_ScreenState extends State<YT_Auto_Task_Screen> {
   late int screenFrom;
 
 
-  late InAppWebViewController _controller;
+  InAppWebViewController? _controller;
   bool _isLoading = true;
   final CookieManager _cookieManager = CookieManager();
   double progress = 0;
@@ -53,31 +53,36 @@ class _YT_Auto_Task_ScreenState extends State<YT_Auto_Task_Screen> {
   late final allCampaignsProvider;
   int _currentIndex = 0;
   bool _isFirstTask = true;
+  bool _saveInfoClicked = false;
 
 
   @override
   void initState() {
     taskUrl = widget.taskUrl;
     selectedOption = widget.selectedOption;
-    watchTime = widget.watchTime;
+    watchTime = getRandomWatchTime();
     reward = widget.reward;
     campaignId = widget.campaignId;
     screenFrom = widget.screenFrom;
 
-    _remainingTime = widget.watchTime;
+    _remainingTime = watchTime;
     super.initState();
-    _startTimer();
-    Provider.of<InternetProvider>(context, listen: false).addListener(_handleInternetChange);
+  }
+  int getRandomWatchTime() {
+    final random = Random();
+    return 16 + random.nextInt(30 - 16 + 1);
   }
 
   void _startTimer() {
     _timer?.cancel();
 
     final random = Random();
-    int _actionTriggerTime = 10 + random.nextInt((watchTime - 10).clamp(1, watchTime - 10));
-    random.nextInt((watchTime - 10).clamp(1, watchTime - 10));
+    int min = 5;
+    int max = (watchTime - 5);
+    if (max <= min) {max = min + 1;}
+    int _actionTriggerTime = min + random.nextInt(max - min);
 
-    debugPrint('Random: $_actionTriggerTime');
+    debugPrint('Random: $_actionTriggerTime \n  watchTime: $watchTime');
 
     _timer = Timer.periodic(Duration(seconds: 1), (timer) async {
       if (!mounted) return;
@@ -91,13 +96,12 @@ class _YT_Auto_Task_ScreenState extends State<YT_Auto_Task_Screen> {
 
       if (_remainingTime > 0) {
         setState(() {_remainingTime--;});
-
-        if (_remainingTime == _actionTriggerTime && selectedOption == "Comments") {
-          autoComment();
-        }else if(_remainingTime == _actionTriggerTime && selectedOption == "Subscribers"){
-          autoSubscribe();
+        if(_remainingTime == _actionTriggerTime && selectedOption == "Followers"){
+          debugPrint("follow start");
+          checkInstagramFollow();
         }else if(_remainingTime == _actionTriggerTime && selectedOption == "Likes"){
-          autoLike();
+          debugPrint("like start");
+          autoLikeInstagramPost();
         }else if(_remainingTime == 0){
           await Future.delayed(Duration(seconds: 2));
           _handleTaskCompletion(context);
@@ -138,9 +142,11 @@ class _YT_Auto_Task_ScreenState extends State<YT_Auto_Task_Screen> {
       return;
     }
 
-    final youtubeTasks = allCampaignsProvider.allCampaigns
-        .where((task) => task['social'] == 'YouTube')
+    final instagramTasks = allCampaignsProvider.allCampaigns
+        .where((task) => task['social'] == 'Instagram' &&
+        (task['selectedOption'] == 'Likes' || task['selectedOption'] == 'Followers'))
         .toList();
+
 
     // 🛠️ Skip current task if already playing
     if (_isFirstTask) {
@@ -148,8 +154,8 @@ class _YT_Auto_Task_ScreenState extends State<YT_Auto_Task_Screen> {
       _currentIndex++; // move index forward to avoid repeating current
     }
 
-    if (_currentIndex >= youtubeTasks.length) {
-      AlertMessage.snackMsg(context: context, message: 'All YouTube tasks completed!', time: 3);
+    if (_currentIndex >= instagramTasks.length) {
+      AlertMessage.snackMsg(context: context, message: 'All Instagram tasks completed!', time: 3);
       Navigator.pushAndRemoveUntil(
         context,
         MaterialPageRoute(builder: (_) => Home(onPage: widget.screenFrom)),
@@ -158,13 +164,13 @@ class _YT_Auto_Task_ScreenState extends State<YT_Auto_Task_Screen> {
       return;
     }
 
-    final campaign = youtubeTasks[_currentIndex];
+    final campaign = instagramTasks[_currentIndex];
 
     setState(() {
       _currentIndex++;
       taskUrl = campaign['videoUrl'];
       selectedOption = campaign['selectedOption'];
-      watchTime = campaign['watchTime'];
+      watchTime = 15;
       reward = campaign['CostPer'];
       campaignId = campaign['_id'];
 
@@ -174,11 +180,9 @@ class _YT_Auto_Task_ScreenState extends State<YT_Auto_Task_Screen> {
       _remainingTime = watchTime;
     });
 
-    await _controller.loadUrl(urlRequest: URLRequest(url: WebUri(taskUrl)));
+    await _controller?.loadUrl(urlRequest: URLRequest(url: WebUri(taskUrl)));
     AlertMessage.snackMsg(context: context, message: 'Next task started!', time: 1);
   }
-
-
 
 
 
@@ -209,39 +213,46 @@ class _YT_Auto_Task_ScreenState extends State<YT_Auto_Task_Screen> {
   }
 
   void _checkLoginStatus() async {
-    setState(() {
-      _showOverlay = false;
-    });
 
-    List<Cookie> cookies = await _cookieManager.getCookies(url: WebUri("https://www.youtube.com"));
-    bool isLoggedIn = cookies.any((cookie) =>
-    cookie.name == "LOGIN_INFO" || cookie.name == "SAPISID" || cookie.name == "SSID");
+    List<Cookie> cookies = await _cookieManager.getCookies(
+      url: WebUri("https://www.instagram.com"),
+    );
+
+    bool isInstagramLoggedIn = cookies.any((cookie) =>
+    cookie.name.toLowerCase() == "sessionid" &&
+        cookie.value.isNotEmpty) &&
+        cookies.any((cookie) =>
+        cookie.name.toLowerCase() == "ds_user_id" &&
+            cookie.value.isNotEmpty);
+
+    // Check Facebook session cookies (for login via FB)
+    List<Cookie> fbCookies = await _cookieManager.getCookies(
+      url: WebUri("https://www.facebook.com"),
+    );
+
+    bool isFacebookLoggedIn = fbCookies.any((cookie) =>
+    (cookie.name.toLowerCase() == "c_user" ||
+        cookie.name.toLowerCase() == "fr") &&
+        cookie.value.isNotEmpty);
+
+    bool isLoggedIn = isInstagramLoggedIn || isFacebookLoggedIn;
 
     debugPrint("User is logged in: $isLoggedIn");
 
     if (!isLoggedIn) {
-      debugPrint("🔴 User not logged in. Redirecting to YouTube Login...");
-      if (_controller != null) {
-        await _controller.loadUrl(
-          urlRequest: URLRequest(
-            url: WebUri("https://accounts.google.com/ServiceLogin?service=youtube&continue=https://www.youtube.com"),
-          ),
-        );
-        _remainingTime = 999;
-        AlertMessage.snackMsg(context: context, message: 'Please log in YouTube account then complete the task.', time: 8);
-      }
+      debugPrint("🔴 User not logged in. Redirecting to Instagram Login...");
+
+      Navigator.push(context, MaterialPageRoute(builder: (context)=>
+          SocialLogins(loginSocial: "Instagram")));
+
     } else {
-      setState(() {
-        _isUserLoggedIn = true;
-        _showOverlay = true;
-        _justLoggedIn = true;
-      });
+      setState(() {_isUserLoggedIn = true;});
 
       if (!_loginChecked) {
         _loginChecked = true;
         if (_controller != null) {
-          await _controller.loadUrl(
-            urlRequest: URLRequest(url: WebUri(taskUrl)),
+          await _controller!.loadUrl(
+            urlRequest: URLRequest(url: WebUri(widget.taskUrl)),
           );
         }
       }
@@ -269,168 +280,97 @@ class _YT_Auto_Task_ScreenState extends State<YT_Auto_Task_Screen> {
   }
 
 
-  Future<void> autoLike() async{
-    if (selectedOption == "Likes") {
-      String? likeCheck = await _controller.evaluateJavascript(source: '''
+  Future<void> checkInstagramFollow() async {
+    String? result = await _controller?.evaluateJavascript(source: '''
     (function() {
-      const likeButton = document.querySelector('button[aria-label*="like this video"]');
-      if (!likeButton) return "not_found";
-      return likeButton.getAttribute("aria-pressed");
-    })();
-  ''');
-
-      debugPrint("👍 Like button pressed status: $likeCheck");
-      likeCheck = likeCheck?.replaceAll('"', '');
-
-      if (likeCheck != "true") {
-        // ✅ Automatically click the Like button
-        await _controller.evaluateJavascript(source: '''
-      (function() {
-        const likeButton = document.querySelector('button[aria-label*="like this video"]');
-        if (likeButton) {
-          likeButton.click();
-          return "clicked";
+      const buttons = Array.from(document.querySelectorAll('button'));
+      for (let btn of buttons) {
+        const text = btn.innerText.trim();
+        if (text === "Follow") {
+          btn.click(); // auto click follow
+          return "clicked_follow";
         }
-        return "button_not_found";
-      })();
-    ''');
-
-        // Optional feedback
-        AlertMessage.snackMsg(context: context, message: 'Liked');
-        // Optional delay
+        if (text === "Following") {
+          return "already_following";
+        }
       }
-    }
-  }
-
-
-  Future<void> autoSubscribe() async{
-    if (selectedOption == "Subscribers") {
-      String? subscribeCheck = await _controller.evaluateJavascript(source: '''
-    (function() {
-      const spans = Array.from(document.querySelectorAll('span.yt-core-attributed-string'));
-      let foundSubscribe = false;
-      let foundSubscribed = false;
-
-      for (let span of spans) {
-        const text = span.innerText.trim().toLowerCase();
-        if (text === "subscribe") foundSubscribe = true;
-        if (text === "subscribed") foundSubscribed = true;
-      }
-
-      if (foundSubscribed) return "subscribed";
-      if (foundSubscribe) return "not_subscribed";
-
-      const shortsBtn = Array.from(document.querySelectorAll('button'))
-        .find(btn => btn.innerText.trim().toLowerCase() === "subscribe");
-      if (shortsBtn) return "not_subscribed";
-
-      const shortsSubscribed = Array.from(document.querySelectorAll('button'))
-        .find(btn => btn.innerText.trim().toLowerCase() === "subscribed");
-      if (shortsSubscribed) return "subscribed";
-
       return "not_found";
     })();
   ''');
-      debugPrint("🔍 Subscribe button status: $subscribeCheck");
-      subscribeCheck = subscribeCheck?.replaceAll('"', '');
-      if (subscribeCheck == "not_subscribed") {
-        // ✅ Automatically click the Subscribe button
-        await _controller.evaluateJavascript(source: '''
-      (function() {
-        const subscribeBtn = Array.from(document.querySelectorAll('button')).find(btn =>
-          btn.innerText.trim().toLowerCase() === "subscribe");
-        if (subscribeBtn) {
-          subscribeBtn.click();
-          return "clicked";
-        }
-        return "button_not_found";
-      })();
-    ''');
 
-        // Optional feedback
-        AlertMessage.snackMsg(context: context, message: 'Subscribed');
-      }
+    result = result?.replaceAll('"', '');
+    debugPrint("Instagram follow status: $result");
+
+    if (result == "already_following") {
+      AlertMessage.snackMsg(context: context, message: "Following");
     }
   }
 
-  Future<void> autoComment() async {
-    String selectedComment = CommentList.getRandomComment();
 
-    if (selectedOption == "Comments") {
-      await _controller.evaluateJavascript(source: '''
-    (async function() {
-      const sleep = ms => new Promise(resolve => setTimeout(resolve, ms));
+  Future<void> autoLikeInstagramPost() async {
+    String? result = await _controller?.evaluateJavascript(source: '''
+    (function() {
+      const likeSvg = document.querySelector('svg[aria-label="Like"], svg[aria-label="Unlike"]');
+      if (!likeSvg) return "not_found";
 
-      // Step 1: Try clicking Shorts-style comment button
-      let commentOpened = false;
-      const commentBtn = Array.from(document.querySelectorAll('button')).find(btn =>
-        btn.getAttribute("aria-label")?.toLowerCase().includes("view") ||
-        btn.getAttribute("aria-label")?.toLowerCase().includes("comments")
-      );
-
-      if (commentBtn) {
-        commentBtn.click();
-        await sleep(2000);
-        commentOpened = true;
+      const aria = likeSvg.getAttribute("aria-label");
+      if (aria === "Like") {
+        // Post not liked, click to like
+        likeSvg.parentElement.click();
+        return "liked_now";
       }
-
-      // Step 1b: If Shorts button not found, try long-video comment section
-      if (!commentOpened) {
-        const longVideoCommentTrigger = document.querySelector('div.ytCommentsEntryPointTeaserViewModelTeaser');
-        if (longVideoCommentTrigger) {
-          longVideoCommentTrigger.click();
-          await sleep(2000);
-          commentOpened = true;
-        } else {
-          return "comment_button_not_found";
-        }
+      if (aria === "Unlike") {
+        // Already liked
+        return "already_liked";
       }
-
-      // Step 2: Click 'Add a comment…' placeholder
-      const placeholder = Array.from(document.querySelectorAll('span'))
-        .find(span => span.innerText.trim().toLowerCase() === "add a comment…");
-
-      if (placeholder) {
-        placeholder.click();
-        await sleep(2980);
-      } else {
-        return "placeholder_not_found";
-      }
-
-      // Step 3: Fill in the comment
-      const textarea = document.querySelector('textarea.comment-simplebox-reply');
-      if (!textarea) return "textarea_not_found";
-
-      textarea.focus();
-      textarea.value = "${selectedComment.replaceAll('"', '\\"')}";
-      textarea.dispatchEvent(new Event('input', { bubbles: true }));
-
-      await sleep(5030);
-
-      // Step 4: Click the final Comment button
-      const commentBtnFinal = Array.from(document.querySelectorAll('span')).find(span =>
-        span.innerText.trim().toLowerCase() === "comment"
-      );
-
-      if (commentBtnFinal) {
-        commentBtnFinal.click();
-        return "comment_posted";
-      } else {
-        return "final_comment_button_not_found";
-      }
+      return "unknown";
     })();
-  ''').then((result) {
-        debugPrint("💬 JS result: $result");});
+  ''');
 
-      setState(() {_buttonLoading = false;});
+    result = result?.replaceAll('"', '');
+    debugPrint("Instagram like result: $result");
+
+    if (result == "liked_now" || result == "already_liked") {
+
+      AlertMessage.snackMsg(context: context, message: "Liked");
+
+    } else if (result == "not_found") {
+      AlertMessage.snackMsg(
+        context: context,
+        message: "Like button not found. Please check the post.",
+        time: 3,
+      );
     }
   }
+
+  Future<void> clickClosePopupButton(InAppWebViewController controller) async {
+    if (_saveInfoClicked) return;
+    _saveInfoClicked = true;
+
+    await Future.delayed(const Duration(seconds: 5));
+    try {
+      String result = await controller.evaluateJavascript(source: """
+      (function(){
+        var closeBtn = document.querySelector('div[aria-label="Close"][role="button"]');
+        if(closeBtn){
+          closeBtn.click();
+          return "Popup Close button clicked ✅";
+        }
+        return "Popup Close button not found ❌";
+      })();
+    """);
+
+      debugPrint("JS Result: $result");
+    } catch (e) {
+      debugPrint("Error clicking Close button: $e");
+    }
+  }
+
 
   @override
   void dispose() {
     _timer?.cancel();
-    final internetProvider = Provider.of<InternetProvider>(context, listen: false);
-    internetProvider.removeListener(_handleInternetChange);
+    _controller?.dispose();
     super.dispose();
   }
 
@@ -472,9 +412,7 @@ class _YT_Auto_Task_ScreenState extends State<YT_Auto_Task_Screen> {
                               children: [
                                 Icon(Icons.lock, size: 15, color: Colors.white,),
                                 const SizedBox(width: 5),
-                                Text(
-                                  'youtube.com',
-                                  maxLines: 1,
+                                Text('instagram.com', maxLines: 1,
                                   overflow: TextOverflow.ellipsis,
                                   style: TextStyle(fontSize: 16, fontWeight: FontWeight.w400),
                                 ),
@@ -483,46 +421,36 @@ class _YT_Auto_Task_ScreenState extends State<YT_Auto_Task_Screen> {
                           ),
                         ),
                         const SizedBox(width: 5),
-                        (_justLoggedIn==false)?SizedBox():
-
-                        (_remainingTime>0)?Row(children: [
-                          Icon(Icons.access_time_outlined),
-                          const SizedBox(width: 1),
-                          Text('$_remainingTime',
-                            style: textStyle.displaySmall?.copyWith(color: Colors.white, fontSize: 24),),
-                          const SizedBox(width: 2),
-                          Text('sec', style: TextStyle(fontSize: 15)),
-                        ],):SizedBox(),
+                        Row(children: [
+                          Image.asset('assets/ico/1xTickets.webp', width: 30,),
+                          Text("${widget.reward}", style: textStyle.displaySmall?.copyWith(color: Colors.white, fontSize: 22,))
+                        ],),
                         const SizedBox(width: 10),
                         Row(
                           children: [
                             Icon(
-                              selectedOption == "Likes"
-                                  ? Icons.thumb_up
-                                  : selectedOption == "WatchTime"
-                                  ? Icons.ondemand_video_outlined
-                                  : selectedOption == "Comments"
+                              widget.selectedOption == "Likes"
+                                  ? Icons.favorite
+                                  : widget.selectedOption == "Comments"
                                   ? Icons.comment
-                                  : Icons.subscriptions_rounded,
-                              size: 18,
-                              color: selectedOption == "Likes"
-                                  ? Colors.blueAccent
-                                  : selectedOption == "WatchTime"
-                                  ? Colors.red
-                                  : selectedOption == "Comments"
-                                  ? Colors.white
+                                  : widget.selectedOption == "Followers"
+                                  ? Icons.supervised_user_circle_outlined
+                                  : Icons.supervised_user_circle_outlined,
+                              size: 20,
+                              color: widget.selectedOption == "Likes"
+                                  ? Colors.pink
                                   : Colors.red,
                             ),
                             const SizedBox(width: 3),
                             Text(
-                              selectedOption == "Likes"
+                              widget.selectedOption == "Likes"
                                   ? 'Like'
-                                  : selectedOption == "WatchTime"
-                                  ? 'Watch Video'
-                                  : selectedOption == "Comments"
+                                  : widget.selectedOption == "Comments"
                                   ? 'Comment'
-                                  : 'Subscribe',
-                              style: textStyle.displaySmall?.copyWith(color: Colors.white, fontSize: 16),
+                                  : widget.selectedOption == "Followers"
+                                  ? 'Follow'
+                                  : 'Follow',
+                              style: textStyle.displaySmall?.copyWith(color: Colors.white, fontSize: 18),
                             ),
                           ],
                         ),
@@ -568,20 +496,6 @@ class _YT_Auto_Task_ScreenState extends State<YT_Auto_Task_Screen> {
                                 _loginChecked = true;
                               });
                             }
-
-                            // ✅ Detect login page
-                            String? currentUrl = url?.toString().trim();
-                            bool isLoginPage = currentUrl != null &&
-                                (currentUrl.contains("accounts.google.com") ||
-                                    currentUrl.contains("accounts.youtube.com/accounts/"));
-                            if (isLoginPage) {
-                              debugPrint("🔴 Login page detected");
-                              setState(() {
-                                _remainingTime = 999;
-                              });
-                              return;
-                            }
-
                             // ✅ Initialize timer only once
                             if (!_timerInitialized) {
                               debugPrint("✅ Starting timer once");
@@ -592,29 +506,13 @@ class _YT_Auto_Task_ScreenState extends State<YT_Auto_Task_Screen> {
                             } else {
                               debugPrint("⏳ Timer already initialized. Skipping reset.");
                             }
-
-                            // ✅ Handle YouTube homepage auto-close
-                            bool isHomePage = currentUrl == "https://www.youtube.com" ||
-                                currentUrl == "https://m.youtube.com" ||
-                                currentUrl == "https://.youtube.com/" ||
-                                currentUrl == "https://m.youtube.com/";
-                            if (isHomePage) {
-                              setState(() {
-                                _loginChecked = false;
-                                _isUserLoggedIn = true;
-                                _showOverlay = true;
-                                _remainingTime = watchTime;
-                              });
-                              await _controller.loadUrl(urlRequest: URLRequest(url: WebUri(taskUrl)),);
-                              _startTimer();
-                              AlertMessage.snackMsg(context: context, message: 'Login to YouTube successfully.', time: 2);
-                            }
+                            await clickClosePopupButton(controller);
                           },
                         ),
 
                         if (_showOverlay && _remainingTime > 0)
                           InkWell(
-                            onTap: ()=> AlertMessage.snackMsg(context: context, message: 'Reward ${reward} tickets. Auto Task is running...'),
+                            onTap: ()=> AlertMessage.snackMsg(context: context, message: 'Please wait\nInstagram auto task is running...'),
                             child: Container(color: Colors.black.withOpacity(0.0)),
                           ),
 

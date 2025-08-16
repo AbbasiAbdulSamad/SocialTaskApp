@@ -316,6 +316,7 @@ class _YT_Task_ScreenState extends State<YT_Task_Screen> {
 
   @override
   void dispose() {
+    _controller.dispose();
     super.dispose();
   }
 

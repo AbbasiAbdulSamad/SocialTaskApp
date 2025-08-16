@@ -151,11 +151,40 @@ class _HomeState extends State<Home> {
             child: Row(
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
-                  SizedBox(width: 15,),
-                  Text(Provider.of<UserProvider>(context).autoTask==true? "$userAutoLimit": "Auto",
-                    style:Provider.of<UserProvider>(context).autoTask==true?TextStyle(fontSize: 23):
-                    textTheme.labelMedium?.copyWith(fontSize: 20, color: theme.onPrimaryContainer)
-                    ,),
+                  Tooltip(
+                    message: "Social Logins",
+                    child: IconButton(onPressed: (){
+                      Ui.Add_campaigns_pop(context, "Login Your Social Accounts",
+                          Container(
+                            width: double.infinity,
+                            height: 250,
+                            color: theme.primaryFixed,
+                            child: Column(spacing: 15,
+                              mainAxisAlignment: MainAxisAlignment.center,
+                              children: [
+                                MyButton(txt: 'YouTube Login', img: 'youtube_icon.webp', bgColor: theme.secondary,
+                                    borderLineOn: true, borderColor: theme.onPrimaryContainer, borderLineSize: 0.5, borderRadius: 20,
+                                    txtColor: Colors.white, txtSize: 15, icoSize: 30, pading: EdgeInsets.symmetric(horizontal: 30),
+                                    onClick: (){
+                                      Navigator.push(context, MaterialPageRoute(builder: (context)=>
+                                          SocialLogins(loginSocial: "YouTube")));
+                                    }),
+
+                                MyButton(txt: 'Instagram Login', img: 'instagram_icon.webp', bgColor: theme.secondary,
+                                    borderLineOn: true, borderColor: theme.onPrimaryContainer, borderLineSize: 0.5, borderRadius: 20,
+                                    txtColor: Colors.white, txtSize: 15, icoSize: 30, pading: EdgeInsets.symmetric(horizontal: 30),
+                                    onClick: (){
+                                      Navigator.push(context, MaterialPageRoute(builder: (context)=>
+                                          SocialLogins(loginSocial: "Instagram")));
+                                    })
+
+                              ],),
+                          ));
+
+                    }, icon: Icon(Icons.login, size: 25, color: theme.onPrimaryContainer,)),
+                  ),
+
+
                   Transform.scale(
                     scale: 0.8,
                     child: Switch(
@@ -170,6 +199,10 @@ class _HomeState extends State<Home> {
                       },
                     ),
                   ),
+                  Text(Provider.of<UserProvider>(context).autoTask==true? "$userAutoLimit": "Auto",
+                    style:Provider.of<UserProvider>(context).autoTask==true?TextStyle(fontSize: 23):
+                    textTheme.labelMedium?.copyWith(fontSize: 20, color: theme.onPrimaryContainer)
+                    ,),
                   const Expanded(child: SizedBox()),
                   InkWell(
                     onTap: (){
@@ -288,39 +321,6 @@ class _HomeState extends State<Home> {
                     }, icon: Icon(Icons.refresh, size: 25, color: theme.errorContainer,)),
                   ),
 
-                  Tooltip(
-                    message: "Social Logins",
-                    child: IconButton(onPressed: (){
-
-                      Ui.Add_campaigns_pop(context, "Login Your Social Accounts",
-                      Container(
-                        width: double.infinity,
-                        height: 250,
-                        color: theme.primaryFixed,
-                        child: Column(spacing: 15,
-                          mainAxisAlignment: MainAxisAlignment.center,
-                          children: [
-                          MyButton(txt: 'YouTube Login', img: 'youtube_icon.webp', bgColor: theme.secondary,
-                              borderLineOn: true, borderColor: theme.onPrimaryContainer, borderLineSize: 0.5, borderRadius: 20,
-                              txtColor: Colors.white, txtSize: 15, icoSize: 30, pading: EdgeInsets.symmetric(horizontal: 30),
-                              onClick: (){
-                            Navigator.push(context, MaterialPageRoute(builder: (context)=>
-                                SocialLogins(loginSocial: "YouTube")));
-                              }),
-
-                            MyButton(txt: 'Instagram Login', img: 'instagram_icon.webp', bgColor: theme.secondary,
-                                borderLineOn: true, borderColor: theme.onPrimaryContainer, borderLineSize: 0.5, borderRadius: 20,
-                                txtColor: Colors.white, txtSize: 15, icoSize: 30, pading: EdgeInsets.symmetric(horizontal: 30),
-                                onClick: (){
-                                  Navigator.push(context, MaterialPageRoute(builder: (context)=>
-                                      SocialLogins(loginSocial: "Instagram")));
-                                })
-
-                        ],),
-                      ));
-
-                      }, icon: Icon(Icons.login, size: 25, color: theme.onPrimaryContainer,)),
-                  )
                 ],
               ),
           ),
