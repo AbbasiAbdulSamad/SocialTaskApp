@@ -37,7 +37,7 @@ class _YT_Auto_Task_ScreenState extends State<YT_Auto_Task_Screen> {
   late int screenFrom;
 
 
-  late InAppWebViewController _controller;
+  InAppWebViewController? _controller;
   bool _isLoading = true;
   final CookieManager _cookieManager = CookieManager();
   double progress = 0;
@@ -66,7 +66,6 @@ class _YT_Auto_Task_ScreenState extends State<YT_Auto_Task_Screen> {
 
     _remainingTime = widget.watchTime;
     super.initState();
-    _startTimer();
     Provider.of<InternetProvider>(context, listen: false).addListener(_handleInternetChange);
   }
 
@@ -74,10 +73,11 @@ class _YT_Auto_Task_ScreenState extends State<YT_Auto_Task_Screen> {
     _timer?.cancel();
 
     final random = Random();
-    int _actionTriggerTime = 10 + random.nextInt((watchTime - 10).clamp(1, watchTime - 10));
-    random.nextInt((watchTime - 10).clamp(1, watchTime - 10));
-
-    debugPrint('Random: $_actionTriggerTime');
+    int min = 5;
+    int max = (watchTime - 6);
+    if (max <= min) {max = min + 2;}
+    int _actionTriggerTime = min + random.nextInt(max - min);
+    debugPrint('Random: $_actionTriggerTime \n Time: $watchTime');
 
     _timer = Timer.periodic(Duration(seconds: 1), (timer) async {
       if (!mounted) return;
@@ -92,9 +92,7 @@ class _YT_Auto_Task_ScreenState extends State<YT_Auto_Task_Screen> {
       if (_remainingTime > 0) {
         setState(() {_remainingTime--;});
 
-        if (_remainingTime == _actionTriggerTime && selectedOption == "Comments") {
-          autoComment();
-        }else if(_remainingTime == _actionTriggerTime && selectedOption == "Subscribers"){
+        if(_remainingTime == _actionTriggerTime && selectedOption == "Subscribers"){
           autoSubscribe();
         }else if(_remainingTime == _actionTriggerTime && selectedOption == "Likes"){
           autoLike();
@@ -139,13 +137,14 @@ class _YT_Auto_Task_ScreenState extends State<YT_Auto_Task_Screen> {
     }
 
     final youtubeTasks = allCampaignsProvider.allCampaigns
-        .where((task) => task['social'] == 'YouTube')
+        .where((task) => task['social'] == 'YouTube' &&
+        (task['selectedOption'] == 'Likes' || task['selectedOption'] == 'Subscribers'))
         .toList();
 
     // 🛠️ Skip current task if already playing
     if (_isFirstTask) {
       _isFirstTask = false;
-      _currentIndex++; // move index forward to avoid repeating current
+      _currentIndex++;
     }
 
     if (_currentIndex >= youtubeTasks.length) {
@@ -174,7 +173,7 @@ class _YT_Auto_Task_ScreenState extends State<YT_Auto_Task_Screen> {
       _remainingTime = watchTime;
     });
 
-    await _controller.loadUrl(urlRequest: URLRequest(url: WebUri(taskUrl)));
+    await _controller?.loadUrl(urlRequest: URLRequest(url: WebUri(taskUrl)));
     AlertMessage.snackMsg(context: context, message: 'Next task started!', time: 1);
   }
 
@@ -222,7 +221,7 @@ class _YT_Auto_Task_ScreenState extends State<YT_Auto_Task_Screen> {
     if (!isLoggedIn) {
       debugPrint("🔴 User not logged in. Redirecting to YouTube Login...");
       if (_controller != null) {
-        await _controller.loadUrl(
+        await _controller?.loadUrl(
           urlRequest: URLRequest(
             url: WebUri("https://accounts.google.com/ServiceLogin?service=youtube&continue=https://www.youtube.com"),
           ),
@@ -240,7 +239,7 @@ class _YT_Auto_Task_ScreenState extends State<YT_Auto_Task_Screen> {
       if (!_loginChecked) {
         _loginChecked = true;
         if (_controller != null) {
-          await _controller.loadUrl(
+          await _controller?.loadUrl(
             urlRequest: URLRequest(url: WebUri(taskUrl)),
           );
         }
@@ -271,7 +270,7 @@ class _YT_Auto_Task_ScreenState extends State<YT_Auto_Task_Screen> {
 
   Future<void> autoLike() async{
     if (selectedOption == "Likes") {
-      String? likeCheck = await _controller.evaluateJavascript(source: '''
+      String? likeCheck = await _controller?.evaluateJavascript(source: '''
     (function() {
       const likeButton = document.querySelector('button[aria-label*="like this video"]');
       if (!likeButton) return "not_found";
@@ -284,7 +283,7 @@ class _YT_Auto_Task_ScreenState extends State<YT_Auto_Task_Screen> {
 
       if (likeCheck != "true") {
         // ✅ Automatically click the Like button
-        await _controller.evaluateJavascript(source: '''
+        await _controller?.evaluateJavascript(source: '''
       (function() {
         const likeButton = document.querySelector('button[aria-label*="like this video"]');
         if (likeButton) {
@@ -303,132 +302,62 @@ class _YT_Auto_Task_ScreenState extends State<YT_Auto_Task_Screen> {
   }
 
 
-  Future<void> autoSubscribe() async{
+  Future<void> autoSubscribe() async {
     if (selectedOption == "Subscribers") {
-      String? subscribeCheck = await _controller.evaluateJavascript(source: '''
-    (function() {
-      const spans = Array.from(document.querySelectorAll('span.yt-core-attributed-string'));
-      let foundSubscribe = false;
-      let foundSubscribed = false;
+      try {
+        String? subscribeCheck = await _controller?.evaluateJavascript(source: '''
+        (function() {
+          function getText(el) {
+            return el?.innerText?.trim()?.toLowerCase() || "";
+          }
 
-      for (let span of spans) {
-        const text = span.innerText.trim().toLowerCase();
-        if (text === "subscribe") foundSubscribe = true;
-        if (text === "subscribed") foundSubscribed = true;
-      }
+          // 🔎 Try to detect "Subscribe" or "Subscribed"
+          let btns = Array.from(document.querySelectorAll('button, yt-button-shape, tp-yt-paper-button, span.yt-core-attributed-string'));
+          let subscribeBtn = btns.find(b => getText(b) === "subscribe");
+          let subscribedBtn = btns.find(b => getText(b) === "subscribed");
 
-      if (foundSubscribed) return "subscribed";
-      if (foundSubscribe) return "not_subscribed";
+          if (subscribedBtn) return "subscribed";
+          if (subscribeBtn) return "not_subscribed";
 
-      const shortsBtn = Array.from(document.querySelectorAll('button'))
-        .find(btn => btn.innerText.trim().toLowerCase() === "subscribe");
-      if (shortsBtn) return "not_subscribed";
+          return "not_found";
+        })();
+      ''');
 
-      const shortsSubscribed = Array.from(document.querySelectorAll('button'))
-        .find(btn => btn.innerText.trim().toLowerCase() === "subscribed");
-      if (shortsSubscribed) return "subscribed";
+        debugPrint("🔍 Subscribe button status: $subscribeCheck");
+        subscribeCheck = subscribeCheck?.replaceAll('"', '');
 
-      return "not_found";
-    })();
-  ''');
-      debugPrint("🔍 Subscribe button status: $subscribeCheck");
-      subscribeCheck = subscribeCheck?.replaceAll('"', '');
-      if (subscribeCheck == "not_subscribed") {
-        // ✅ Automatically click the Subscribe button
-        await _controller.evaluateJavascript(source: '''
-      (function() {
-        const subscribeBtn = Array.from(document.querySelectorAll('button')).find(btn =>
-          btn.innerText.trim().toLowerCase() === "subscribe");
-        if (subscribeBtn) {
-          subscribeBtn.click();
-          return "clicked";
+        if (subscribeCheck == "not_subscribed") {
+          // ✅ Auto-click the Subscribe button
+          String? clickResult = await _controller?.evaluateJavascript(source: '''
+          (function() {
+            function getText(el) {
+              return el?.innerText?.trim()?.toLowerCase() || "";
+            }
+            let btns = Array.from(document.querySelectorAll('button, yt-button-shape, tp-yt-paper-button, span.yt-core-attributed-string'));
+            let subscribeBtn = btns.find(b => getText(b) === "subscribe");
+            if (subscribeBtn) {
+              subscribeBtn.click();
+              return "clicked";
+            }
+            return "button_not_found";
+          })();
+        ''');
+          debugPrint("▶️ Subscribe click result: $clickResult");
+
+          if (clickResult?.contains("clicked") == true) {
+            AlertMessage.snackMsg(context: context, message: 'Subscribed ✅');
+          }
         }
-        return "button_not_found";
-      })();
-    ''');
-
-        // Optional feedback
-        AlertMessage.snackMsg(context: context, message: 'Subscribed');
+      } catch (e) {
+        debugPrint("❌ Error autoSubscribe: \$e");
       }
-    }
-  }
-
-  Future<void> autoComment() async {
-    String selectedComment = CommentList.getRandomComment();
-
-    if (selectedOption == "Comments") {
-      await _controller.evaluateJavascript(source: '''
-    (async function() {
-      const sleep = ms => new Promise(resolve => setTimeout(resolve, ms));
-
-      // Step 1: Try clicking Shorts-style comment button
-      let commentOpened = false;
-      const commentBtn = Array.from(document.querySelectorAll('button')).find(btn =>
-        btn.getAttribute("aria-label")?.toLowerCase().includes("view") ||
-        btn.getAttribute("aria-label")?.toLowerCase().includes("comments")
-      );
-
-      if (commentBtn) {
-        commentBtn.click();
-        await sleep(2000);
-        commentOpened = true;
-      }
-
-      // Step 1b: If Shorts button not found, try long-video comment section
-      if (!commentOpened) {
-        const longVideoCommentTrigger = document.querySelector('div.ytCommentsEntryPointTeaserViewModelTeaser');
-        if (longVideoCommentTrigger) {
-          longVideoCommentTrigger.click();
-          await sleep(2000);
-          commentOpened = true;
-        } else {
-          return "comment_button_not_found";
-        }
-      }
-
-      // Step 2: Click 'Add a comment…' placeholder
-      const placeholder = Array.from(document.querySelectorAll('span'))
-        .find(span => span.innerText.trim().toLowerCase() === "add a comment…");
-
-      if (placeholder) {
-        placeholder.click();
-        await sleep(2980);
-      } else {
-        return "placeholder_not_found";
-      }
-
-      // Step 3: Fill in the comment
-      const textarea = document.querySelector('textarea.comment-simplebox-reply');
-      if (!textarea) return "textarea_not_found";
-
-      textarea.focus();
-      textarea.value = "${selectedComment.replaceAll('"', '\\"')}";
-      textarea.dispatchEvent(new Event('input', { bubbles: true }));
-
-      await sleep(5030);
-
-      // Step 4: Click the final Comment button
-      const commentBtnFinal = Array.from(document.querySelectorAll('span')).find(span =>
-        span.innerText.trim().toLowerCase() === "comment"
-      );
-
-      if (commentBtnFinal) {
-        commentBtnFinal.click();
-        return "comment_posted";
-      } else {
-        return "final_comment_button_not_found";
-      }
-    })();
-  ''').then((result) {
-        debugPrint("💬 JS result: $result");});
-
-      setState(() {_buttonLoading = false;});
     }
   }
 
   @override
   void dispose() {
     _timer?.cancel();
+    _controller?.dispose();
     final internetProvider = Provider.of<InternetProvider>(context, listen: false);
     internetProvider.removeListener(_handleInternetChange);
     super.dispose();
@@ -501,16 +430,12 @@ class _YT_Auto_Task_ScreenState extends State<YT_Auto_Task_Screen> {
                                   ? Icons.thumb_up
                                   : selectedOption == "WatchTime"
                                   ? Icons.ondemand_video_outlined
-                                  : selectedOption == "Comments"
-                                  ? Icons.comment
                                   : Icons.subscriptions_rounded,
                               size: 18,
                               color: selectedOption == "Likes"
                                   ? Colors.blueAccent
                                   : selectedOption == "WatchTime"
                                   ? Colors.red
-                                  : selectedOption == "Comments"
-                                  ? Colors.white
                                   : Colors.red,
                             ),
                             const SizedBox(width: 3),
@@ -519,8 +444,6 @@ class _YT_Auto_Task_ScreenState extends State<YT_Auto_Task_Screen> {
                                   ? 'Like'
                                   : selectedOption == "WatchTime"
                                   ? 'Watch Video'
-                                  : selectedOption == "Comments"
-                                  ? 'Comment'
                                   : 'Subscribe',
                               style: textStyle.displaySmall?.copyWith(color: Colors.white, fontSize: 16),
                             ),
@@ -605,7 +528,7 @@ class _YT_Auto_Task_ScreenState extends State<YT_Auto_Task_Screen> {
                                 _showOverlay = true;
                                 _remainingTime = watchTime;
                               });
-                              await _controller.loadUrl(urlRequest: URLRequest(url: WebUri(taskUrl)),);
+                              await _controller?.loadUrl(urlRequest: URLRequest(url: WebUri(taskUrl)),);
                               _startTimer();
                               AlertMessage.snackMsg(context: context, message: 'Login to YouTube successfully.', time: 2);
                             }
@@ -614,7 +537,7 @@ class _YT_Auto_Task_ScreenState extends State<YT_Auto_Task_Screen> {
 
                         if (_showOverlay && _remainingTime > 0)
                           InkWell(
-                            onTap: ()=> AlertMessage.snackMsg(context: context, message: 'Reward ${reward} tickets. Auto Task is running...'),
+                            onTap: ()=> AlertMessage.snackMsg(context: context, message: 'Please Wait\nYouTube Auto Task is running...\nReward ${reward} tickets.'),
                             child: Container(color: Colors.black.withOpacity(0.0)),
                           ),
 

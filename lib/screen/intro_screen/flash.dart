@@ -154,7 +154,7 @@ class _FlashState extends State<Flash> {
                   ? SizedBox(
                 width: 120,
                 height: 120,
-                child: Image.asset('assets/images/socialtask.webp'),
+                child: Image.asset('assets/images/socialtask.png'),
               )
                   : Column(
                 mainAxisAlignment: MainAxisAlignment.spaceEvenly,
@@ -162,7 +162,7 @@ class _FlashState extends State<Flash> {
                   SizedBox(
                     width: 120,
                     height: 120,
-                    child: Image.asset('assets/images/socialtask.webp'),
+                    child: Image.asset('assets/images/socialtask.png'),
                   ),
                   Column(
                     mainAxisAlignment: MainAxisAlignment.start,

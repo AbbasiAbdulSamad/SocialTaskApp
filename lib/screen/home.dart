@@ -194,7 +194,7 @@ class _HomeState extends State<Home> {
                       onChanged: (value) {
                         Provider.of<UserProvider>(context, listen: false).setAutoTask(value);
                         if(value==true){
-                          AlertMessage.snackMsg(context: context, message: "Auto Mode ON", time: 1);
+                          AlertMessage.snackMsg(context: context, message: "Auto YouTube Like/Subscribe Tasks Supported.", time: 2);
                         }
                       },
                     ),

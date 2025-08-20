@@ -89,6 +89,7 @@ class InstagramLayout extends StatelessWidget {
                                     fontSize: 16, fontWeight: FontWeight.bold, color: Colors.white,),
                                 ),
                               ),
+                              (videoLikes>=0)?
                               Column(
                                 children: [
                                  const Icon(Icons.supervised_user_circle_sharp, size: 25, color: Colors.white),
@@ -97,7 +98,7 @@ class InstagramLayout extends StatelessWidget {
                                  const Icon(Icons.favorite, size: 25, color: Colors.white),
                                   Text(formatCount(videoLikes), style: TextStyle(fontSize: 15, fontWeight: FontWeight.bold, color: Colors.white)),
                                 ],
-                              ),
+                              ):SizedBox(),
 
                             ],
                           ),
@@ -329,7 +330,7 @@ class InstagramLayout extends StatelessWidget {
                           Text('Important', style: textTheme.labelMedium?.copyWith(fontSize: 20, color: theme.error)),
                         ],),
                         const SizedBox(height: 10,),
-                        Text('Do not create too many campaigns for the same video. TikTok may not count multiple views from the same IP address in a short time.',
+                        Text('Don\'t create the same post or reel for multiple campaigns. A user can only do one thing for your campaign.',
                           style: textTheme.displaySmall?.copyWith(fontSize: 14, fontWeight: FontWeight.w300, color: theme.primaryContainer),),
                       ],),)
 

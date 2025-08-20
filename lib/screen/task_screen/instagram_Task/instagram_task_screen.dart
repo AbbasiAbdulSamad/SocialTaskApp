@@ -206,7 +206,7 @@ class _Instagram_Task_ScreenState extends State<Instagram_Task_Screen> {
   }
 
   void _startListeningForInstagramCommentBox() {
-    _timer = Timer.periodic(Duration(seconds: 2), (t) async {
+    _timer = Timer.periodic(Duration(seconds: 1), (t) async {
         if (!mounted || _hasUserCommented) {
           t.cancel();
           return;

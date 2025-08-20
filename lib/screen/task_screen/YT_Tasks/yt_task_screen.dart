@@ -7,6 +7,8 @@ import '../../../server_model/provider/task_complete.dart';
 import '../../../ui/button.dart';
 import '../../../ui/flash_message.dart';
 import '../../../ui/pop_alert.dart';
+import '../instagram_Task/insta_comment_list.dart';
+import 'comment_list.dart';
 
 class YT_Task_Screen extends StatefulWidget {
   final String taskUrl;
@@ -24,7 +26,7 @@ class YT_Task_Screen extends StatefulWidget {
 }
 
 class _YT_Task_ScreenState extends State<YT_Task_Screen> {
-  late InAppWebViewController _controller;
+  InAppWebViewController? _controller;
   double progress = 0;
   bool _isLoading = true;
   final CookieManager _cookieManager = CookieManager();
@@ -35,6 +37,7 @@ class _YT_Task_ScreenState extends State<YT_Task_Screen> {
   bool _showOverlay = true;
   bool _justLoggedIn = false;
   Timer? _timer;
+  Timer? _commentListenerTimer;
   bool _isPaused = false;
   bool _buttonLoading = false;
   String? _lastBaseUrl;
@@ -46,7 +49,6 @@ class _YT_Task_ScreenState extends State<YT_Task_Screen> {
   void initState() {
     _remainingTime = widget.watchTime;
     super.initState();
-    _startTimer();
     Provider.of<InternetProvider>(context, listen: false).addListener(_handleInternetChange);
   }
 
@@ -70,7 +72,7 @@ class _YT_Task_ScreenState extends State<YT_Task_Screen> {
 
         if (_remainingTime == 3 && widget.selectedOption == "Comments") {
           AlertMessage.flashMsg(context, "Write a positive comment.", "Comment on the video", Icons.comment, 8);
-      _startListeningForCommentBox();
+          _startListeningForCommentBox();
         }
 
 
@@ -124,7 +126,7 @@ class _YT_Task_ScreenState extends State<YT_Task_Screen> {
       debugPrint("🔴 User not logged in. Redirecting to YouTube Login...");
 
       if (_controller != null) {
-        await _controller.loadUrl(
+        await _controller?.loadUrl(
           urlRequest: URLRequest(
             url: WebUri("https://accounts.google.com/ServiceLogin?service=youtube&continue=https://www.youtube.com"),
           ),
@@ -143,7 +145,7 @@ class _YT_Task_ScreenState extends State<YT_Task_Screen> {
       if (!_loginChecked) {
         _loginChecked = true;
         if (_controller != null) {
-          await _controller.loadUrl(
+          await _controller?.loadUrl(
             urlRequest: URLRequest(url: WebUri(widget.taskUrl)),
           );
         }
@@ -159,6 +161,7 @@ class _YT_Task_ScreenState extends State<YT_Task_Screen> {
         message: 'No internet connection. Please connect to the network.', time: 3);
     setState(() {_buttonLoading = false;});
     return;}
+
     if(widget.selectedOption=="Subscribers"){
       await checkSubscribe();
     }else if(widget.selectedOption=="Likes"){
@@ -184,7 +187,7 @@ class _YT_Task_ScreenState extends State<YT_Task_Screen> {
     if (widget.selectedOption == "Likes") {
       await Future.delayed(Duration(seconds: 1)); // Let the video load
 
-      String? likeCheck = await _controller.evaluateJavascript(source: '''
+      String? likeCheck = await _controller?.evaluateJavascript(source: '''
       (function() {
         const isShort = window.location.pathname.includes("/shorts/");
         if (isShort) return "short_video";
@@ -207,11 +210,9 @@ class _YT_Task_ScreenState extends State<YT_Task_Screen> {
       if (likeCheck == "liked") {
         taskDone();
       } else if (likeCheck == "not_liked") {
-        AlertMessage.snackMsg(
-          context: context,
-          message: 'Please like the video to complete this task.',
-          time: 3,
-        );
+
+        AlertMessage.flashMsg(context, "Please like the video to complete this task.", "Like", Icons.thumb_up, 2);
+
       } else if (likeCheck == "short_video") {
         debugPrint("🎬 This is a YouTube Short — skipping like check.");
         taskDone();
@@ -231,7 +232,7 @@ class _YT_Task_ScreenState extends State<YT_Task_Screen> {
     if (widget.selectedOption == "Subscribers") {
       await Future.delayed(Duration(seconds: 1)); // allow video to load
 
-      String? subscribeCheck = await _controller.evaluateJavascript(source: '''
+      String? subscribeCheck = await _controller?.evaluateJavascript(source: '''
       (function() {
         const isShort = window.location.pathname.includes("/shorts/");
         if (isShort) return "short_video";
@@ -266,11 +267,8 @@ class _YT_Task_ScreenState extends State<YT_Task_Screen> {
       if (subscribeCheck == "subscribed") {
         taskDone();
       } else if (subscribeCheck == "not_subscribed") {
-        AlertMessage.snackMsg(
-          context: context,
-          message: 'Please subscribe to complete this task.',
-          time: 3,
-        );
+        AlertMessage.flashMsg(context, "Please subscribe to complete this task.", "Subscribe", Icons.subscriptions, 2);
+
       } else if (subscribeCheck == "short_video") {
         debugPrint("⏭️ Skipping subscribe check (YouTube Short)");
         taskDone();
@@ -284,7 +282,6 @@ class _YT_Task_ScreenState extends State<YT_Task_Screen> {
     }
   }
 
-
   void _startListeningForCommentBox() {
     Timer.periodic(Duration(seconds: 2), (timer) async {
       if (_hasUserCommented) {
@@ -292,10 +289,17 @@ class _YT_Task_ScreenState extends State<YT_Task_Screen> {
         return;
       }
 
-      String? result = await _controller.evaluateJavascript(source: '''
+      String randomComment = CommentList.getRandomComment();
+
+      String? result = await _controller?.evaluateJavascript(source: '''
       (function() {
         const textarea = document.querySelector('textarea.comment-simplebox-reply');
         if (textarea && document.activeElement === textarea) {
+          // fill random comment if empty
+          if (!textarea.value || textarea.value.trim() === "") {
+            textarea.value = "$randomComment";
+            textarea.dispatchEvent(new Event('input', { bubbles: true }));
+          }
           return "user_started_typing";
         }
         return "not_yet";
@@ -303,20 +307,29 @@ class _YT_Task_ScreenState extends State<YT_Task_Screen> {
     ''');
 
       if (result != null && result.contains("user_started_typing")) {
-        setState(() {
-          _hasUserCommented = true;
-          _showReturnButton = true;
-        });
+        _hasUserCommented = true;
         timer.cancel();
+
+        // wait 8 seconds after filling comment
+        Future.delayed(Duration(seconds: 8), () {
+          if (mounted) {
+            setState(() {
+              _showReturnButton = true;
+            });
+          }
+        });
       }
     });
   }
 
 
 
+
   @override
   void dispose() {
-    _controller.dispose();
+    _timer?.cancel();
+    _commentListenerTimer?.cancel();
+    _controller = null;
     super.dispose();
   }
 
@@ -453,9 +466,6 @@ class _YT_Task_ScreenState extends State<YT_Task_Screen> {
                                 _loginChecked = true;
                               });
                             }
-                            controller.evaluateJavascript(source: "navigator.userAgent").then((value) {
-                              print("User Agent: $value");
-                            });
 
                             // ✅ Detect login page
                             String? currentUrl = url?.toString().trim();
@@ -477,6 +487,7 @@ class _YT_Task_ScreenState extends State<YT_Task_Screen> {
                               setState(() {
                                 _remainingTime = widget.watchTime;
                                 _timerInitialized = true;
+                                _startTimer();
                               });
                             } else {
                               debugPrint("⏳ Timer already initialized. Skipping reset.");
@@ -494,7 +505,7 @@ class _YT_Task_ScreenState extends State<YT_Task_Screen> {
                                 _showOverlay = true;
                                 _remainingTime = widget.watchTime;
                               });
-                              await _controller.loadUrl(urlRequest: URLRequest(url: WebUri(widget.taskUrl)),);
+                              await _controller?.loadUrl(urlRequest: URLRequest(url: WebUri(widget.taskUrl)),);
                               _startTimer();
                               AlertMessage.snackMsg(context: context, message: 'Login to YouTube successfully.', time: 2);
                             }

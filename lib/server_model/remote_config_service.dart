@@ -23,8 +23,9 @@ class RemoteConfigService {
       );
 
       await _remoteConfig.setDefaults({
-        'api_url': 'http://10.230.117.48:3000',
-        'minimum_app_version': '1.1.1',
+        // 'api_url': 'http://10.187.134.48:3000',
+      'api_url': 'https://socialtask-server.fly.dev',
+        'minimum_app_version': '1.2.1',
       });
 
       /// ✅ Try fetching remote config
@@ -36,8 +37,9 @@ class RemoteConfigService {
 
       /// fallback defaults (taake crash na ho)
       await _remoteConfig.setDefaults({
-        'api_url': 'http://10.230.117.48:3000',
-        'minimum_app_version': '1.1.1',
+        // 'api_url': 'http://10.187.134.48:3000',
+        'api_url': 'https://socialtask-server.fly.dev',
+        'minimum_app_version': '1.2.1',
       });
     }
   }
@@ -45,14 +47,14 @@ class RemoteConfigService {
   String get baseUrl {
     final baseUrl = _remoteConfig.getString('api_url');
     return baseUrl.isNotEmpty
-        // ? baseUrl
-        ? 'http://10.230.117.48:3000'
-        : 'http://10.230.117.48:3000';
+        ? baseUrl
+        // ? 'http://10.187.134.48:3000'
+        : 'https://socialtask-server.fly.dev';
   }
 
   String get minimumRequiredVersion {
     final version = _remoteConfig.getString('minimum_app_version');
-    return version.isNotEmpty ? version : '1.1.1';
+    return version.isNotEmpty ? version : '1.2.1';
   }
 
   /// 🚀 Check for Update and Show Popup

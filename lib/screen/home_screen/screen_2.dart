@@ -13,7 +13,6 @@ import '../../ui/ui_helper.dart';
 import '../task_screen/Tiktok_Task/tiktok_task_handler.dart';
 import '../task_screen/YT_Tasks/yt_auto_task_screen.dart';
 import '../task_screen/YT_Tasks/yt_task_screen.dart';
-import '../task_screen/instagram_Task/insta_auto_task_screen.dart';
 import '../task_screen/instagram_Task/instagram_task_screen.dart';
 
 class Screen2 extends StatefulWidget {
@@ -68,13 +67,6 @@ class _Screen2State extends State<Screen2> with WidgetsBindingObserver{
     await _checkInternet();
     if (_internetCheck) {
       if(autoTask){
-        if(social=="Instagram" && selectedOption=="Followers" || selectedOption=="Likes"){
-          Navigator.push(context, MaterialPageRoute(
-            builder: (context) => Instagram_Auto_Task_Screen(
-              taskUrl: taskUrl, selectedOption: selectedOption,
-              reward: reward, campaignId: campaignId, screenFrom: 0,),
-          ),);
-        }else{
           Navigator.push(context, MaterialPageRoute(
             builder: (context) => YT_Auto_Task_Screen(
               taskUrl: taskUrl,
@@ -85,7 +77,6 @@ class _Screen2State extends State<Screen2> with WidgetsBindingObserver{
               screenFrom: 0,
             ),
           ),);
-        }
       }else{
         if(social=="TikTok"){
           TikTokTaskHandler.startTikTokTask(
@@ -275,10 +266,8 @@ class _Screen2State extends State<Screen2> with WidgetsBindingObserver{
                     // Buttons
                     Container(
                       margin: const EdgeInsets.symmetric(vertical: 20, horizontal: 10),
-                      child: Provider.of<UserProvider>(context).autoTask &&
-                          (campaign['social'] == "YouTube" ||
-                          (campaign['social'] == "Instagram" &&
-                          (campaign['selectedOption'] == "Followers" || campaign['selectedOption'] == "Likes")))
+                      child: Provider.of<UserProvider>(context).autoTask && (campaign['social']=="YouTube") &&
+                (campaign['selectedOption']=="Likes" || campaign['selectedOption']=="Subscribers")
                           ?
                         Container(
                           width: double.infinity,

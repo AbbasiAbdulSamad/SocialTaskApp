@@ -12,7 +12,6 @@ import '../../ui/ui_helper.dart';
 import '../task_screen/Tiktok_Task/tiktok_task_handler.dart';
 import '../task_screen/YT_Tasks/yt_auto_task_screen.dart';
 import '../task_screen/YT_Tasks/yt_task_screen.dart';
-import '../task_screen/instagram_Task/insta_auto_task_screen.dart';
 import '../task_screen/instagram_Task/instagram_task_screen.dart';
 
 class Screen3 extends StatefulWidget {
@@ -110,32 +109,16 @@ class _Screen3State extends State<Screen3> with WidgetsBindingObserver{
                             screenFrom: 1,
                           );
                         }else if(campaign['social']=="Instagram"){
-                          final autoButton = Provider.of<UserProvider>(context, listen: false).autoTask;
-
-                          if(autoButton &&
-                              campaign['social'] == "Instagram" &&
-                              (campaign['selectedOption'] == "Followers" || campaign['selectedOption'] == "Likes")){
-
-                            if(userAutoLimit==0){
-                              AlertMessage.errorMsg(context, "You've reached your Auto Task limit. You can still complete manual tasks to earn more!", "$userAutoLimit Limit");
-                              Provider.of<UserProvider>(context, listen: false).setAutoTask(false);
-                            }else{
-                              Navigator.push(context, MaterialPageRoute(
-                                builder: (context) => Instagram_Auto_Task_Screen(
-                                  taskUrl: campaign['videoUrl'], selectedOption: campaign['selectedOption'],
-                                  reward: campaign['CostPer'], campaignId: campaign['_id'], screenFrom: 1,),
-                              ),);
-                            }
-                          }else{
-                            Navigator.push(context, MaterialPageRoute(builder: (context)=>
-                                Instagram_Task_Screen(taskUrl: campaign['videoUrl'], selectedOption: campaign['selectedOption'],
-                                  reward: campaign['CostPer'], campaignId: campaign['_id'], screenFrom: 1,)));
-                          }
-
+                          Navigator.push(context, MaterialPageRoute(
+                            builder: (context) => Instagram_Task_Screen(
+                              taskUrl: campaign['videoUrl'], selectedOption: campaign['selectedOption'],
+                              reward: campaign['CostPer'], campaignId: campaign['_id'], screenFrom: 1,),
+                          ),);
                         }
                         else{
                           final autoButton = Provider.of<UserProvider>(context, listen: false).autoTask;
-                          if(autoButton){
+                          if(autoButton && (campaign['social']=="YouTube") &&
+                              (campaign['selectedOption']=="Likes" || campaign['selectedOption']=="Subscribers")){
                             if(userAutoLimit==0){
                               AlertMessage.errorMsg(context, "You've reached your Auto Task limit. You can still complete manual tasks to earn more!", "$userAutoLimit Limit");
                               Provider.of<UserProvider>(context, listen: false).setAutoTask(false);

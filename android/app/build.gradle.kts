@@ -17,7 +17,7 @@ if (keystorePropertiesFile.exists()) {
 
 android {
     namespace = "com.socialtask.app"
-    compileSdk = 35
+    compileSdk = 36
     ndkVersion = "29.0.13113456"
 
     compileOptions {

@@ -1,6 +1,6 @@
 name: app
 description: "Social Task"
-version: 1.1.1+10
+version: 1.2.1+11
 
 environment:
   sdk: ^3.7.2
@@ -42,7 +42,6 @@ dependencies:
   dropdown_button2: ^2.3.9
   cached_network_image: ^3.3.1
   in_app_purchase: ^3.2.3
-  flutter_html: ^3.0.0
 
 
 
@@ -57,11 +56,11 @@ dev_dependencies:
 flutter_icons:
   android: true
   ios: true
-  image_path: "assets/images/socialtask.webp"
+  image_path: assets/images/socialtask.png
 
 flutter_native_splash:
   color: "#004664"
-  image: "assets/images/socialtask.webp"
+  image: assets/images/socialtask.png
   android: true
   ios: true
   android_gravity: center
