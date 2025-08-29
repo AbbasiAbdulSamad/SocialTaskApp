@@ -1,6 +1,7 @@
 import 'package:app/config/authentication.dart';
+import 'package:app/pages/sidebar_pages/buy_tickets.dart';
 import 'package:app/pages/sidebar_pages/my_account.dart';
-import 'package:app/screen/task_screen/Tiktok_Task/tiktok_task_handler.dart';
+import 'package:app/pages/sidebar_pages/premium_account.dart';
 import 'package:app/server_model/provider/leaderboard_reward.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:firebase_messaging/firebase_messaging.dart';
@@ -33,20 +34,14 @@ Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
   InAppPurchase.instance.isAvailable();
 
+// Firebase ko jaldi se initialize karo
   await Firebase.initializeApp();
 
-  // 🔹 Initialize Firebase Remote Config
-  await RemoteConfigService().initialize();
-
-  // 🔹 Register background handler
+  // 🔹 Background message handler register
   FirebaseMessaging.onBackgroundMessage(_firebaseMessagingBackgroundHandler);
 
-  // 🔹 Get initial notification route
-  final initialMessage = await FirebaseMessaging.instance.getInitialMessage();
-  final initialRoute = initialMessage?.data['route'];
-  if (initialRoute != null) {
-    globalPendingRoute = initialRoute;
-  }
+  // ⚡️ Heavy tasks ko background me init karo (await na karo abhi)
+  _initializeServices();
 
   // ✅ Run the app and pass initialRoute to MyApp
   runApp(
@@ -61,23 +56,22 @@ Future<void> main() async {
         ChangeNotifierProvider(create: (_) => UserProvider()),
         ChangeNotifierProvider(create: (_) => LevelDataProvider(), lazy: true),
       ],
-      child: MyApp(initialRoute: initialRoute),
+      child: MyApp(),
     ),
   );
 }
 
 class MyApp extends StatelessWidget {
-  final String? initialRoute;
-  const MyApp({super.key, this.initialRoute});
+  const MyApp({super.key});
 
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
       navigatorKey: navigatorKey,
       routes: {
-        '/targetScreen': (context) => const EarnTickets(),
-        '/referral': (context) => MyAccount(),
-        '/login': (context) => Authentication(),
+        '/dailyReward': (context) => const EarnTickets(),
+        '/premium': (context) => PremiumAccount(),
+        '/buyTicket': (context) => const BuyTickets(),
       },
       builder: (context, child) {
         return MediaQuery(
@@ -90,7 +84,38 @@ class MyApp extends StatelessWidget {
       theme: LightThemesSetup.lightTheme,
       darkTheme: DarkThemesSetup.darkTheme,
       themeMode: ThemeMode.system,
-      home: Flash(initialRoute: initialRoute),
+      home: Flash(initialRoute: globalPendingRoute),
     );
+  }
+}
+
+
+
+
+/// Background me services initialize
+Future<void> _initializeServices() async {
+  // Remote Config
+  try {
+    await RemoteConfigService().initialize();
+  } catch (e) {
+    debugPrint("⚠️ RemoteConfig init failed: $e");
+  }
+
+  // InAppPurchase availability
+  try {
+    await InAppPurchase.instance.isAvailable();
+  } catch (e) {
+    debugPrint("⚠️ InAppPurchase check failed: $e");
+  }
+
+  // Initial notification message route
+  try {
+    final initialMessage = await FirebaseMessaging.instance.getInitialMessage();
+    final initialRoute = initialMessage?.data['route'];
+    if (initialRoute != null) {
+      globalPendingRoute = initialRoute;
+    }
+  } catch (e) {
+    debugPrint("⚠️ Initial FCM message fetch failed: $e");
   }
 }

@@ -176,6 +176,14 @@ class _HomeState extends State<Home> {
                                     onClick: (){
                                       Navigator.push(context, MaterialPageRoute(builder: (context)=>
                                           SocialLogins(loginSocial: "Instagram")));
+                                    }),
+
+                                MyButton(txt: 'Linkedin Login', img: 'linkedin_icon.webp', bgColor: theme.secondary,
+                                    borderLineOn: true, borderColor: theme.onPrimaryContainer, borderLineSize: 0.5, borderRadius: 20,
+                                    txtColor: Colors.white, txtSize: 15, icoSize: 30, pading: EdgeInsets.symmetric(horizontal: 30),
+                                    onClick: (){
+                                      Navigator.push(context, MaterialPageRoute(builder: (context)=>
+                                          SocialLogins(loginSocial: "Linkedin")));
                                     })
 
                               ],),

@@ -16,17 +16,16 @@ import '../../../../ui/flash_message.dart';
 import '../../../../ui/bg_box.dart';
 import '../../../../ui/pop_alert.dart';
 import '../../../../ui/ui_helper.dart';
-import 'instagram_likes.dart';
 
-class instagram_LinkGetting extends StatefulWidget {
+class linkedin_LinkGetting extends StatefulWidget {
   // getting page Data from select_list_data.dart
   String? goPage;
-  instagram_LinkGetting({super.key, required this.goPage});
+  linkedin_LinkGetting({super.key, required this.goPage});
 
   @override
-  State<instagram_LinkGetting> createState() => _instagram_LinkGettingState();
+  State<linkedin_LinkGetting> createState() => _linkedin_LinkGettingState();
 }
-class _instagram_LinkGettingState extends State<instagram_LinkGetting> {
+class _linkedin_LinkGettingState extends State<linkedin_LinkGetting> {
   //All variables define
   final _formKey = GlobalKey<FormState>();
   final TextEditingController _linkController = TextEditingController();
@@ -34,14 +33,9 @@ class _instagram_LinkGettingState extends State<instagram_LinkGetting> {
   String? _onPage;
   String? _videoLink;
 
-  String? authorName;
-  String? authorProfile;
-  int? Followers;
-  String? thumbnailUrl;
-  String? videoTitle;
-  int? videoLikes;
-  int? videoViews;
-  bool? isReel;
+  String? _linkedinName;
+  String? _linkedinPic;
+
 
 // getting page data store in variable
   @override
@@ -49,182 +43,58 @@ class _instagram_LinkGettingState extends State<instagram_LinkGetting> {
   _onPage = widget.goPage;
   }
 
-  Future<void> _analyzeInstagramLink(String videoUrl) async {
+  Future<void> _analyzeInstagramLink(String linkedinProfile) async {
     setState(() => _loading = true);
-
-    print(videoUrl);
-    try {
-      final response = await http.post(
-        Uri.parse(ApiPoints.socialInstagramData),
-        headers: {"Content-Type": "application/json"},
-        body: json.encode({"url": videoUrl}),
-      );
-
-      if (response.statusCode == 200) {
-        final data = json.decode(response.body);
-        setState(() {
-          thumbnailUrl = data['display_url'];
-          authorName = data['owner']['username'];
-          authorProfile = data['owner']['profile_pic_url'];
-          videoTitle = data['caption'] ?? ' ';
-          videoLikes = data['like_count'] ?? 0;
-          videoViews = data['video_play_count'] ?? 0;
-          Followers = data['owner']['edge_followed_by']['count'] ?? 0;
-          isReel = data['is_video'] ?? false;
-          _loading = false;
-        });
-        debugPrint("Thumbnail: $thumbnailUrl \n"
-            "Name: $authorName \n"
-            "ProfileL $authorProfile \n"
-            "Video Title: $videoTitle \n"
-            "videoLikes: $videoLikes \n"
-            "video views $videoViews \n"
-            "Follow: $Followers");
-      } else {
-        setState(() => _loading = false);
-        AlertMessage.errorMsg(context, "Something went wrong: Request time out.", "Error!");
-      }
-    } catch (e) {
-      setState(() => _loading = false);
-      print("❌ API Call Error: $e");
-      AlertMessage.errorMsg(context, "Invalid or unsupported Instagram link.", "Opps!");
-    }
+    
   }
+
+
 
 
   // Check selected Page to Redirect Page
   _goToPage(checkPage){
     // Check Data Safe send
-    if(thumbnailUrl != null && authorName != null && authorProfile != null && _videoLink != null){
-      // Subscribe page
-      if (checkPage == 'Followers') {
-        return Instagram_followers(taskLink: _videoLink, accountName: authorName,
-          accountProfile: authorProfile, thumbnailUrl: thumbnailUrl, videoTitle: videoTitle,
-          videoLikes: videoLikes, videoViews: videoViews, Followers: Followers, isReel: isReel,);}
-
-      // // Likes page
-      else if (checkPage == 'Likes') {
-        return Instagram_likes(taskLink: _videoLink, accountName: authorName,
-            accountProfile: authorProfile, thumbnailUrl: thumbnailUrl, videoTitle: videoTitle,
-            videoLikes: videoLikes, videoViews: videoViews, Followers: Followers, isReel: isReel,);}
-
-      // // Comments page
-      else if (checkPage == 'Comments') {
-        return Instagram_comments(taskLink: _videoLink, accountName: authorName,
-          accountProfile: authorProfile, thumbnailUrl: thumbnailUrl, videoTitle: videoTitle,
-          videoLikes: videoLikes, videoViews: videoViews, Followers: Followers, isReel: isReel,);}
-      else {
-        Navigator.pushAndRemoveUntil(context, MaterialPageRoute(builder: (context)=> Home(onPage: 3)), (route)=> false);
-      }
-    }else{
-      Navigator.pushAndRemoveUntil(context, MaterialPageRoute(builder: (context)=> Home(onPage: 3)), (route)=> false);
-    }
+    // if(thumbnailUrl != null && authorName != null && authorProfile != null && _videoLink != null){
+    //   // Subscribe page
+    //   if (checkPage == 'Followers') {
+    //     return Instagram_followers(taskLink: _videoLink, accountName: authorName,
+    //       accountProfile: authorProfile, thumbnailUrl: thumbnailUrl, videoTitle: videoTitle,
+    //       videoLikes: videoLikes, videoViews: videoViews, Followers: Followers, isReel: isReel,);}
+    //
+    //   // // Likes page
+    //   else if (checkPage == 'Likes') {
+    //     return Instagram_likes(taskLink: _videoLink, accountName: authorName,
+    //         accountProfile: authorProfile, thumbnailUrl: thumbnailUrl, videoTitle: videoTitle,
+    //         videoLikes: videoLikes, videoViews: videoViews, Followers: Followers, isReel: isReel,);}
+    //
+    //   // // Comments page
+    //   else if (checkPage == 'Comments') {
+    //     return Instagram_comments(taskLink: _videoLink, accountName: authorName,
+    //       accountProfile: authorProfile, thumbnailUrl: thumbnailUrl, videoTitle: videoTitle,
+    //       videoLikes: videoLikes, videoViews: videoViews, Followers: Followers, isReel: isReel,);}
+    //   else {
+    //     Navigator.pushAndRemoveUntil(context, MaterialPageRoute(builder: (context)=> Home(onPage: 3)), (route)=> false);
+    //   }
+    // }else{
+    //   Navigator.pushAndRemoveUntil(context, MaterialPageRoute(builder: (context)=> Home(onPage: 3)), (route)=> false);
+    // }
   }
 
-  String? validateInstagramUrl(String? value) {
-    final RegExp validUrlRegex = RegExp(
-        r'^(https:\/\/(www\.)?instagram\.com\/'
-        r'(reel\/[A-Za-z0-9_-]+'
-        r'|p\/[A-Za-z0-9_-]+'
-        r'|share\/(reel|p)\/[A-Za-z0-9_-]+)'
-        r'\/?'
-        r'(\?.*)?'
-        r'|https:\/\/instagr\.am\/(reel|p)\/[A-Za-z0-9_-]+\/?(\?.*)?)$'
-    );
+  String? validateLinkedInUrl(String? value) {
+    final RegExp validUrlRegex = RegExp(r'^(https:\/\/(www\.)?linkedin\.com\/in\/[A-Za-z0-9_-]+\/?)$');
 
     if (value == null || value.trim().isEmpty) {
-      return 'Enter the Instagram Reel or Image URL.';
+      return 'Enter your LinkedIn profile URL.';
     }
 
     final trimmedValue = value.trim();
 
     if (!validUrlRegex.hasMatch(trimmedValue)) {
-      return 'Invalid URL Not Support. Please Try another Instagram Reel or Image URL';
+      return 'Invalid LinkedIn Profile URL.';
     }
 
     return null;
   }
-
-
-
-  Future<void> _resolveShareLink(String rawUrl) async {
-    String? resolvedUrl;
-
-    // pehle UI me loader dikhao
-    setState(() {
-      _loading = true;
-    });
-
-    // WebView ko invisible Offstage me load karo
-    final Completer<String?> completer = Completer<String?>();
-
-    OverlayEntry? overlayEntry;
-
-    overlayEntry = OverlayEntry(
-      builder: (context) {
-        return Offstage(
-          offstage: true, // UI pe nahi dikhega
-          child: SizedBox(
-            height: 1,
-            width: 1,
-            child: InAppWebView(
-              initialSettings: InAppWebViewSettings(
-                userAgent: "Mozilla/5.0 (Windows NT 10.0; Win64; x64) "
-                    "AppleWebKit/537.36 (KHTML, like Gecko) "
-                    "Chrome/120.0.0.0 Safari/537.36",
-                javaScriptEnabled: true,
-                transparentBackground: true,
-              ),
-              initialUrlRequest: URLRequest(url: WebUri(rawUrl)),
-              onLoadStop: (controller, url) async {
-                if (url != null) {
-                  resolvedUrl = url.toString();
-
-                  // agar /p/... ya /reel/... wali final url mil jaye
-                  if (resolvedUrl!.contains("/p/") || resolvedUrl!.contains("/reel/")) {
-                    completer.complete(resolvedUrl);
-                    overlayEntry?.remove(); // WebView hatao
-                  }
-                }
-              },
-            ),
-          ),
-        );
-      },
-    );
-
-    Overlay.of(context).insert(overlayEntry);
-
-    // wait for result
-    resolvedUrl = await completer.future;
-
-    if (resolvedUrl != null) {
-      Uri uri = Uri.parse(resolvedUrl!);
-
-      String type = "";
-      String id = "";
-
-      if (uri.pathSegments.isNotEmpty) {
-        type = uri.pathSegments[0]; // p ya reel
-        if (uri.pathSegments.length >= 2) {
-          id = uri.pathSegments[1];
-        }
-      }
-
-      String cleanUrl = "https://www.instagram.com/$type/$id";
-      setState(() {
-        _videoLink = cleanUrl;
-        _loading = true;
-      });
-
-      _analyzeInstagramLink(_videoLink!);
-    } else {
-      setState(() {
-        _loading = false;
-      });
-    }
-  }
-
 
 
   @override
@@ -260,14 +130,14 @@ class _instagram_LinkGettingState extends State<instagram_LinkGetting> {
           ) ?? false;},
         child: Scaffold(backgroundColor: theme.primaryFixed,
           resizeToAvoidBottomInset: false,
-          appBar: AppBar(title: Text('Instagram $_onPage'),
+          appBar: AppBar(title: Text('Linkedin $_onPage'),
             systemOverlayStyle: SystemUiOverlayStyle(
               statusBarColor: theme.surfaceTint,
               statusBarIconBrightness: Brightness.light,),
           ),
           body: Stack(children: [
             // Main content getting link
-            if (_loading || videoTitle == null)
+            if (_loading || _linkedinPic == null)
               Column(mainAxisAlignment: MainAxisAlignment.spaceAround,
                 children: [
 
@@ -281,7 +151,7 @@ class _instagram_LinkGettingState extends State<instagram_LinkGetting> {
 
                         // YT link getting Input import form ui_helper.dart
                         children: [Ui.input(context, _linkController, 'Reel URL', 'https://instagram.com/reel/...',
-                          TextInputType.url, validateInstagramUrl,),
+                          TextInputType.url, validateLinkedInUrl,),
                           const SizedBox(height: 18),
 
                           // loading true to button hide and show loading
@@ -294,39 +164,7 @@ class _instagram_LinkGettingState extends State<instagram_LinkGetting> {
                               borderRadius: 10, txtSize: 17, txtColor: theme.onPrimaryContainer,
                                 onClick: () {
                                   if (_formKey.currentState!.validate()) {
-                                    final rawUrl = _linkController.text.trim();
-                                    Uri uri = Uri.parse(rawUrl);
-
-                                    // Path segments cleanup
-                                    List<String> segments = uri.pathSegments;
-
-                                    String type = "";
-                                    String id = "";
-
-                                    if (segments.isNotEmpty) {
-                                      type =
-                                      segments[0]; // "p", "reel" ya "share"
-
-                                      if (type == "share") {
-                                        // agar share link hai
-                                        _resolveShareLink(rawUrl);
-                                        return;
-                                      } else {
-                                        if (segments.length >= 2) {
-                                          id = segments[1];
-                                        }
-                                      }
-                                    }
-
-                                    // Build clean URL without query params
-                                    String cleanUrl = "https://www.instagram.com/$type/$id";
-
-                                    setState(() {
-                                      _videoLink = cleanUrl;
-                                      _loading = true;
-                                    });
-
-                                    _analyzeInstagramLink(_videoLink!);
+                                    _analyzeInstagramLink("$_linkController");
                                   }
                               },
                             ),
@@ -474,7 +312,7 @@ class _instagram_LinkGettingState extends State<instagram_LinkGetting> {
                     allRaduis: 5,
                     // bottom bar include ui_helper.dart
                     child: Ui.bottomBar(context, 'Accepted Link: Only Instagram Reels or Image posts are supported',
-                      'ico/instagram_icon.webp', 'Open Insta', 'https://www.instagram.com',),
+                      'ico/linkedin_icon.webp', 'Open Linkedin', 'https://www.instagram.com',),
                   ),
                 ],),
 
@@ -489,11 +327,11 @@ class _instagram_LinkGettingState extends State<instagram_LinkGetting> {
               ),
 
             // Page redirection (Will Show After Loading is Complete)
-            if (!_loading && authorName != null && thumbnailUrl != null && videoTitle != null)
-              Positioned.fill(
-                // Navigate to the appropriate page after loading
-                child: _goToPage(widget.goPage),
-              ),
+            // if (!_loading && _linkedinPic != null)
+            //   Positioned.fill(
+            //     // Navigate to the appropriate page after loading
+            //     child: _goToPage(widget.goPage),
+            //   ),
           ],),
         ));
   }

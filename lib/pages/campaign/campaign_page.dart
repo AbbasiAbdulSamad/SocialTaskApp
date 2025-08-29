@@ -151,15 +151,15 @@ class _CampaignPageState extends State<CampaignPage> {
                     child: Row(spacing: 10,
                       children: [
                         (campaign['campaignImg'] != '')
-                            ? (campaign['selectedOption'] == 'Subscribers')
+                            ? (campaign['selectedOption'] == 'Subscribers' || campaign['selectedOption'] == 'Followers')
                             ? Container(
-                          width: 60,
+                          width: 65,
                           decoration: BoxDecoration(
                             shape: BoxShape.circle,
                             border: Border.all(color: theme.onPrimaryContainer, width: 1.0),
                           ),
                           child: ClipOval(
-                            child: Ui.networkImage(context, "${campaign['campaignImg']}", 'assets/ico/image_loading.png', 60, 60)
+                            child: Ui.networkImage(context, "${campaign['campaignImg']}", 'assets/ico/image_loading.png', 65, 63)
                           ),
                         )
                             : ClipRRect(
@@ -336,7 +336,7 @@ class _CampaignPageState extends State<CampaignPage> {
                         Ui.lightLine(),
                         Ui.DropdownManu(context, instagram, _selectedOption, 'Instagram', _onDropdownChanged),
                         // Ui.lightLine(),
-                        // Ui.DropdownManu(context, webvisit, _selectedOption, 'Website SEO & Visitors', _onDropdownChanged),
+                        // Ui.DropdownManu(context, linkedin, _selectedOption, 'Linkedin', _onDropdownChanged),
                       ],
                     ),
                   ),

@@ -142,15 +142,34 @@ class _CampaignDetailsState extends State<CampaignDetails> {
                           style: textTheme.displaySmall?.copyWith(
                             fontSize: 16, height: 1.5, fontWeight: FontWeight.bold, color: theme.onPrimaryContainer,),),
                       ),
-
                       Ui.line(),
                     ],
                   ):InkWell(
                     onTap: ()=> launchUrl(Uri.parse(widget.videoUrl)),
-                    child: Stack(
+                    child:
+                    (widget.social=="Instagram" && widget.selectedOption=="Followers")?
+                        Column(children: [
+                          Container(
+                            width: 160,
+                            decoration: BoxDecoration(
+                              shape: BoxShape.circle,
+                              border: Border.all(color: theme.onPrimaryContainer, width: 1.0),
+                            ),
+                            child: ClipOval(
+                                child: Ui.networkImage(context, widget.campaignImg, 'assets/ico/image_loading.png', 160, 158),
+                            ),
+                          ),
+                      Padding(
+                        padding: EdgeInsets.symmetric(horizontal: 10, vertical: 10),
+                        child: Text(widget.videoTitle, maxLines: 4, overflow: TextOverflow.ellipsis,
+                          style: textTheme.displaySmall?.copyWith(
+                            fontSize: 20, color: Colors.white,),
+                        ),),
+                          SizedBox(height: 50,)
+                        ],)
+                    :Stack(
                       children: [
                         Ui.networkImage(context, widget.campaignImg, 'assets/ico/image_loading.png', double.infinity, 400),
-
                         Positioned(
                           left: 0, right: 0, bottom: 10,
                           child: Padding(

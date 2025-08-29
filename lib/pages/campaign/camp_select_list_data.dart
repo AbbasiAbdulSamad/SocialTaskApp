@@ -1,4 +1,5 @@
 import 'capmaign_setup/instagram/instagram_link_getting.dart';
+import 'capmaign_setup/linkedin/linkedin_link_getting.dart';
 import 'capmaign_setup/tiktok/Tiktok_link_getting.dart';
 import 'capmaign_setup/webSEO/webSEO_link_getting.dart';
 import 'capmaign_setup/youtube/YT_link_getting.dart';
@@ -21,6 +22,10 @@ final List<Map<String, dynamic>> instagram = [
   {'name': '👥 Followers', 'page': instagram_LinkGetting(goPage: 'Followers',)},
   {'name': '👍 Post Likes', 'page': instagram_LinkGetting(goPage: 'Likes',)},
   {'name': '💬 Comments', 'page': instagram_LinkGetting(goPage: 'Comments',)},
+];
+
+final List<Map<String, dynamic>> linkedin = [
+  {'name': '👥 Connections', 'page': linkedin_LinkGetting(goPage: 'Connections',)},
 ];
 
 // final List<Map<String, dynamic>> facebook = [

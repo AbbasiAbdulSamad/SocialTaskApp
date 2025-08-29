@@ -63,14 +63,14 @@ class _FlashState extends State<Flash> {
     }
 
     bool navigationDone = false;
-    Future.delayed(Duration(seconds: 6), () {
+    Future.delayed(Duration(seconds: 5), () {
       if (!navigationDone) {
         AlertMessage.snackMsg(context: context, message: 'Unstable network connection', time: 3);
       }
     });
 
     try {
-      await setupFirebaseMessagingListeners();
+      setupFirebaseMessagingListeners();
       await _handleNavigation(context);
       navigationDone = true;
     } catch (e) {
@@ -111,22 +111,24 @@ class _FlashState extends State<Flash> {
     }
 
     final token = await Helper.getAuthToken();
-
     if (token != null && token.isNotEmpty) {
       _navigateTo(context, const Home(onPage: 1));
 
-      if (widget.initialRoute != null) {
+      // ✅ globalPendingRoute + widget.initialRoute dono handle karo
+      final route = widget.initialRoute ?? globalPendingRoute;
+      if (route != null) {
         WidgetsBinding.instance.addPostFrameCallback((_) {
-          Navigator.pushNamed(context, widget.initialRoute!);
+          Navigator.pushNamed(context, route);
         });
       }
-      final userProvider = Provider.of<UserProvider>(context, listen: false);
-           userProvider.fetchCurrentUser();
 
+      final userProvider = Provider.of<UserProvider>(context, listen: false);
+      userProvider.fetchCurrentUser();
     } else {
       _navigateTo(context, Authentication());
     }
   }
+
 
   void _navigateTo(BuildContext context, Widget screen) {
     Navigator.pushAndRemoveUntil(

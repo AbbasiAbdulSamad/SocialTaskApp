@@ -25,7 +25,7 @@ class RemoteConfigService {
       await _remoteConfig.setDefaults({
         // 'api_url': 'http://10.187.134.48:3000',
       'api_url': 'https://socialtask-server.fly.dev',
-        'minimum_app_version': '1.2.1',
+        'minimum_app_version': '1.2.4',
       });
 
       /// ✅ Try fetching remote config
@@ -39,7 +39,7 @@ class RemoteConfigService {
       await _remoteConfig.setDefaults({
         // 'api_url': 'http://10.187.134.48:3000',
         'api_url': 'https://socialtask-server.fly.dev',
-        'minimum_app_version': '1.2.1',
+        'minimum_app_version': '1.2.4',
       });
     }
   }
@@ -54,7 +54,7 @@ class RemoteConfigService {
 
   String get minimumRequiredVersion {
     final version = _remoteConfig.getString('minimum_app_version');
-    return version.isNotEmpty ? version : '1.2.1';
+    return version.isNotEmpty ? version : '1.2.4';
   }
 
   /// 🚀 Check for Update and Show Popup
@@ -91,47 +91,50 @@ class RemoteConfigService {
     showDialog(
       context: context,
       barrierDismissible: false, // force update
-      builder: (context) => AlertDialog(
-        backgroundColor: Colors.transparent,
-        contentPadding: EdgeInsets.zero,
-        insetPadding: const EdgeInsets.all(20),
-        shape:  RoundedRectangleBorder(borderRadius: BorderRadius.circular(8),),
-        content: Container(
-          height: 230,
-          width: double.infinity,
-          decoration: BoxDecoration(
-            gradient: LinearGradient(
-              colors: [theme.secondary, theme.secondaryContainer,],
-              begin: Alignment.topRight,
-              end: Alignment.bottomLeft,
+      builder: (context) => WillPopScope(
+        onWillPop: () async => false,
+        child: AlertDialog(
+          backgroundColor: Colors.transparent,
+          contentPadding: EdgeInsets.zero,
+          insetPadding: const EdgeInsets.all(20),
+          shape:  RoundedRectangleBorder(borderRadius: BorderRadius.circular(8),),
+          content: Container(
+            height: 230,
+            width: double.infinity,
+            decoration: BoxDecoration(
+              gradient: LinearGradient(
+                colors: [theme.secondary, theme.secondaryContainer,],
+                begin: Alignment.topRight,
+                end: Alignment.bottomLeft,
+              ),
+              border: Border.all(color: theme.onPrimaryContainer, width: 1.5),
+              borderRadius: BorderRadius.circular(12),
             ),
-            border: Border.all(color: theme.onPrimaryContainer, width: 1.5),
-            borderRadius: BorderRadius.circular(12),
-          ),
-          padding: const EdgeInsets.all(20),
-
-          child: Column(
-            mainAxisAlignment: MainAxisAlignment.spaceAround,
-            children: [
-              const  Text("New Update Required", style: TextStyle(fontFamily: '3rdRoboto', fontSize: 20, color: Colors.orangeAccent, fontWeight: FontWeight.bold),),
-              const SizedBox(height: 20,),
-              const Text("New version of the app is available. Please update to continue.", style: TextStyle(color: Colors.white),),
-
-            Row(
+            padding: const EdgeInsets.all(20),
+        
+            child: Column(
+              mainAxisAlignment: MainAxisAlignment.spaceAround,
               children: [
-                const Expanded(child: SizedBox()),
-                MyButton(txt: "Update", ico: Icons.android, borderRadius: 40, pading: const EdgeInsets.only(left: 20, right: 20), shadowOn: true,
-                    bgColor: theme.onPrimary, borderLineOn: true, borderLineSize: 0.5, borderColor: theme.onPrimaryContainer, txtSize: 16, txtColor: Colors.black,
-                    onClick: (){
-                      if (Platform.isAndroid) {
-                        _launchURL("https://play.google.com/store/apps/details?id=com.socialtask.app");
-                      } else if (Platform.isIOS) {
-                        _launchURL("https://apps.apple.com/app/idYOUR_APP_ID");
-                      }
-                    }),
+                const  Text("New Update Required", style: TextStyle(fontFamily: '3rdRoboto', fontSize: 20, color: Colors.orangeAccent, fontWeight: FontWeight.bold),),
+                const SizedBox(height: 20,),
+                const Text("New version of the app is available. Please update to continue.", style: TextStyle(color: Colors.white),),
+        
+              Row(
+                children: [
+                  const Expanded(child: SizedBox()),
+                  MyButton(txt: "Update", ico: Icons.android, borderRadius: 40, pading: const EdgeInsets.only(left: 20, right: 20), shadowOn: true,
+                      bgColor: theme.onPrimary, borderLineOn: true, borderLineSize: 0.5, borderColor: theme.onPrimaryContainer, txtSize: 16, txtColor: Colors.black,
+                      onClick: (){
+                        if (Platform.isAndroid) {
+                          _launchURL("https://play.google.com/store/apps/details?id=com.socialtask.app");
+                        } else if (Platform.isIOS) {
+                          _launchURL("https://apps.apple.com/app/idYOUR_APP_ID");
+                        }
+                      }),
+                ],
+              )
               ],
-            )
-            ],
+            ),
           ),
         ),
       ),
