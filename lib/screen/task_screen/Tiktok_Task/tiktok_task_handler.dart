@@ -18,6 +18,8 @@ class TikTokTaskHandler {
   static int _screenFrom = 1;
 
   static void handleLifecycle(AppLifecycleState state, BuildContext context) async {
+    ColorScheme theme = Theme.of(context).colorScheme;
+
     if (state == AppLifecycleState.resumed && _taskLaunched) {
       _taskLaunched = false;
 
@@ -48,21 +50,20 @@ class TikTokTaskHandler {
         Navigator.of(context).pop(); // Close loading dialog
         _showEarlyReturnDialog(context);
       }
-
       // User waited long enough: show live API loading
       else {
         showDialog(
           context: context,
           barrierDismissible: false,
-          builder: (_) => const AlertDialog(
+          builder: (_) => AlertDialog(
             content: SizedBox(
               height: 50,
               child: Center(
                 child: Row(
                   children: [
-                    CircularProgressIndicator(color: Colors.black, strokeAlign: 0.2),
+                    CircularProgressIndicator(color: theme.onPrimaryContainer, strokeAlign: 0.2),
                     SizedBox(width: 20),
-                    Text('Completing Task...', style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
+                    Text('Completing Task...', style: TextStyle(color: theme.onPrimaryContainer, fontSize: 16, fontWeight: FontWeight.bold)),
                   ],
                 ),
               ),

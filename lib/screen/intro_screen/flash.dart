@@ -65,7 +65,7 @@ class _FlashState extends State<Flash> {
     bool navigationDone = false;
     Future.delayed(Duration(seconds: 5), () {
       if (!navigationDone) {
-        AlertMessage.snackMsg(context: context, message: 'Unstable network connection', time: 3);
+        AlertMessage.snackMsg(context: context, message: 'Unstable network connection', time: 5);
       }
     });
 
@@ -75,6 +75,7 @@ class _FlashState extends State<Flash> {
       navigationDone = true;
     } catch (e) {
       debugPrint("⚠️ Navigation error: $e");
+      Navigator.pushAndRemoveUntil(context, MaterialPageRoute(builder: (_) => Authentication()), (route) => false,);
     }
   }
 
