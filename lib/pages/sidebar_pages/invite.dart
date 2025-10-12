@@ -4,6 +4,7 @@ import 'package:app/server_model/functions_helper.dart';
 import 'package:app/ui/bg_box.dart';
 import 'package:app/ui/button.dart';
 import 'package:app/ui/flash_message.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 import 'package:provider/provider.dart';
@@ -21,14 +22,26 @@ class Invite extends StatefulWidget {
 class _InviteState extends State<Invite> {
   List<Map<String, dynamic>> referrals = [];
   bool isLoading = false;
+  bool _isDataLoaded = false;
+  final FirebaseAuth auth = FirebaseAuth.instance;
+  late User? user;
 
   @override
   void initState() {
     super.initState();
+    user = auth.currentUser;
+
     WidgetsBinding.instance.addPostFrameCallback((_) {
-      Provider.of<UserProvider>(context, listen: false).fetchCurrentUser();
-      fetchReferralData();
+      if (!_isDataLoaded) {
+        _isDataLoaded = true;
+        _loadData();
+      }
     });
+  }
+  Future<void> _loadData() async {
+    final userProvider = Provider.of<UserProvider>(context, listen: false);
+    await userProvider.fetchCurrentUser();
+    await fetchReferralData();
   }
 
   Future<void> fetchReferralData() async {
@@ -74,21 +87,27 @@ class _InviteState extends State<Invite> {
 
   @override
   Widget build(BuildContext context) {
-    final userProvider = Provider.of<UserProvider>(context, listen: false);
+    final userProvider = context.watch<UserProvider>();
     ColorScheme theme = Theme.of(context).colorScheme;
     TextTheme textTheme = Theme.of(context).textTheme;
+
     return Scaffold(
       appBar: AppBar(title: const Text("Invite & Earn")),
       body: RefreshIndicator(
         onRefresh: () async {
-          await userProvider.fetchCurrentUser();
+          await _loadData();
         },
           child: SingleChildScrollView(
             child: (userProvider.currentUser == null && !userProvider.isCurrentUserLoading)
                 ? Container(width: double.infinity, height: 600, alignment: Alignment.center,
-                child: Ui.buildNoInternetUI(theme, textTheme, false, 'No internet connection',
-                'Can\'t reach server. Please check your internet connection', Icons.wifi_off,
-                    ()=> userProvider.fetchCurrentUser()))
+                child: Ui.buildNoInternetUI(theme, textTheme, false, 'Connection Issue',
+                    'We’re having trouble connecting right now. Please check your network or try again in a moment.', Icons.wifi_off,
+                    () async{
+                    setState(() => isLoading = true);
+                    await userProvider.fetchCurrentUser();
+                    await fetchReferralData();
+                    setState(() => isLoading = false);
+                  },))
                 : Column(children: [
                     Container(
                       margin: const EdgeInsets.symmetric(vertical: 0, horizontal: 10),
@@ -111,9 +130,7 @@ class _InviteState extends State<Invite> {
                                   decoration: BoxDecoration(shape: BoxShape.circle,
                                     border: Border.all(color: const Color(0xFF32A1D8), width: 5),),
                                   child: ClipOval(
-                                    child: userProvider.currentUser!.profile != null
-                                        ? Ui.networkImage(context, userProvider.currentUser!.profile, 'assets/ico/user_profile.webp', 90, 90)
-                                        : Image.asset('assets/ico/user_profile.webp'),
+                                    child: Ui.networkImage(context, user!.photoURL!, 'assets/ico/user_profile.webp', 90, 90),
                                   ),
                                 ),
                               ),
@@ -143,14 +160,13 @@ class _InviteState extends State<Invite> {
                                   userProvider.isCurrentUserLoading
                                       ? Positioned.fill(child: Container(
                                     color: Colors.black.withOpacity(0.6),
-                                    child: Center(child: CircularProgressIndicator(color: Colors.white),),
+                                    child:const Center(child: CircularProgressIndicator(color: Colors.white),),
                                   ),)
                                       : Clipboard.setData(
                                     ClipboardData(text: "https://socialtask.xyz/join/${userProvider.currentUser!.referralCode}",),);
                                  AlertMessage.snackMsg(context: context, message: 'Link copied to clipboard.');
                                 }),
                           ),
-                  
                           SizedBox(width: 225, height: 40,
                             child: MyButton(txt: 'Share Link', shadowOn: true, shadowColor: theme.shadow, bgColor: theme.surfaceDim, borderLineOn: true,
                                 borderColor: theme.secondary, borderLineSize: 1, borderRadius: 10, ico: Icons.share, icoSize: 18, txtSize: 15, txtColor: theme.onPrimaryContainer,
@@ -158,7 +174,7 @@ class _InviteState extends State<Invite> {
                                   userProvider.isCurrentUserLoading
                                       ?  Positioned.fill(child: Container(
                                       color: Colors.black.withOpacity(0.6),
-                                      child: Center(child: CircularProgressIndicator(color: Colors.white),),
+                                      child: Center(child: const CircularProgressIndicator(color: Colors.white),),
                                     ),)
                                       : Share.share(
                                       "🚀 Want to grow your social media and earn rewards?\n"
@@ -171,16 +187,14 @@ class _InviteState extends State<Invite> {
                         ],
                       ),
                     ),
-
-                    isLoading
-                    ? Container(width: double.infinity, height: 200, alignment: Alignment.center,child: Ui.loading(context))
-                    : referrals.isEmpty
-                    ? const Column(
-                      children: [
-                        SizedBox(height: 100,),
-                        Text("No referrals", style: TextStyle(fontSize: 18),),
-                      ],)
-                    : Column(
+              isLoading
+                  ? Container(width: double.infinity, height: 200, alignment: Alignment.center,child: CircularProgressIndicator( color: theme.onPrimaryContainer,))
+                  : referrals.isEmpty
+                  ? const Column(
+                children: [
+                  const SizedBox(height: 100,),
+                  Text("No referrals", style: TextStyle(fontSize: 18),),
+                ],):Column(
                       children: [
                         const SizedBox(height: 50,),
                         Text('${referrals.length} referrals have joined', style: textTheme.displaySmall?.copyWith(fontSize: 22, color: theme.onPrimaryFixed),),

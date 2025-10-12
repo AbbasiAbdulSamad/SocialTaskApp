@@ -9,8 +9,9 @@ import '../pages/sidebar_pages/earn_rewards.dart';
 import '../pages/sidebar_pages/invite.dart';
 import '../pages/sidebar_pages/leaderboard.dart';
 import '../pages/sidebar_pages/level.dart';
-import '../pages/sidebar_pages/my_account.dart';
+import '../pages/sidebar_pages/profile.dart';
 import '../pages/sidebar_pages/premium_account.dart';
+import '../pages/sidebar_pages/support.dart';
 import '../server_model/signout.dart';
 import '../server_model/provider/users_provider.dart';
 import 'ui_helper.dart';
@@ -81,6 +82,8 @@ class Sidebar extends StatelessWidget{
             Ui.line(),
             SizedBox(height: 25,),
             Ui.sidebarLabel(Icons.share_outlined, 'Invite Friends', (){Navigator.push(context, MaterialPageRoute(builder: (context)=> const Invite()));}),
+            Ui.lightLine(),
+            Ui.sidebarLabel(Icons.support_agent, 'Support', (){Navigator.push(context, MaterialPageRoute(builder: (context)=> SupportPage())); }),
             Ui.lightLine(),
             Ui.sidebarLabel(Icons.question_mark, 'FAQ', (){Navigator.push(context, MaterialPageRoute(builder: (context)=> FaqPage())); }),
             Ui.lightLine(),

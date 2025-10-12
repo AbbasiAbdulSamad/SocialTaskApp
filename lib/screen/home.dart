@@ -111,7 +111,7 @@ class _HomeState extends State<Home> {
             padding: const EdgeInsets.only(right: 10),
             child: TextButton(
               onPressed: () {
-                // Navigator.push(context, MaterialPageRoute(builder: (context)=> BuyTickets()));
+                Navigator.push(context, MaterialPageRoute(builder: (context)=> BuyTickets()));
                 },
               child: Row(spacing: 5,
                 children: [

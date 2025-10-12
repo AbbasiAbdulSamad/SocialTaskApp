@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'dart:convert';
 import 'package:http/http.dart' as http;
@@ -26,16 +28,31 @@ class UserProvider extends ChangeNotifier {
     notifyListeners();
   }
 
-  // 🔹 Fetch current user from API
-  Future<void> fetchCurrentUser() async {
+  Future<void> fetchCurrentUser({bool forceRefresh = false}) async {
+    // agar data pehle se hai aur forceRefresh false hai
+    if (_currentUser != null && !forceRefresh) {
+      debugPrint('✅ User already loaded, showing cached data.');
+
+      // 🔹 Lekin background me new data silently fetch kar le (without UI freeze)
+      unawaited(_silentRefreshUser());
+      return;
+    }
+
+    await _fetchUserFromServer();
+  }
+
+  /// 🔹 Ye helper function real API se data fetch karega
+  Future<void> _fetchUserFromServer() async {
     _isCurrentUserLoading = true;
     notifyListeners();
 
     try {
       String? token = await Helper.getAuthToken();
-      if (token == null){_isLoading = false;
+      if (token == null) {
+        _isCurrentUserLoading = false;
         notifyListeners();
-        return;}
+        return;
+      }
 
       final response = await http.get(
         Uri.parse(ApiPoints.currentUserData),
@@ -44,11 +61,12 @@ class UserProvider extends ChangeNotifier {
           'Content-Type': 'application/json',
         },
       );
+
       if (response.statusCode == 200) {
         final responseData = json.decode(response.body);
         if (responseData['status'] == true) {
           _currentUser = AppUser.fromJson(responseData['user']);
-          notifyListeners();
+          debugPrint('✅ User updated from server.');
         } else {
           throw Exception('User data not found');
         }
@@ -57,12 +75,38 @@ class UserProvider extends ChangeNotifier {
       }
     } catch (e) {
       print('❌ Error fetching current user: $e');
-      _currentUser = null;
     } finally {
       _isCurrentUserLoading = false;
-      notifyListeners(); // 🔄 Update UI
+      notifyListeners();
     }
   }
+
+  /// 🔹 Ye background me refresh karega bina loading lagaye
+  Future<void> _silentRefreshUser() async {
+    try {
+      String? token = await Helper.getAuthToken();
+      if (token == null) return;
+
+      final response = await http.get(
+        Uri.parse(ApiPoints.currentUserData),
+        headers: {
+          'Authorization': 'Bearer $token',
+          'Content-Type': 'application/json',
+        },
+      );
+
+      if (response.statusCode == 200) {
+        final responseData = json.decode(response.body);
+        if (responseData['status'] == true) {
+          _currentUser = AppUser.fromJson(responseData['user']);
+          notifyListeners();
+        }
+      }
+    } catch (e) {
+      debugPrint('⚠️ Silent refresh failed: $e');
+    }
+  }
+
 
   Future<void> trackActiveUsers() async {
     final prefs = await SharedPreferences.getInstance();

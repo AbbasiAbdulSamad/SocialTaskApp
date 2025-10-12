@@ -336,7 +336,7 @@ class _CampaignPageState extends State<CampaignPage> {
                         Ui.lightLine(),
                         Ui.DropdownManu(context, instagram, _selectedOption, 'Instagram', _onDropdownChanged),
                         // Ui.lightLine(),
-                        // Ui.DropdownManu(context, linkedin, _selectedOption, 'Linkedin', _onDropdownChanged),
+                        // Ui.DropdownManu(context, facebook, _selectedOption, 'Facebook', _onDropdownChanged),
                       ],
                     ),
                   ),

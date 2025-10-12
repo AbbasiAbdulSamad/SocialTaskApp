@@ -49,6 +49,30 @@ class EarnTickets extends StatelessWidget {
     final userProvider = Provider.of<UserProvider>(context);
     final isLoading = userProvider.isCurrentUserLoading;
 
+    if (isLoading) {
+      return Scaffold(
+        appBar: AppBar(title: const Text('Earn Rewards')),
+        body: Center(child: Ui.loading(context)),
+      );
+    }
+
+    if (userProvider.currentUser == null) {
+      return Scaffold(
+        appBar: AppBar(title: const Text('Earn Rewards')),
+        body: Center(
+          child: Ui.buildNoInternetUI(
+            theme,
+            Theme.of(context).textTheme,
+            false,
+            'Connection Issue',
+            'We’re having trouble loading your profile. Please check your network or try again.',
+            Icons.wifi_off,
+                () => userProvider.fetchCurrentUser(),
+          ),
+        ),
+      );
+    }
+
     return Scaffold(backgroundColor: theme.primaryFixed,
         appBar: AppBar(title: const Text('Earn Rewards', style: TextStyle(fontSize: 18)),
           systemOverlayStyle: SystemUiOverlayStyle(

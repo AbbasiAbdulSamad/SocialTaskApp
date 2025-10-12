@@ -67,13 +67,17 @@ class Ui{
   }
 
 //🔹 input Field widget
-  static Widget input(BuildContext context, TextEditingController controller, String label, String hint, TextInputType inputType,String? Function(String?) validator,) {
+  static Widget input(BuildContext context, TextEditingController controller, String label, String hint,
+      TextInputType inputType,String? Function(String?) validator, { int minL=1, int maxL=1}) {
     return TextFormField(
       controller: controller,
       validator: validator,
       keyboardType: inputType,
+      minLines: minL,
+      maxLines: maxL,
       decoration: InputDecoration(
-        contentPadding: const EdgeInsets.symmetric(horizontal: 10, vertical: 0),
+        alignLabelWithHint: true,
+        contentPadding: const EdgeInsets.symmetric(horizontal: 10, vertical: 10),
         hintText: hint,
         hintStyle: TextStyle(fontSize: 14, color: Theme.of(context).colorScheme.primaryContainer),
         labelText: label,
@@ -91,20 +95,27 @@ class Ui{
   static Widget DisableInput(BuildContext context, String label, IconData icon, {dynamic defaultValue = ""}) {
     TextEditingController controller = TextEditingController(text: defaultValue?.toString() ?? "",);
     ColorScheme theme = Theme.of(context).colorScheme;
-    return TextFormField(
-      controller: controller,
-      enabled: false,
-      style: TextStyle(color: theme.onPrimaryContainer),
-      decoration: InputDecoration(
-        filled: true,
-        fillColor: theme.background,
-        contentPadding: const EdgeInsets.symmetric(horizontal: 10, vertical: 0),
-        labelText: label,
-        labelStyle: TextStyle(color: theme.onPrimaryContainer, fontWeight: FontWeight.bold),
-        prefixIcon: Icon(icon, size: 18, color: theme.onPrimaryContainer,),
-        disabledBorder: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(8),
-          borderSide: BorderSide(color: theme.shadow, width: 0.5),
+    return Container(
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(6),
+          boxShadow: <BoxShadow>[BoxShadow(color: theme.shadow, offset: Offset(0, 4), blurRadius: 3, spreadRadius: 2)]
+      ),
+      child: TextFormField(
+        controller: controller,
+        enabled: false,
+        style: TextStyle(color: theme.onPrimaryContainer, fontSize: 15),
+        decoration: InputDecoration(
+          filled: true,
+          fillColor: theme.background,
+          contentPadding: const EdgeInsets.symmetric(horizontal: 10, vertical: 0),
+          labelText: label,
+          labelStyle: TextStyle(color: theme.onPrimaryContainer, fontWeight: FontWeight.bold),
+          prefixIcon: Icon(icon, size: 18, color: theme.onPrimaryContainer,),
+          disabledBorder: OutlineInputBorder(
+            borderRadius: BorderRadius.circular(8),
+            borderSide: BorderSide(color: theme.onPrimaryFixed, width: 0.2),
+          ),
         ),
       ),
     );

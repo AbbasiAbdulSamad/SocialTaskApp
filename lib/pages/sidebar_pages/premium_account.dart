@@ -278,7 +278,7 @@ class _PremiumAccountState extends State<PremiumAccount> {
                                   DataCell(Center(child: Text('10x', style: textStyleVip,))),
                                 ]),
                               ],),
-                            const SizedBox(height: 400,)
+                            const SizedBox(height: 450,)
                           ],),
                       ),
                     ),

@@ -6,6 +6,7 @@ import 'package:flutter/services.dart';
 import 'package:http/http.dart' as http;
 import 'package:provider/provider.dart';
 import '../../config/config.dart';
+import '../../server_model/provider/leaderboard_provider.dart';
 import '../../server_model/provider/leaderboard_reward.dart';
 import '../../server_model/provider/users_provider.dart';
 import '../../ui/ui_helper.dart';
@@ -19,107 +20,42 @@ class LeaderboardScreen extends StatefulWidget {
 
 class _LeaderboardScreenState extends State<LeaderboardScreen> {
 
-  List<dynamic> _leaderboard = [];
+  List<dynamic> leaderboard = [];
   Map<String, dynamic>? topUser1;
   Map<String, dynamic>? topUser2;
   Map<String, dynamic>? topUser3;
   late UserProvider userProvider;
   late LeaderboardReward leaderboardProvider;
-  late int leaderboardReward;
   int? currentUserRank;
   Map<String, dynamic>? currentUserDataMap;
   bool _isLoading = true;
 
 
-
-// ✅ Fetch Leaderboard Data with Current User
-  Future<void> fetchLeaderboard() async {
-    setState(() => _isLoading = true);
-    userProvider = Provider.of<UserProvider>(context, listen: false);
-    leaderboardProvider = Provider.of<LeaderboardReward>(context, listen: false);
-    leaderboardReward = leaderboardProvider.reward ?? 0;
-    try {
-      String? token = await Helper.getAuthToken();
-      if (token == null) throw Exception("Firebase token not found");
-
-      final response = await http.get(
-        Uri.parse(ApiPoints.leaderboardAPI),
-        headers: {'Content-Type': 'application/json', 'Authorization': 'Bearer $token'},
-      );
-
-      if (response.statusCode == 200) {
-        final data = jsonDecode(response.body);
-        setState(() {
-          _leaderboard = data['leaderboard'] ?? [];
-
-          // ✅ Find Current User
-          User? currentUser = FirebaseAuth.instance.currentUser;
-          if (currentUser != null) {
-            final currentUserData = _leaderboard.firstWhere(
-                  (user) => user['email'] == userProvider.currentUser!.email,
-              orElse: () => null,
-            );
-            currentUserRank = currentUserData['rank'] ?? _leaderboard.length; // Current User Rank Get
-            currentUserDataMap = currentUserData;
-            if (currentUserData == null) {
-              _leaderboard.add({
-                'email': currentUser.email,
-                'name': currentUser.displayName ?? "You",
-                'profile': currentUser.photoURL ?? userProvider.currentUser!.profile,
-                'leaderboardScore': 0,
-                'rank': _leaderboard.length + 1,
-              });
-            }
-          }
-
-          // ✅ Sort Leaderboard by Rank (Ensure backend sends correct rank)
-          _leaderboard.sort((a, b) => (a['rank'] ?? 9999).compareTo(b['rank'] ?? 9999));
-
-          // ✅ Top 3 users
-          topUser1 = _leaderboard.isNotEmpty ? _leaderboard[0] : {};
-          topUser2 = _leaderboard.length > 1 ? _leaderboard[1] : {};
-          topUser3 = _leaderboard.length > 2 ? _leaderboard[2] : {};
-
-        });
-        await userProvider.fetchCurrentUser();
-      } else {
-        throw Exception("Failed to load leaderboard (Status: ${response.statusCode})");
-      }
-    } catch (e) {
-      debugPrint("❌ Error: $e");
-      setState(() => _leaderboard = []);
-    } finally {
-      setState(() => _isLoading = false);
-    }
-  }
-
-
-  String formatLargeNumber(int number) {
-    if (number >= 1000000000) {
-      return '${(number / 1000000000).toStringAsFixed(2)}B';
-    } else if (number >= 1000000) {
-      return '${(number / 1000000).toStringAsFixed(2)}M';
-    } else if (number >= 1000) {
-      return '${(number / 1000).toStringAsFixed(2)}K';
-    }
-    return number.toString();
-  }
-
-
   @override
   void initState() {
     super.initState();
-    WidgetsBinding.instance.addPostFrameCallback((_){
-      fetchLeaderboard();
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      Provider.of<LeaderboardProvider>(context, listen: false).fetchLeaderboard();
+
     });
   }
+
   @override
   void dispose() {
-    _leaderboard.clear();
+    leaderboard.clear();
     super.dispose();
   }
   @override
   Widget build(BuildContext context) {
+
+    final leaderboardProvider = context.watch<LeaderboardProvider>();
+    final leaderboard = leaderboardProvider.leaderboard;
+    final isLoading = leaderboardProvider.isLoading;
+
+    final topUser1 = leaderboardProvider.topUser1;
+    final topUser2 = leaderboardProvider.topUser2;
+    final topUser3 = leaderboardProvider.topUser3;
+
     ColorScheme theme = Theme.of(context).colorScheme;
     TextTheme textTheme = Theme.of(context).textTheme;
     final userProvider = context.watch<UserProvider>();
@@ -132,13 +68,13 @@ class _LeaderboardScreenState extends State<LeaderboardScreen> {
       ),
 
       body: (userProvider.currentUser == null && !userProvider.isCurrentUserLoading)?
-      Center(child: Ui.buildNoInternetUI(theme, textTheme, false, 'No internet connection',
-          'Can\'t reach server. Please check your internet connection', Icons.wifi_off,
+      Center(child: Ui.buildNoInternetUI(theme, textTheme, false, 'Connection Issue',
+          'We’re having trouble connecting right now. Please check your network or try again in a moment.', Icons.wifi_off,
               ()=> userProvider.fetchCurrentUser())):
       RefreshIndicator(
-        onRefresh: fetchLeaderboard,
+        onRefresh: ()=> leaderboardProvider.fetchLeaderboard(),
         child: Consumer<LeaderboardReward>(
-    builder: (context, leaderboardProvider, child) {
+        builder: (context, rewardProvider, child) {
     return Stack(
             children: [
               Column(
@@ -191,18 +127,16 @@ class _LeaderboardScreenState extends State<LeaderboardScreen> {
                                 Text('Score', style: textTheme.labelSmall?.copyWith(color: theme.primaryFixed, fontSize: 18)),
                               ],),
                             ),
-                            (_isLoading || userProvider.isCurrentUserLoading)? Container(
-                                alignment: Alignment.center,
-                                margin: EdgeInsets.only(top: 100),
-                                child: Ui.loading(context)):
-                            Expanded(
+                            (isLoading || userProvider.isCurrentUserLoading)
+                                ? Container(alignment: Alignment.center, margin: EdgeInsets.only(top: 100), child: Ui.loading(context))
+                                : Expanded(
                               child: SingleChildScrollView(
                                 child: ListView.builder(
                                   shrinkWrap: true,
                                   physics: const NeverScrollableScrollPhysics(),
-                                  itemCount: _leaderboard.length,
+                                  itemCount: leaderboard.length,
                                   itemBuilder: (context, index) {
-                                    final user = _leaderboard[index];
+                                    final user = leaderboard[index];
                                     bool isCurrentUser = user['email'] == userProvider.currentUser?.email;
                                     return  Card(
                                       color: isCurrentUser ? theme.secondaryFixed : theme.background,
@@ -218,7 +152,7 @@ class _LeaderboardScreenState extends State<LeaderboardScreen> {
                                             child: Text((user['rank']==1)?"🥇":
                                             (user['rank']==2)?"🥈":
                                             (user['rank']==3)?"🥉":
-                                            formatLargeNumber(user['rank'] ?? 0),
+                                            ('${user['rank'] ?? 0}'),
                                               style: textTheme.displaySmall?.copyWith(fontSize:(user['rank']==1 || user['rank']==2 || user['rank']==3)? 28: 18, color: isCurrentUser?Colors.white:theme.onPrimaryContainer),
                                               textAlign: TextAlign.center,),
                                           ),
@@ -249,7 +183,7 @@ class _LeaderboardScreenState extends State<LeaderboardScreen> {
                                           SizedBox(width: 55,
                                             child: Align(
                                               alignment: Alignment.centerRight,
-                                              child: Text(formatLargeNumber(user['leaderboardScore'] ?? 0),
+                                              child: Text('${user['leaderboardScore'] ?? 0}',
                                                 maxLines: 1, overflow: TextOverflow.ellipsis, style: textTheme.displaySmall?.copyWith(fontSize: 17, color: isCurrentUser?Colors.white:theme.onPrimaryContainer),),
                                             ),),
                                         ],)
@@ -264,10 +198,12 @@ class _LeaderboardScreenState extends State<LeaderboardScreen> {
                       ),
                     ],
                   ),
-              (leaderboardProvider.animation)?
-           Positioned(left: 0, right: 0, top: 40,
-              child: Ui.bgShineRays(context, leaderboardReward))
-                  :SizedBox()
+              (rewardProvider.animation)
+                  ? Positioned(
+                left: 0, right: 0, top: 40,
+                child: Ui.bgShineRays(context, rewardProvider.reward ?? 0),
+              ) : const SizedBox(),
+
             ],
           );
     })

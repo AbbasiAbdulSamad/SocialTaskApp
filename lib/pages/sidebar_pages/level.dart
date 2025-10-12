@@ -24,7 +24,6 @@ class _LevelState extends State<Level> {
   late LevelDataProvider _levelDataProvider;
   late UserProvider _userProvider;
   late LevelUpProvider _levelUpAPI;
-  bool _isLoading = true;
 
   @override
   void initState() {
@@ -89,8 +88,8 @@ class _LevelState extends State<Level> {
           theme,
           textTheme,
           false,
-          'No internet connection',
-          'Can\'t reach server. Please check your internet connection',
+          'Connection Issue',
+          'We’re having trouble connecting right now. Please check your network or try again in a moment.',
           Icons.wifi_off,
               () => userProvider.fetchCurrentUser(),
         )),

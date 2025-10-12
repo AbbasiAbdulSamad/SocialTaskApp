@@ -83,6 +83,7 @@ class TaskProvider with ChangeNotifier {
     required BuildContext context,
     required String campaignId,
     required int rewardCoins,
+    bool autoTask = false
   }) async {
     _isLoading = true;
     _errorMessage = "";
@@ -106,7 +107,7 @@ class TaskProvider with ChangeNotifier {
         body: jsonEncode({
           'userEmail': userEmail,
           'campaignId': campaignId,
-          'autoTask': true
+          'autoTask': autoTask
         }),
       );
 

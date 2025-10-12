@@ -2,9 +2,14 @@ import 'dart:convert';
 import 'package:app/config/config.dart';
 import 'package:app/pages/sidebar_pages/leaderboard.dart';
 import 'package:app/server_model/functions_helper.dart';
+import 'package:app/server_model/provider/users_provider.dart';
+import 'package:app/ui/flash_message.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
+import 'package:provider/provider.dart';
+import '../local_notifications.dart';
+import '../page_load_fetchData.dart';
 
 class LeaderboardReward with ChangeNotifier {
   bool _showPopup = false;
@@ -44,7 +49,6 @@ class LeaderboardReward with ChangeNotifier {
       print("❌ Error in checkRewardPopup: $error");
       _showPopup = false;
     }
-
     notifyListeners();
   }
 
@@ -62,12 +66,19 @@ class LeaderboardReward with ChangeNotifier {
         },
       );
 
-      if (response.statusCode == 200) {
+      if(response.statusCode == 200) {
         final data = json.decode(response.body);
-        print("✅ Reward claimed: $data");
+        debugPrint("✅ Reward claimed: $data");
         _showPopup = false;
         _animation = true;
         notifyListeners();
+        // 🔔 SHOW LOCAL NOTIFICATION
+        NotificationService.showNotification(
+          title: 'Congratulations Reward Claimed 🎉',
+          body: 'You earned +${_reward ?? 0} tickets from leaderboard!',
+        );
+
+
         Future.delayed(const Duration(seconds: 5), () {
           _animation = false;
           notifyListeners();
@@ -75,11 +86,11 @@ class LeaderboardReward with ChangeNotifier {
         return true;
       } else {
         final data = json.decode(response.body);
-        print("❌ Claim failed: $data");
+        AlertMessage.errorMsg(context, data, "❌ Claim failed:");
         return false;
       }
     } catch (error) {
-      print("❌ Error in claimReward: $error");
+      AlertMessage.errorMsg(context, "$error", "❌ Error in claimReward");
       return false;
     }
   }

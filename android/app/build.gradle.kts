@@ -66,7 +66,8 @@ flutter {
 }
 
 dependencies {
-    implementation("com.google.android.material:material:1.11.0")
+    implementation("com.google.android.material:material:1.12.0")
+    implementation("androidx.appcompat:appcompat:1.7.0")
     implementation("com.android.billingclient:billing:6.1.0")
     implementation("androidx.multidex:multidex:2.0.1")
     implementation("com.google.android.play:integrity:1.4.0")

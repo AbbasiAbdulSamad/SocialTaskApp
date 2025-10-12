@@ -262,6 +262,7 @@ class _YT_Auto_Task_ScreenState extends State<YT_Auto_Task_Screen> {
       context: context,
       campaignId: campaignId,
       rewardCoins: reward,
+      autoTask: true,
     );
     loadNextTask();
     setState(() {_buttonLoading = false;});

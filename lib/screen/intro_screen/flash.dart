@@ -1,7 +1,7 @@
 import 'dart:async';
 import 'dart:io';
 import 'package:android_play_install_referrer/android_play_install_referrer.dart';
-import 'package:app/pages/sidebar_pages/my_account.dart';
+import 'package:app/pages/sidebar_pages/profile.dart';
 import 'package:app/ui/button.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:firebase_messaging/firebase_messaging.dart';
@@ -64,13 +64,15 @@ class _FlashState extends State<Flash> {
 
     bool navigationDone = false;
     Future.delayed(Duration(seconds: 5), () {
-      if (!navigationDone) {
+      if (mounted && !navigationDone) {
         AlertMessage.snackMsg(context: context, message: 'Unstable network connection', time: 5);
       }
     });
 
     try {
       setupFirebaseMessagingListeners();
+      Helper.listenForTokenRefresh();
+
       await _handleNavigation(context);
       navigationDone = true;
     } catch (e) {
@@ -111,7 +113,9 @@ class _FlashState extends State<Flash> {
       return;
     }
 
+    await FirebaseAuth.instance.authStateChanges().firstWhere((user) => user != null || user == null);
     final token = await Helper.getAuthToken();
+
     if (token != null && token.isNotEmpty) {
       _navigateTo(context, const Home(onPage: 1));
 
@@ -130,12 +134,17 @@ class _FlashState extends State<Flash> {
     }
   }
 
-
   void _navigateTo(BuildContext context, Widget screen) {
-    Navigator.pushAndRemoveUntil(
-      context, MaterialPageRoute(builder: (_) => screen), (route) => false,
+    if (!mounted) return;
+    Navigator.pushReplacement(context,
+      PageRouteBuilder(
+        pageBuilder: (_, __, ___) => screen,
+        transitionDuration: Duration(milliseconds: 500),
+        transitionsBuilder: (_, a, __, c) => FadeTransition(opacity: a, child: c),
+      ),
     );
   }
+
 
 
   @override

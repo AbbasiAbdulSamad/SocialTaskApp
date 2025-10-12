@@ -23,7 +23,10 @@ class _SocialLoginsState extends State<SocialLogins> {
   void socialLogin(){
     if(widget.loginSocial=="YouTube"){
       loginLink = "https://accounts.google.com/ServiceLogin?service=youtube&continue=https://www.youtube.com";
-    }else{
+    }else if(widget.loginSocial=="Linkedin"){
+      loginLink = "https://www.facebook.com/login";
+    }
+    else{
       loginLink = "https://www.instagram.com/accounts/login/";
     }
   }
@@ -39,7 +42,7 @@ class _SocialLoginsState extends State<SocialLogins> {
 
           Expanded(
             child: InAppWebView(
-              initialUrlRequest: URLRequest(url: WebUri(loginLink ?? "https://accounts.google.com/ServiceLogin?service=youtube&continue=https://www.youtube.com")),
+              initialUrlRequest: URLRequest(url: WebUri(loginLink!)),
               initialSettings: InAppWebViewSettings(
                 javaScriptEnabled: true,
                 supportMultipleWindows: true,

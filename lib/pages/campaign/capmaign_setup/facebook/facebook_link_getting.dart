@@ -1,10 +1,6 @@
 import 'dart:async';
-import 'dart:convert';
-import 'package:app/pages/campaign/capmaign_setup/instagram/instagram_comments.dart';
-import 'package:app/pages/campaign/capmaign_setup/instagram/instagram_followers.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
-import 'package:flutter_inappwebview/flutter_inappwebview.dart';
 import 'package:flutter_svg/svg.dart';
 import 'package:http/http.dart' as http;
 import 'package:provider/provider.dart';
@@ -17,15 +13,15 @@ import '../../../../ui/bg_box.dart';
 import '../../../../ui/pop_alert.dart';
 import '../../../../ui/ui_helper.dart';
 
-class linkedin_LinkGetting extends StatefulWidget {
+class facebook_LinkGetting extends StatefulWidget {
   // getting page Data from select_list_data.dart
   String? goPage;
-  linkedin_LinkGetting({super.key, required this.goPage});
+  facebook_LinkGetting({super.key, required this.goPage});
 
   @override
-  State<linkedin_LinkGetting> createState() => _linkedin_LinkGettingState();
+  State<facebook_LinkGetting> createState() => _facebook_LinkGettingState();
 }
-class _linkedin_LinkGettingState extends State<linkedin_LinkGetting> {
+class _facebook_LinkGettingState extends State<facebook_LinkGetting> {
   //All variables define
   final _formKey = GlobalKey<FormState>();
   final TextEditingController _linkController = TextEditingController();
@@ -81,7 +77,7 @@ class _linkedin_LinkGettingState extends State<linkedin_LinkGetting> {
   }
 
   String? validateLinkedInUrl(String? value) {
-    final RegExp validUrlRegex = RegExp(r'^(https:\/\/(www\.)?linkedin\.com\/in\/[A-Za-z0-9_-]+\/?)$');
+    final RegExp validUrlRegex = RegExp(r'^(https:\/\/(www\.)?facebook\.com\/in\/[A-Za-z0-9_-]+\/?)$');
 
     if (value == null || value.trim().isEmpty) {
       return 'Enter your LinkedIn profile URL.';
@@ -130,7 +126,7 @@ class _linkedin_LinkGettingState extends State<linkedin_LinkGetting> {
           ) ?? false;},
         child: Scaffold(backgroundColor: theme.primaryFixed,
           resizeToAvoidBottomInset: false,
-          appBar: AppBar(title: Text('Linkedin $_onPage'),
+          appBar: AppBar(title: Text('Facebook $_onPage', style: TextStyle(fontSize: 16),),
             systemOverlayStyle: SystemUiOverlayStyle(
               statusBarColor: theme.surfaceTint,
               statusBarIconBrightness: Brightness.light,),
@@ -311,8 +307,8 @@ class _linkedin_LinkGettingState extends State<linkedin_LinkGetting> {
                     wth: double.infinity,
                     allRaduis: 5,
                     // bottom bar include ui_helper.dart
-                    child: Ui.bottomBar(context, 'Accepted Link: Only Instagram Reels or Image posts are supported',
-                      'ico/linkedin_icon.webp', 'Open Linkedin', 'https://www.instagram.com',),
+                    child: Ui.bottomBar(context, 'Accepted Link: Only Linkedin Profile are supported',
+                      'ico/linkedin_icon.webp', 'Open Linkedin', 'https://www.facebook.com',),
                   ),
                 ],),
 
