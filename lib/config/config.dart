@@ -40,6 +40,9 @@ class ApiPoints {
   // Daily Reward API
   static String get dailyRewardAPI => '${AppConfig.baseUrl}/api/dailyreward/claim';
 
+  // Support Admin
+  static String get supportSendMsg => '${AppConfig.baseUrl}/api/support';
+
   // Premium Subscription
   static String get premiumSubAPi => '${AppConfig.baseUrl}/api/premium/subscribe';
 

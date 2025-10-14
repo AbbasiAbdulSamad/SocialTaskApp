@@ -23,8 +23,8 @@ class RemoteConfigService {
       );
 
       await _remoteConfig.setDefaults({
-        // 'api_url': 'http://10.243.249.48:3000',
-      'api_url': 'https://socialtask-server.fly.dev',
+        'api_url': 'http://10.243.249.48:3000',
+      // 'api_url': 'https://socialtask-server.fly.dev',
         'minimum_app_version': '1.2.4',
       });
 
@@ -37,8 +37,8 @@ class RemoteConfigService {
 
       /// fallback defaults (taake crash na ho)
       await _remoteConfig.setDefaults({
-        // 'api_url': 'http://10.243.249.48:3000',
-        'api_url': 'https://socialtask-server.fly.dev',
+        'api_url': 'http://10.243.249.48:3000',
+        // 'api_url': 'https://socialtask-server.fly.dev',
         'minimum_app_version': '1.2.4',
       });
     }
@@ -47,8 +47,8 @@ class RemoteConfigService {
   String get baseUrl {
     final baseUrl = _remoteConfig.getString('api_url');
     return baseUrl.isNotEmpty
-        ? baseUrl
-        // ? 'http://10.243.249.48:3000'
+        // ? baseUrl
+        ? 'http://10.243.249.48:3000'
         : 'https://socialtask-server.fly.dev';
   }
 
@@ -128,7 +128,7 @@ class RemoteConfigService {
                         if (Platform.isAndroid) {
                           _launchURL("https://play.google.com/store/apps/details?id=com.socialtask.app");
                         } else if (Platform.isIOS) {
-                          _launchURL("https://apps.apple.com/app/idYOUR_APP_ID");
+                          _launchURL("https://apps.apple.com/app/");
                         }
                       }),
                 ],
