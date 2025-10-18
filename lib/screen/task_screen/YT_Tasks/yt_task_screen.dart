@@ -75,7 +75,6 @@ class _YT_Task_ScreenState extends State<YT_Task_Screen> {
           _startListeningForCommentBox();
         }
 
-
       } else {
         timer.cancel();
         setState(() {_showReturnButton = true;});
@@ -166,6 +165,10 @@ class _YT_Task_ScreenState extends State<YT_Task_Screen> {
       await checkSubscribe();
     }else if(widget.selectedOption=="Likes"){
       await checkLike();
+    }else if(widget.selectedOption=="Comments"){
+      if(_hasUserCommented){
+        taskDone();
+      }
     }else{
       taskDone();
     }
@@ -283,7 +286,8 @@ class _YT_Task_ScreenState extends State<YT_Task_Screen> {
   }
 
   void _startListeningForCommentBox() {
-    Timer.periodic(Duration(seconds: 2), (timer) async {
+    _commentListenerTimer?.cancel(); // safety
+    _commentListenerTimer = Timer.periodic(const Duration(seconds: 3), (timer) async {
       if (_hasUserCommented) {
         timer.cancel();
         return;
@@ -291,36 +295,40 @@ class _YT_Task_ScreenState extends State<YT_Task_Screen> {
 
       String randomComment = CommentList.getRandomComment();
 
-      String? result = await _controller?.evaluateJavascript(source: '''
-      (function() {
-        const textarea = document.querySelector('textarea.comment-simplebox-reply');
-        if (textarea && document.activeElement === textarea) {
-          // fill random comment if empty
-          if (!textarea.value || textarea.value.trim() === "") {
-            textarea.value = "$randomComment";
-            textarea.dispatchEvent(new Event('input', { bubbles: true }));
+      try {
+        String? result = await _controller?.evaluateJavascript(source: '''
+        (function() {
+          const textarea = document.querySelector('textarea');
+          if (textarea && document.activeElement === textarea) {
+            if (!textarea.value || textarea.value.trim() === "") {
+              textarea.value = "$randomComment";
+              textarea.dispatchEvent(new Event('input', { bubbles: true }));
+            }
+            return "user_started_typing";
           }
-          return "user_started_typing";
+          return "not_yet";
+        })();
+      ''');
+
+        if (result != null && result.contains("user_started_typing")) {
+          _hasUserCommented = true;
+          timer.cancel();
+
+          // wait 8 sec then show button
+          Future.delayed(const Duration(seconds: 10), () {
+            if (mounted) {
+              setState(() {
+                _showReturnButton = true;
+              });
+            }
+          });
         }
-        return "not_yet";
-      })();
-    ''');
-
-      if (result != null && result.contains("user_started_typing")) {
-        _hasUserCommented = true;
-        timer.cancel();
-
-        // wait 8 seconds after filling comment
-        Future.delayed(Duration(seconds: 8), () {
-          if (mounted) {
-            setState(() {
-              _showReturnButton = true;
-            });
-          }
-        });
+      } catch (e) {
+        debugPrint("comment check error: $e");
       }
     });
   }
+
 
 
 

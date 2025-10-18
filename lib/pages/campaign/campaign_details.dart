@@ -163,7 +163,7 @@ class _CampaignDetailsState extends State<CampaignDetails> {
                         padding: EdgeInsets.symmetric(horizontal: 10, vertical: 10),
                         child: Text(widget.videoTitle, maxLines: 4, overflow: TextOverflow.ellipsis,
                           style: textTheme.displaySmall?.copyWith(
-                            fontSize: 20, color: Colors.white,),
+                            fontSize: 20, color: theme.onPrimaryContainer,),
                         ),),
                           SizedBox(height: 50,)
                         ],)
@@ -188,7 +188,7 @@ class _CampaignDetailsState extends State<CampaignDetails> {
                           ),
                         ),
 
-                        widget.videoUrl.contains("https://www.instagram.com/reel/") ?
+                        widget.videoUrl.contains("https://www.instagram.com/reel/") || widget.videoUrl.contains("tiktok.com/") ?
                         Positioned(
                             left: 0, right: 0, top: 150,
                             child: Image.asset("assets/ico/tiktok_play_icon.webp", width: 60, height: 60,))

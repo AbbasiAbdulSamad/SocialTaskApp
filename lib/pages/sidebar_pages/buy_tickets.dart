@@ -1,3 +1,5 @@
+import 'dart:convert';
+
 import 'package:app/config/config.dart';
 import 'package:app/server_model/functions_helper.dart';
 import 'package:app/ui/flash_message.dart';
@@ -20,6 +22,7 @@ class _BuyTicketsState extends State<BuyTickets> {
   bool _available = false;
   List<ProductDetails> _products = [];
   int buyedTickets = 0;
+  final Set<String> _processedTokens = {};
 
   final List<Map<String, dynamic>> _ticketPrice = [
     {'tickets': '500', 'discount': '1', 'img': '1xTickets.webp', 'id': 'tickets_500'},
@@ -37,7 +40,9 @@ class _BuyTicketsState extends State<BuyTickets> {
     super.initState();
     _initializeIAP();
     _iap.purchaseStream.listen(_onPurchaseUpdate);
+    _iap.restorePurchases(); // ✅ Prevent old token reuse
   }
+
 
   Future<void> _initializeIAP() async {
     _available = await _iap.isAvailable();
@@ -60,53 +65,94 @@ class _BuyTicketsState extends State<BuyTickets> {
     String? userEmail = await Helper.getFirebaseEmail();
 
     for (var purchase in purchases) {
+      if (_processedTokens.contains(purchase.verificationData.serverVerificationData)) {
+        continue;
+      }
+      _processedTokens.add(purchase.verificationData.serverVerificationData);
+
+      // 1️⃣ Ignore already handled or consumed items
+      if (purchase.status == PurchaseStatus.restored ||
+          purchase.status == PurchaseStatus.canceled) {
+        continue;
+      }
+
       if (purchase.status == PurchaseStatus.purchased) {
+        // 2️⃣ Skip already completed (acknowledged) purchases
+        if (purchase.pendingCompletePurchase == false) {
+          debugPrint("⚠️ Skipping already completed purchase: ${purchase.purchaseID}");
+          continue;
+        }
+
         try {
+          // 3️⃣ Send only fresh purchases to backend
           final response = await http.post(
             Uri.parse(ApiPoints.buyTickets),
-            headers: {
-              "Content-Type": "application/json",
-            },
-            body: {
+            headers: {'Content-Type': 'application/json'},
+            body: jsonEncode({
               "productId": purchase.productID,
               "purchaseToken": purchase.verificationData.serverVerificationData,
               "userEmail": userEmail,
-            },
+            }),
           );
 
           if (response.statusCode == 200) {
-            await _iap.completePurchase(purchase); // confirm the purchase
-            if(purchase.productID=="tickets_500"){
-              setState((){buyedTickets = 500;});
-            }else if(purchase.productID=="1000_tickets"){
-              setState((){buyedTickets = 1000;});
-            }else if(purchase.productID=="tickets_2000"){
-              setState((){buyedTickets = 2000;});
-            }else if(purchase.productID=="tickets_3000"){
-              setState((){buyedTickets = 3000;});
-            }else if(purchase.productID=="5000_tickets"){
-              setState((){buyedTickets = 5000;});
-            }else if(purchase.productID=="tickets_10000"){
-              setState((){buyedTickets = 10000;});
+            debugPrint("✅ Verified successfully with backend");
+            await _iap.completePurchase(purchase); // ⚙️ Now consume token
+
+            int tickets = 0;
+            switch (purchase.productID) {
+              case "tickets_500":
+                tickets = 500;
+                break;
+              case "1000_tickets":
+                tickets = 1000;
+                break;
+              case "tickets_2000":
+                tickets = 2000;
+                break;
+              case "tickets_3000":
+                tickets = 3000;
+                break;
+              case "5000_tickets":
+                tickets = 5000;
+                break;
+              case "tickets_10000":
+                tickets = 10000;
+                break;
             }
-            AlertMessage.snackMsg(context: context, message: "$buyedTickets Tickets Purchased successfully!");
 
-            Future.delayed(Duration(milliseconds: 10000), () async {
-              setState((){buyedTickets = 0;});
-            });
+            setState(() => buyedTickets = tickets);
+            AlertMessage.snackMsg(
+                context: context,
+                message: "$buyedTickets Tickets Purchased successfully!");
 
+            Future.delayed(const Duration(seconds: 10),
+                    () => setState(() => buyedTickets = 0));
           } else {
-            AlertMessage.snackMsg(context: context, message: "Verification failed: ${response.body}");
+            AlertMessage.snackMsg(
+              context: context,
+              message: "Verification failed: ${response.body}",
+              time: 10,
+            );
           }
+          debugPrint("🔹 Purchase token: ${purchase.verificationData.serverVerificationData}");
+
         } catch (e) {
-          AlertMessage.snackMsg(context: context, message: "! Error: $e");
+          AlertMessage.snackMsg(
+            context: context,
+            message: "! Error: $e",
+            time: 10,
+          );
         }
       } else if (purchase.status == PurchaseStatus.error) {
-        AlertMessage.snackMsg(context: context, message: "Purchase canceled");
+        AlertMessage.snackMsg(
+          context: context,
+          message: "Purchase canceled",
+          time: 10,
+        );
       }
     }
   }
-
 
 
   void _buyProduct(String productId) {

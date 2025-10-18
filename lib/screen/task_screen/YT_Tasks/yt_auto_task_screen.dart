@@ -96,6 +96,8 @@ class _YT_Auto_Task_ScreenState extends State<YT_Auto_Task_Screen> {
           autoSubscribe();
         }else if(_remainingTime == _actionTriggerTime && selectedOption == "Likes"){
           autoLike();
+        }else if(_remainingTime == _actionTriggerTime && selectedOption == "WatchTime"){
+          _handleTaskCompletion(context);
         }else if(_remainingTime == 0){
           await Future.delayed(Duration(seconds: 2));
           _handleTaskCompletion(context);
@@ -138,7 +140,7 @@ class _YT_Auto_Task_ScreenState extends State<YT_Auto_Task_Screen> {
 
     final youtubeTasks = allCampaignsProvider.allCampaigns
         .where((task) => task['social'] == 'YouTube' &&
-        (task['selectedOption'] == 'Likes' || task['selectedOption'] == 'Subscribers'))
+        (task['selectedOption'] == 'Likes' || task['selectedOption'] == 'Subscribers' || task['selectedOption'] == 'WatchTime'))
         .toList();
 
     // 🛠️ Skip current task if already playing

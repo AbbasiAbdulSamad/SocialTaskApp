@@ -98,6 +98,7 @@ class _Screen3State extends State<Screen3> with WidgetsBindingObserver{
                   return InkWell(
                     onTap: () async{
                       await _checkInternet();
+                      // Check Task Click Internet
                       if (_internetCheck) {
                         if(campaign['social']=="TikTok"){
                           TikTokTaskHandler.startTikTokTask(
@@ -108,6 +109,7 @@ class _Screen3State extends State<Screen3> with WidgetsBindingObserver{
                             reward: campaign['CostPer'],
                             screenFrom: 1,
                           );
+                          // Instagram Task Navigate
                         }else if(campaign['social']=="Instagram"){
                           Navigator.push(context, MaterialPageRoute(
                             builder: (context) => Instagram_Task_Screen(
@@ -116,13 +118,18 @@ class _Screen3State extends State<Screen3> with WidgetsBindingObserver{
                           ),);
                         }
                         else{
+                          //  YT Auto Task Conditions
                           final autoButton = Provider.of<UserProvider>(context, listen: false).autoTask;
                           if(autoButton && (campaign['social']=="YouTube") &&
-                              (campaign['selectedOption']=="Likes" || campaign['selectedOption']=="Subscribers")){
+                              (campaign['selectedOption']=="Likes" || campaign['selectedOption']=="Subscribers"
+                                  || campaign['selectedOption']=="WatchTime")){
+
+                            // if Auto Limit 0 Alert
                             if(userAutoLimit==0){
                               AlertMessage.errorMsg(context, "You've reached your Auto Task limit. You can still complete manual tasks to earn more!", "$userAutoLimit Limit");
                               Provider.of<UserProvider>(context, listen: false).setAutoTask(false);
                             }else{
+                              //  YT Auto Task Navigate
                               Navigator.push(context, MaterialPageRoute(
                                 builder: (context) => YT_Auto_Task_Screen(
                                   taskUrl: campaign['videoUrl'], selectedOption: campaign['selectedOption'], watchTime: campaign['watchTime'],
@@ -130,12 +137,13 @@ class _Screen3State extends State<Screen3> with WidgetsBindingObserver{
                               ),);
                             }
                           }else{
+                            //  YT Simple Task Navigate
                             Navigator.push(context, MaterialPageRoute(builder: (context)=> YT_Task_Screen(taskUrl: campaign['videoUrl'], selectedOption: campaign['selectedOption'],
                               watchTime: campaign['watchTime'], reward: campaign['CostPer'], campaignId: campaign['_id'], screenFrom: 1,)));
                           }
                         }
-
                       } else {
+                        //  No Internet Alert
                         ScaffoldMessenger.of(context).showSnackBar(
                           SnackBar(backgroundColor: Color(0xff505050),
                             content: Text("No internet connection. Please check and try again.",

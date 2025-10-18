@@ -7,7 +7,6 @@ class InstaComment{
     "Nice shot 📸",
     "Amazing 😍",
     "So cool 😎",
-    "Wowww 🤩",
     "Beautiful ❤️",
     "Awesome 🔥",
     "Lovely 🥹",
@@ -31,7 +30,6 @@ class InstaComment{
     "Fabulous 😍",
     "Dreamy 💖",
     "Love vibes ❤️",
-
     "This is absolutely beautiful ❤️✨",
     "Your vibe is unmatched 😍🔥",
     "Such a wholesome moment 🥹",
@@ -62,7 +60,6 @@ class InstaComment{
     "A vibe I want 🌟",
     "Such elegance here 💖",
     "Can’t stop looking at this ✨",
-
     "This picture radiates so much positivity and joy, it’s honestly impossible not to smile while looking at it ❤️🥰",
     "You have such a special way of capturing beauty in the simplest things, this is truly magical ✨📸",
     "I love how natural and authentic this feels, it’s like a moment frozen in pure happiness 💫🌸",

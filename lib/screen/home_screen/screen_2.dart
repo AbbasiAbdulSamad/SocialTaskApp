@@ -267,7 +267,7 @@ class _Screen2State extends State<Screen2> with WidgetsBindingObserver{
                     Container(
                       margin: const EdgeInsets.symmetric(vertical: 20, horizontal: 10),
                       child: Provider.of<UserProvider>(context).autoTask && (campaign['social']=="YouTube") &&
-                (campaign['selectedOption']=="Likes" || campaign['selectedOption']=="Subscribers")
+                (campaign['selectedOption']=="Likes" || campaign['selectedOption']=="Subscribers"|| campaign['selectedOption']=="WatchTime")
                           ?
                         Container(
                           width: double.infinity,

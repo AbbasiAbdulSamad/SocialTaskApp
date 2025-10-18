@@ -4,15 +4,12 @@ import 'package:app/server_model/functions_helper.dart';
 import 'package:http/http.dart' as http;
 
 class SupportService {
+
   // 📨 Create support ticket
   static Future<Map<String, dynamic>> createTicket({
-    required String category,
-    required String subject,
-    required String message,
-  }) async {
+    required String category, required String subject, required String message,}) async {
     try {
       final token = await Helper.getAuthToken();
-
       final Map<String, dynamic> body = {
         "category": category,
         "subject": subject,

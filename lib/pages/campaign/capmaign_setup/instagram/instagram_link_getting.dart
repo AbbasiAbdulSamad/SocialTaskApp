@@ -255,7 +255,7 @@ class _instagram_LinkGettingState extends State<instagram_LinkGetting> {
           return await  showDialog(context: context,
             builder: (BuildContext context) {
               // pop class import from pop_box.dart
-              return pop.backAlert(context: context, bodyTxt:'Are you sure you want to exit? your TikTok URL will be lost.');
+              return pop.backAlert(context: context, bodyTxt:'Are you sure you want to exit? your instagram URL will be lost.');
             },
           ) ?? false;},
         child: Scaffold(backgroundColor: theme.primaryFixed,

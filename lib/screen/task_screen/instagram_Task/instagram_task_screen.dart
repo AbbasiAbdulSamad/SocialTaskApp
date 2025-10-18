@@ -35,6 +35,7 @@ class _Instagram_Task_ScreenState extends State<Instagram_Task_Screen> {
   bool _buttonLoading = false;
   bool _hasUserCommented = false;
   Timer? _timer;
+  String? _selectedComment;
 
 
 
@@ -206,11 +207,12 @@ class _Instagram_Task_ScreenState extends State<Instagram_Task_Screen> {
   }
 
   void _startListeningForInstagramCommentBox() {
+    _timer?.cancel(); // 👈 Prevent multiple timers
     _timer = Timer.periodic(Duration(seconds: 1), (t) async {
-        if (!mounted || _hasUserCommented) {
-          t.cancel();
-          return;
-        }
+      if (!mounted || _hasUserCommented) {
+        t.cancel();
+        return;
+      }
 
       String? result = await _controller?.evaluateJavascript(source: '''
       (function() {
@@ -228,7 +230,7 @@ class _Instagram_Task_ScreenState extends State<Instagram_Task_Screen> {
 
       if (result != null && result.contains("user_started_typing")) {
         // Random comment select karo
-        String randomComment = InstaComment.getInstaComment();
+        _selectedComment ??= InstaComment.getInstaComment();
 
         // Comment fill karna input me
         await _controller?.evaluateJavascript(source: '''
@@ -238,7 +240,7 @@ class _Instagram_Task_ScreenState extends State<Instagram_Task_Screen> {
                         || document.querySelector('div[contenteditable="true"]');
           if (textarea) {
             textarea.focus();
-            textarea.value = "$randomComment";
+            textarea.value = "${_selectedComment}";
             const event = new Event('input', { bubbles: true });
             textarea.dispatchEvent(event);
           }
@@ -246,7 +248,7 @@ class _Instagram_Task_ScreenState extends State<Instagram_Task_Screen> {
       ''');
 
         // 10 second after state update complete task
-        Future.delayed(Duration(seconds: 8), () {
+        Future.delayed(Duration(seconds: 10), () {
           if (mounted) {
             setState(() {
               _hasUserCommented = true;
@@ -292,13 +294,13 @@ class _Instagram_Task_ScreenState extends State<Instagram_Task_Screen> {
                           child: Container(
                             padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
                             decoration: BoxDecoration(
-                              color: Color(0xff505050),
+                              color: const Color(0xff505050),
                               borderRadius: BorderRadius.circular(20),
                             ),
-                            child: Row(
+                            child: const Row(
                               children: [
                                 Icon(Icons.lock, size: 15, color: Colors.white,),
-                                const SizedBox(width: 5),
+                                SizedBox(width: 5),
                                 Text('instagram.com', maxLines: 1,
                                   overflow: TextOverflow.ellipsis,
                                   style: TextStyle(fontSize: 16, fontWeight: FontWeight.w400),
@@ -419,7 +421,7 @@ class _Instagram_Task_ScreenState extends State<Instagram_Task_Screen> {
             Positioned.fill(
               child: Container(
                 color: Colors.black.withOpacity(0.6),
-                child: Center(
+                child:const Center(
                   child: CircularProgressIndicator(color: Colors.white),
                 ),
               ),
