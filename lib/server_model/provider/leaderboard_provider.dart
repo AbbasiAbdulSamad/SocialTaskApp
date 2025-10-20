@@ -9,6 +9,9 @@ class LeaderboardProvider with ChangeNotifier {
   List<dynamic> _leaderboard = [];
   List<dynamic> get leaderboard => _leaderboard;
 
+  String? _serverTime;
+  String? get serverTime => _serverTime;
+
   Map<String, dynamic>? _topUser1;
   Map<String, dynamic>? _topUser2;
   Map<String, dynamic>? _topUser3;
@@ -44,6 +47,9 @@ class LeaderboardProvider with ChangeNotifier {
       if (response.statusCode == 200) {
         final data = jsonDecode(response.body);
         _leaderboard = data['leaderboard'] ?? [];
+        _serverTime = data['serverTime'] ?? "";
+
+        debugPrint(_serverTime);
 
         User? currentUser = FirebaseAuth.instance.currentUser;
         if (currentUser != null) {

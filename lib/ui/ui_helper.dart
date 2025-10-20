@@ -17,7 +17,7 @@ class Ui{
         crossAxisAlignment: CrossAxisAlignment.center,
         children: [
           CircularProgressIndicator(color: theme.onPrimaryContainer,),
-          Text('Loading...', style: TextStyle(fontFamily: '3rdRoboto', fontSize: 16, color: theme.onPrimaryContainer,),)
+          Text('Loading...', style: TextStyle(fontFamily: '3rdRoboto', fontSize: 16, color: theme.onPrimaryContainer, decoration: TextDecoration.none),)
         ],
       ),
     );
@@ -98,7 +98,7 @@ class Ui{
     return Container(
       decoration: BoxDecoration(
         color: Colors.white,
-        borderRadius: BorderRadius.circular(6),
+        borderRadius: BorderRadius.circular(8),
           boxShadow: <BoxShadow>[BoxShadow(color: theme.shadow, offset: Offset(0, 4), blurRadius: 3, spreadRadius: 2)]
       ),
       child: TextFormField(
@@ -275,7 +275,7 @@ class Ui{
     final screen = MediaQuery.of(context).size;
       return TweenAnimationBuilder(
        tween: Tween(begin: 0.0, end: 1.0),
-    duration: Duration(milliseconds: 2000),
+    duration:const Duration(milliseconds: 2000),
     curve: Curves.bounceIn,
     builder: (context, value, _) {
       return Align(
@@ -284,8 +284,8 @@ class Ui{
             width: screen.width * value,
             height: screen.height * value,
             child: Stack(children: [
-              Lottie.asset('assets/animations/bg_shine_rays.json', width: screen.width * value),
-              Positioned(left: 0, right: 0, top: 148,
+              Lottie.asset('assets/animations/bg_shine_rays.json', repeat: false, width: screen.width * value),
+              Positioned(left: 0, right: 0, top: 160,
                 child: Row(spacing: 3,
                   mainAxisAlignment: MainAxisAlignment.center,
                   crossAxisAlignment: CrossAxisAlignment.center,
@@ -294,7 +294,7 @@ class Ui{
                       style: texttheme?.copyWith(fontSize: 42 * value,
                         color: Colors.black,
                         fontWeight: FontWeight.bold,
-                        shadows: [Shadow(blurRadius: 10, color: Colors.orange,),],
+                        shadows: [const Shadow(blurRadius: 10, color: Colors.orange,),],
                       ),
                     ),
                     Image.asset('assets/ico/1xTickets.webp', width: 45 * value,),

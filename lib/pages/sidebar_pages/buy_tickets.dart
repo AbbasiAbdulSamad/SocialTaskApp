@@ -7,6 +7,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:http/http.dart' as http;
 import 'package:in_app_purchase/in_app_purchase.dart';
+import '../../server_model/page_load_fetchData.dart';
 import '../../ui/button.dart';
 import '../../ui/ui_helper.dart';
 
@@ -23,6 +24,7 @@ class _BuyTicketsState extends State<BuyTickets> {
   List<ProductDetails> _products = [];
   int buyedTickets = 0;
   final Set<String> _processedTokens = {};
+  bool _isLoading = false;
 
   final List<Map<String, dynamic>> _ticketPrice = [
     {'tickets': '500', 'discount': '1', 'img': '1xTickets.webp', 'id': 'tickets_500'},
@@ -63,7 +65,6 @@ class _BuyTicketsState extends State<BuyTickets> {
 
   void _onPurchaseUpdate(List<PurchaseDetails> purchases) async {
     String? userEmail = await Helper.getFirebaseEmail();
-
     for (var purchase in purchases) {
       if (_processedTokens.contains(purchase.verificationData.serverVerificationData)) {
         continue;
@@ -82,7 +83,7 @@ class _BuyTicketsState extends State<BuyTickets> {
           debugPrint("⚠️ Skipping already completed purchase: ${purchase.purchaseID}");
           continue;
         }
-
+        setState(() {_isLoading = true;});
         try {
           // 3️⃣ Send only fresh purchases to backend
           final response = await http.post(
@@ -98,7 +99,6 @@ class _BuyTicketsState extends State<BuyTickets> {
           if (response.statusCode == 200) {
             debugPrint("✅ Verified successfully with backend");
             await _iap.completePurchase(purchase); // ⚙️ Now consume token
-
             int tickets = 0;
             switch (purchase.productID) {
               case "tickets_500":
@@ -120,36 +120,33 @@ class _BuyTicketsState extends State<BuyTickets> {
                 tickets = 10000;
                 break;
             }
+            setState((){
+              buyedTickets = tickets;
+              _isLoading = false;
+            });
 
-            setState(() => buyedTickets = tickets);
-            AlertMessage.snackMsg(
-                context: context,
-                message: "$buyedTickets Tickets Purchased successfully!");
+            AlertMessage.successMsg(context, "Tickets Purchased successfully!", "$buyedTickets");
+           await FetchDataService.fetchData(context, forceRefresh: true);
 
-            Future.delayed(const Duration(seconds: 10),
+            Future.delayed(const Duration(seconds: 7),
                     () => setState(() => buyedTickets = 0));
           } else {
-            AlertMessage.snackMsg(
-              context: context,
-              message: "Verification failed: ${response.body}",
-              time: 10,
-            );
+            AlertMessage.errorMsg(context, "${response.body}\n& contact support", "try again later: ",);
           }
           debugPrint("🔹 Purchase token: ${purchase.verificationData.serverVerificationData}");
 
         } catch (e) {
-          AlertMessage.snackMsg(
-            context: context,
-            message: "! Error: $e",
-            time: 10,
-          );
+          AlertMessage.snackMsg(context: context, message: "! Error: $e\n& contact support", time: 10,);
+          setState(() {_isLoading = false;});
         }
+        _isLoading = false;
       } else if (purchase.status == PurchaseStatus.error) {
         AlertMessage.snackMsg(
           context: context,
           message: "Purchase canceled",
           time: 10,
         );
+        setState(() {_isLoading = false;});
       }
     }
   }
@@ -175,8 +172,7 @@ class _BuyTicketsState extends State<BuyTickets> {
               statusBarIconBrightness: Brightness.light,
             ),
           ),
-          body: _available
-              ? Padding(
+          body: Padding(
             padding: const EdgeInsets.symmetric(vertical: 30, horizontal: 16),
             child: Center(
               child: Wrap(
@@ -189,13 +185,26 @@ class _BuyTicketsState extends State<BuyTickets> {
               ),
             ),
           )
-              : Ui.loading(context)
         ),
+
+    if(_isLoading)
+      Center(
+        child: Container(
+            width: 200, height: 110,
+            padding: EdgeInsets.all(10),
+            decoration: BoxDecoration(
+                color: theme.background,
+                borderRadius: BorderRadius.circular(15),
+                boxShadow: [BoxShadow(color: theme.shadow, blurRadius: 30, spreadRadius: 2)]
+            ),
+            child: Ui.loading(context)),
+      ),
+
 
         (buyedTickets>0)?
         Positioned(left: 0, right: 0, top: 200,
             child: Ui.bgShineRays(context, buyedTickets))
-            :SizedBox()
+            :SizedBox(),
 
       ],
     );

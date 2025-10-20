@@ -1,9 +1,11 @@
+import 'dart:async';
 import 'dart:convert';
 import 'package:app/server_model/functions_helper.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:http/http.dart' as http;
+import 'package:intl/intl.dart';
 import 'package:provider/provider.dart';
 import '../../config/config.dart';
 import '../../server_model/provider/leaderboard_provider.dart';
@@ -29,25 +31,82 @@ class _LeaderboardScreenState extends State<LeaderboardScreen> {
   int? currentUserRank;
   Map<String, dynamic>? currentUserDataMap;
   bool _isLoading = true;
+  String countdownText = "";
+  late Timer _timer;
+  DateTime? serverTimePk;
 
 
   @override
   void initState() {
     super.initState();
-    WidgetsBinding.instance.addPostFrameCallback((_) {
-      Provider.of<LeaderboardProvider>(context, listen: false).fetchLeaderboard();
+    WidgetsBinding.instance.addPostFrameCallback((_) async{
 
+      final leaderboardProvider =
+      Provider.of<LeaderboardProvider>(context, listen: false);
+
+      // 🟢 Fetch leaderboard (ye serverTime bhi set karega)
+      await leaderboardProvider.fetchLeaderboard();
+
+      final serverTimeStr = leaderboardProvider.serverTime;
+
+      if (serverTimeStr != null && serverTimeStr.isNotEmpty) {
+        DateTime serverTime = DateTime.parse(serverTimeStr);
+
+        // ✅ Convert UTC → Pakistan time
+        serverTimePk = serverTime.add(const Duration(hours: 5));
+
+        setState(() {
+          countdownText = getTimeUntilSundayNightText(serverTimePk!);
+        });
+
+        _timer = Timer.periodic(const Duration(seconds: 1), (timer) {
+          setState(() {
+            serverTimePk = serverTimePk!.add(const Duration(seconds: 1));
+            countdownText = getTimeUntilSundayNightText(serverTimePk!);
+          });
+        });
+      }
     });
+  }
+
+
+  // 🧮 Countdown until Sunday 11:59:59 PM (Pakistan time)
+  String getTimeUntilSundayNightText(DateTime nowPk) {
+    int daysUntilSunday = (DateTime.sunday - nowPk.weekday) % 7;
+
+    DateTime targetSunday = DateTime(
+      nowPk.year,
+      nowPk.month,
+      nowPk.day,
+      nowPk.hour,
+      nowPk.minute,
+      nowPk.second,
+    ).add(Duration(days: daysUntilSunday)).copyWith(hour: 28, minute: 59, second: 59);
+
+
+    if (nowPk.isAfter(targetSunday)) {
+      targetSunday = targetSunday.add(const Duration(days: 7));
+    }
+
+    Duration diff = targetSunday.difference(nowPk);
+    int days = diff.inDays;
+    int hours = diff.inHours.remainder(24);
+    int minutes = diff.inMinutes.remainder(60);
+    int seconds = diff.inSeconds.remainder(60);
+
+    return "$days ${hours.toString().padLeft(2, '0')} "
+        "${minutes.toString().padLeft(2, '0')} "
+        "${seconds.toString().padLeft(2, '0')} ";
   }
 
   @override
   void dispose() {
+    _timer.cancel();
     leaderboard.clear();
     super.dispose();
   }
   @override
   Widget build(BuildContext context) {
-
     final leaderboardProvider = context.watch<LeaderboardProvider>();
     final leaderboard = leaderboardProvider.leaderboard;
     final isLoading = leaderboardProvider.isLoading;
@@ -114,6 +173,32 @@ class _LeaderboardScreenState extends State<LeaderboardScreen> {
                         child: Column(
                           children: [
                             Container(
+                              decoration: BoxDecoration(color: theme.background,
+                                  boxShadow: [BoxShadow(color: theme.shadow, spreadRadius: 5, blurRadius: 20, offset: Offset(0, 10))],
+                                  borderRadius: BorderRadius.only(bottomRight: Radius.circular(5), bottomLeft: Radius.circular(5))),
+                              padding: EdgeInsets.symmetric(vertical: 0, horizontal:  0),
+                              margin: EdgeInsets.only(top: 0, left: 20, right: 20),
+                              child:(countdownText.isEmpty || countdownText=="")?SizedBox(): Column(
+                                children: [
+                                  Row(mainAxisAlignment: MainAxisAlignment.spaceAround,
+                                    children: [
+                                      rewardNumImg("1xTickets.webp", "250"),
+                                      rewardNumImg("8xTickets.webp", "1000"),
+                                      rewardNumImg("3xTickets.webp", "500"),
+                                    ],),
+                                  Ui.lightLine(),
+                                  SizedBox(height: 5,),
+                                  Column(
+                                    children: [
+                                      Text(" $countdownText", style: textTheme.displaySmall?.copyWith(color: theme.onPrimaryContainer, height: 0, wordSpacing: 30, fontSize: 18), textAlign: TextAlign.end,),
+                                      Text("Days Hours Mins   Sec", style: textTheme.labelSmall?.copyWith(color: theme.onPrimaryContainer,height: 0, wordSpacing: 23, fontSize: 14))
+                                    ],
+                                  ),
+                                ],
+                              ),
+                            ),
+
+                            Container(
                               decoration: BoxDecoration(color: theme.onPrimaryFixed,
                               boxShadow: [BoxShadow(color: theme.shadow, spreadRadius: 5, blurRadius: 20, offset: Offset(0, 10))],
                               borderRadius: BorderRadius.only(topRight: Radius.circular(5), topLeft: Radius.circular(5))),
@@ -128,7 +213,16 @@ class _LeaderboardScreenState extends State<LeaderboardScreen> {
                               ],),
                             ),
                             (isLoading || userProvider.isCurrentUserLoading)
-                                ? Container(alignment: Alignment.center, margin: EdgeInsets.only(top: 100), child: Ui.loading(context))
+                                ? Container(alignment: Alignment.center, margin: EdgeInsets.only(top: 100), child: Ui.loading(context)):
+                              (leaderboardProvider.leaderboard.isEmpty)?
+                              Column(
+                                children: [
+                                  SizedBox(height: 30,),
+                                  Ui.buildNoInternetUI(theme, textTheme, false, 'Connection Issue',
+                                      'We’re having trouble connecting right now. Please check your network or try again in a moment.', Icons.wifi_off,
+                                          ()=> leaderboardProvider.fetchLeaderboard()),
+                                ],
+                              )
                                 : Expanded(
                               child: SingleChildScrollView(
                                 child: ListView.builder(
@@ -208,6 +302,16 @@ class _LeaderboardScreenState extends State<LeaderboardScreen> {
           );
     })
       ),
+    );
+  }
+
+  rewardNumImg(String ticketImg, String rewardNum){
+    return Row(spacing: 2,
+      children: [
+        Image.asset('assets/ico/$ticketImg', width: 18,),
+        Text(rewardNum, style: TextStyle(color: Theme.of(context).colorScheme.errorContainer,
+            fontFamily: '3rdRoboto', fontSize: 16),),
+      ],
     );
   }
 

@@ -30,7 +30,6 @@ class _Screen3State extends State<Screen3> with WidgetsBindingObserver{
   void initState() {
     super.initState();
     _fetchDataFuture = FetchDataService.fetchData(context, forceRefresh: true);
-
     WidgetsBinding.instance.addObserver(this);
   }
 

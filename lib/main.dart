@@ -3,6 +3,7 @@ import 'package:app/pages/sidebar_pages/buy_tickets.dart';
 import 'package:app/pages/sidebar_pages/profile.dart';
 import 'package:app/pages/sidebar_pages/premium_account.dart';
 import 'package:app/server_model/local_notifications.dart';
+import 'package:app/server_model/provider/daily_reward.dart';
 import 'package:app/server_model/provider/leaderboard_provider.dart';
 import 'package:app/server_model/provider/leaderboard_reward.dart';
 import 'package:firebase_core/firebase_core.dart';

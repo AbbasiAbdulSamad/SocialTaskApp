@@ -29,7 +29,7 @@ class EarnTickets extends StatelessWidget {
                 description: "You have received your daily reward!",
                 buttonIcon: Icons.payments_outlined,
                 buttonText: 'Claim Reward',
-                    apiCall: ()=>DailyRewardService().claimDailyReward(context)
+                    apiCall: ()=> DailyRewardService().claimDailyReward(context)
             ));
       }else{
         AlertMessage.snackMsg(context: context, message: 'Something went wrong due to which the task4task is not working.', time: 3);
@@ -49,14 +49,7 @@ class EarnTickets extends StatelessWidget {
     final userProvider = Provider.of<UserProvider>(context);
     final isLoading = userProvider.isCurrentUserLoading;
 
-    if (isLoading) {
-      return Scaffold(
-        appBar: AppBar(title: const Text('Earn Rewards')),
-        body: Center(child: Ui.loading(context)),
-      );
-    }
-
-    if (userProvider.currentUser == null) {
+    if (userProvider.currentUser == null && !isLoading) {
       return Scaffold(
         appBar: AppBar(title: const Text('Earn Rewards')),
         body: Center(
@@ -128,19 +121,23 @@ class EarnTickets extends StatelessWidget {
                         earnReward(context, Icons.telegram, 'Join Telegram', '5+', (){ launchUrl(Uri.parse('https://t.me/SocialTaskApp'));}, Colors.lightBlue),
                       ],)
                   ),
-                  const SizedBox(height: 20,)
+                  const SizedBox(height: 100,)
               ],),
             ),
 
             // 🔄 Loading overlay
             if (isLoading)
-              Positioned.fill(
+              Center(
                 child: Container(
-                  height: double.infinity,
-                  width: double.infinity,
-                  color: Colors.black.withOpacity(0.3),
-                  child: Ui.loading(context)),
-              )
+                  width: 200, height: 110,
+                    padding: EdgeInsets.all(10),
+                    decoration: BoxDecoration(
+                        color: theme.background,
+                      borderRadius: BorderRadius.circular(15),
+                      boxShadow: [BoxShadow(color: theme.shadow, blurRadius: 30, spreadRadius: 2)]
+                    ),
+                    child: Ui.loading(context)),
+              ),
           ],
         )
     );

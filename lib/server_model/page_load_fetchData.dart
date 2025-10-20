@@ -11,7 +11,7 @@ import '../server_model/internet_provider.dart';
 import '../ui/pop_reward.dart';
 import 'update_checking_playstore.dart';
 
-class FetchDataService with ChangeNotifier{
+class FetchDataService{
   static bool _isApiCalled = false;
 
   static Future<void> fetchData(BuildContext context, {bool forceRefresh = false}) async {
@@ -81,7 +81,7 @@ class FetchDataService with ChangeNotifier{
               context: context,
               useForLevel: true,
               level: nextLevel,
-              img: "assets/animations/levelUp.json",
+              img: "assets/animations/levelUpPopup.json",
               reward: "+$reward Tickets",
               description: "Unlock the next level and claim Reward",
               buttonIcon: Icons.leaderboard,

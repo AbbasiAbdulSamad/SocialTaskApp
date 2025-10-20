@@ -50,6 +50,7 @@ class _SupportPageState extends State<SupportPage> {
 
 
   Future<void> loadTickets() async {
+    _isLoading = true;
     final result = await SupportService.getUserTickets();
     if (result["success"] == true) {
       setState(() {
@@ -107,7 +108,7 @@ class _SupportPageState extends State<SupportPage> {
     User? user = _auth.currentUser;
 
     // 🟢 CASE 1: Still loading tickets
-    if (tickets.isEmpty && _isLoading) {
+    if (_isLoading) {
       return Scaffold(
         appBar: AppBar(
           title: const Text('Support'),

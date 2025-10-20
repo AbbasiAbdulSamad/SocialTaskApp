@@ -320,7 +320,7 @@ class _CampaignDetailsState extends State<CampaignDetails> {
                       ),
                     ),
                     title: Text(viewer['name'] ?? 'Unknown', style: textTheme.displaySmall?.copyWith(fontSize: 17),),
-                  ),
+                    trailing: SizedBox(width: 20, height: 20, child: Ui.countryFlag(viewer['country'] ?? 'Unknown'),),),
                 );
               },
             ),

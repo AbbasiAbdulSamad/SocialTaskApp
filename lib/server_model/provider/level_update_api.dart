@@ -103,12 +103,12 @@ class LevelUpProvider with ChangeNotifier {
     }
     await updateUserLevel();
 
-    Future.delayed(const Duration(milliseconds: 1600), (){
-      _levelTreasureBox = false;
+    Future.delayed(const Duration(seconds: 1), (){
       _rewardLastAnimation = true;
       notifyListeners();
 
-      Future.delayed(const Duration(seconds: 4), (){
+      Future.delayed(const Duration(seconds: 7), (){
+        _levelTreasureBox = false;
         _rewardLastAnimation = false;
         notifyListeners();
       });

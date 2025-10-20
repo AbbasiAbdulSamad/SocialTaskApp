@@ -265,7 +265,7 @@ class _MyAccountState extends State<MyAccount> {
                               children: [
                                 Row(spacing: 5,
                                   children: [
-                                    Text("Monthly Performance", style: textTheme.displaySmall?.copyWith(fontSize: 15, fontWeight: FontWeight.bold)),
+                                    Text("Weekly Performance", style: textTheme.displaySmall?.copyWith(fontSize: 15, fontWeight: FontWeight.bold)),
                                     Icon(Icons.stacked_line_chart, color: theme.onPrimaryContainer, size: 17,),
                                   ],
                                 ),

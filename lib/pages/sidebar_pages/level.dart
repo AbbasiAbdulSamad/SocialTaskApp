@@ -17,10 +17,11 @@ class Level extends StatefulWidget {
   const Level({super.key});
 
   @override
-  State<Level> createState() => _LevelState();
+  State<Level> createState() => _LevelState() ;
 }
 
-class _LevelState extends State<Level> {
+class _LevelState extends State<Level> with SingleTickerProviderStateMixin {
+  late final AnimationController _controller;
   late LevelDataProvider _levelDataProvider;
   late UserProvider _userProvider;
   late LevelUpProvider _levelUpAPI;
@@ -28,6 +29,7 @@ class _LevelState extends State<Level> {
   @override
   void initState() {
     super.initState();
+    _controller = AnimationController(vsync: this);
     WidgetsBinding.instance.addPostFrameCallback((_){
       _fetchData(forceRefresh: true);
     });
@@ -62,6 +64,7 @@ class _LevelState extends State<Level> {
 
   @override
   void dispose() {
+    _controller.dispose();
     super.dispose();
   }
 
@@ -310,8 +313,14 @@ class _LevelState extends State<Level> {
                       ),
                     ),
                     (_levelUpAPI.levelTreasureBox)?
-                    Positioned(left: 0, right: 0, top: 55,
-                            child: Lottie.asset("assets/animations/red.json")):SizedBox(),
+                    Positioned(left: 0, right: 0, top: 60,
+                            child: Lottie.asset("assets/animations/addTicketsAnimation.json", repeat: false,
+                              controller: _controller,
+                              onLoaded: (composition) {
+                                _controller
+                                  ..duration = composition.duration
+                                  ..forward();
+                              },)):SizedBox(),
 
                      (_levelUpAPI.rewardLastAnimation)?
                     Positioned(left: 0, right: 0, top: 300,

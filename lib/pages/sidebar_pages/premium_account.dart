@@ -1,17 +1,15 @@
 import 'dart:convert';
-
 import 'package:app/ui/flash_message.dart';
-import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/services.dart';
-import 'package:flutter_svg/svg.dart';
 import 'package:http/http.dart' as http;
 import 'package:in_app_purchase/in_app_purchase.dart';
+import 'package:lottie/lottie.dart';
 import '../../config/config.dart';
 import '../../server_model/functions_helper.dart';
-import '../../server_model/premium.dart';
+import '../../server_model/page_load_fetchData.dart';
 import '../../ui/bg_box.dart';
 import '../../ui/ui_helper.dart';
 
@@ -27,6 +25,9 @@ class _PremiumAccountState extends State<PremiumAccount> {
   List<ProductDetails> _products = [];
   List<Map<String, dynamic>> _planList = [];
   bool _loading = true;
+  bool premiumSuccess = false;
+  bool _purchaseLoading = false;
+  final Set<String> _processedPurchaseTokens = {};
 
   Set<String> _productIds = {'premium_weekly', 'premium_monthly', 'premium_yearly',};
 
@@ -45,8 +46,8 @@ class _PremiumAccountState extends State<PremiumAccount> {
     }
 
     final response = await _iap.queryProductDetails(_productIds);
-    print("Not Found IDs: ${response.notFoundIDs}");
-    print("Fetched products:");
+    debugPrint("Not Found IDs: ${response.notFoundIDs}");
+    debugPrint("Fetched products:");
     response.productDetails.forEach((p) => print("${p.id} - ${p.title} - ${p.price}"));
 
     setState(() {
@@ -118,44 +119,48 @@ class _PremiumAccountState extends State<PremiumAccount> {
 
 
   void _buy(ProductDetails product) {
+    if (_purchaseLoading) return; // ⛔ Prevent spam clicks
+    setState(() => _purchaseLoading = true);
     final purchaseParam = PurchaseParam(productDetails: product);
     _iap.buyNonConsumable(purchaseParam: purchaseParam);
   }
 
   void _handlePurchaseUpdates(List<PurchaseDetails> purchaseDetailsList) async {
     for (var purchase in purchaseDetailsList) {
+      // Skip if we already processed this purchase
+      if (_processedPurchaseTokens.contains(purchase.purchaseID ?? purchase.purchaseID)) continue;
+
+      // Add token immediately to avoid race conditions
+      _processedPurchaseTokens.add(purchase.purchaseID ?? purchase.purchaseID!);
+
       if (purchase.status == PurchaseStatus.purchased) {
-        // Plan ID
+        setState(() => _purchaseLoading = true);
+
         String planId = purchase.productID;
+        String purchaseToken = purchase.verificationData.serverVerificationData;
 
-        // Backend API call
-        final result = await subscribeToPremium(planId, purchase.verificationData.serverVerificationData,);
+        final result = await subscribeToPremium(planId, purchaseToken);
 
-        // SnackBar message show
         if (result.containsKey("error")) {
-          _showSnackBar(context, result["error"], isError: true);
+          AlertMessage.errorMsg(context, "Something error please try again later & contact support", "An Error!");
+          debugPrint(result["error"]);
         } else {
-          _showSnackBar(context, "Premium subscription active successful!", isError: false);
+          debugPrint("Premium subscription activated successfully!");
         }
 
-        // Complete purchase
-        InAppPurchase.instance.completePurchase(purchase);
+        // Complete the purchase
+        await _iap.completePurchase(purchase);
+
+        setState(() => _purchaseLoading = false);
+      } else if (purchase.status == PurchaseStatus.error) {
+        AlertMessage.errorMsg(context, "${purchase.error}\n& contact support", "Purchase failed:");
+        setState(() => _purchaseLoading = false);
       }
     }
   }
 
-  void _showSnackBar(BuildContext context, String message, {bool isError = false}) {
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(
-        content: Text(message, style: TextStyle(fontSize: 16),),
-        backgroundColor: isError ? Colors.red : Colors.green,
-        behavior: SnackBarBehavior.floating,
-        duration: Duration(seconds: 3),
-      ),
-    );
-  }
 
-  Future<Map<String, dynamic>> subscribeToPremium(String planId, String purchaseToke) async {
+  Future<Map<String, dynamic>> subscribeToPremium(String planId, String purchaseToken) async {
     try {
       String? userEmail = await Helper.getFirebaseEmail();
       if (userEmail == null) {
@@ -170,18 +175,26 @@ class _PremiumAccountState extends State<PremiumAccount> {
         },
         body: jsonEncode({
           "plan": planId,
-          "purchaseToken": purchaseToke,
+          "purchaseToken": purchaseToken,
           "userEmail": userEmail,
         }),
       );
+
+      setState(() => _purchaseLoading = false);
       // Handle response
       if (response.statusCode == 200) {
-        AlertMessage.flashMsg(context, "Your premium account has been activated.", "Congratulations!", Icons.workspace_premium, 10);
+        setState(() {premiumSuccess = true;});
+        AlertMessage.successMsg(context, "Premium subscription activated successfully!", "Congratulations!");
+        Future.delayed(const Duration(seconds: 8), (){
+          setState(() {premiumSuccess = false;});
+        });
+        await FetchDataService.fetchData(context, forceRefresh: true);
         return jsonDecode(response.body);
       } else {
         return {"error": "Failed to subscribe: ${response.body}"};
       }
     } catch (e) {
+      setState(() => _purchaseLoading = false);
       return {"error": "Error: $e"};
     }
   }
@@ -199,174 +212,202 @@ class _PremiumAccountState extends State<PremiumAccount> {
             statusBarColor: theme.surfaceTint,
             statusBarIconBrightness: Brightness.light,),
         ),
-        body: SingleChildScrollView(
-          child: Column(
-            children: [
-              Stack(
+        body: Stack(
+          children: [
+            SingleChildScrollView(
+              child: Column(
                 children: [
-                  // Background box with premium benefits
-                  BgBox(
-                    margin: const EdgeInsets.symmetric(vertical: 20, horizontal: 15),
-                    padding: const EdgeInsets.symmetric(vertical: 0, horizontal: 20),
-                    allRaduis: 10,
-                    child: SizedBox(width: double.infinity,
-                        child: Column(
-                          children: [
-                            Image.asset('assets/ico/crown-icon.webp', width: 60,),
-                            Container(
-                                padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 2),
-                                decoration: BoxDecoration(
-                                  gradient: LinearGradient(colors: [theme.background, Colors.amber, theme.background]),
-                                  borderRadius: BorderRadius.circular(7),
-                                  border: const Border(bottom: BorderSide(color: Colors.black, width: 1))
-                                ),
-                                child: Text('Benefits of Premium Plan',style: Theme.of(context).textTheme.labelMedium?.copyWith(color: Colors.black))),
-                            const SizedBox(height: 30,),
+                  Stack(
+                    children: [
+                      // Background box with premium benefits
+                      BgBox(
+                        margin: const EdgeInsets.symmetric(vertical: 20, horizontal: 15),
+                        padding: const EdgeInsets.symmetric(vertical: 0, horizontal: 20),
+                        allRaduis: 10,
+                        child: SizedBox(width: double.infinity,
+                            child: Column(
+                              children: [
+                                Image.asset('assets/ico/crown-icon.webp', width: 60,),
+                                Container(
+                                    padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 2),
+                                    decoration: BoxDecoration(
+                                      gradient: LinearGradient(colors: [theme.background, Colors.amber, theme.background]),
+                                      borderRadius: BorderRadius.circular(7),
+                                      border: const Border(bottom: BorderSide(color: Colors.black, width: 1))
+                                    ),
+                                    child: Text('Benefits of Premium Plan',style: Theme.of(context).textTheme.labelMedium?.copyWith(color: Colors.black))),
+                                const SizedBox(height: 30,),
 
-                            // Features table comparing free vs premium
-                            DataTable(
-                              columnSpacing: 12.0,
-                              columns: [
-                                DataColumn(label: Text('Features', style: justBold)),
-                                DataColumn(label: Text('Free', style: justBold)),
-                                DataColumn(label: Text('Premium', style: justBold)),
-                              ],
-                              rows: [
-                                DataRow(cells: [
-                                  DataCell(Text('AutoPlay', style: textStyle,)),
-                                  DataCell(Center(child: Text('20', style: textStyleFree,))),
-                                  DataCell(Center(child: Text('1000', style: textStyleVip,))),
-                                ]),
-                                DataRow(cells: [
-                                  DataCell(Text('Ads', style: textStyle,)),
-                                  DataCell(Center(child: Icon(Icons.done, color: theme.secondaryFixedDim,))),
-                                  DataCell(Center(child: Icon(Icons.close, color: theme.errorContainer))),
-                                ]),
-                                DataRow(cells: [
-                                  DataCell(Text('Daily Tickets', style: textStyle,)),
-                                  DataCell(Center(child: Text('20', style: textStyleFree,))),
-                                  DataCell(Center(child: Text('100', style: textStyleVip,))),
-                                ]),
-                                DataRow(cells: [
-                                  DataCell(Text('Bonus', style: textStyle,)),
-                                  DataCell(Center(child: Icon(Icons.close, color: theme.secondaryFixedDim,))),
-                                  DataCell(Center(child: Icon(Icons.done, color: theme.errorContainer,))),
-                                ]),
-                                DataRow(cells: [
-                                  DataCell(Text('Campaign Limit', style: textStyle,)),
-                                  DataCell(Center(child: Text('10', style: textStyleFree,))),
-                                  DataCell(Center(child: Text('100', style: textStyleVip,))),
-                                ]),
-                                DataRow(cells: [
-                                  DataCell(Text('Campaign Cost Discount', style: textStyle,)),
-                                  DataCell(Center(child: Text('0%', style: textStyleFree,))),
-                                  DataCell(Center(child: Text('20%', style: textStyleVip,))),
-                                ]),
-                                DataRow(cells: [
-                                  DataCell(Text('Campaign Progress', style: textStyle,)),
-                                  DataCell(Center(child: Text('Slow', style: textStyleFree,))),
-                                  DataCell(Center(child: Text('Fast', style: textStyleVip,))),
-                                ]),
-                                DataRow(cells: [
-                                  DataCell(Text('LevelUp Score', style: textStyle,)),
-                                  DataCell(Center(child: Text('Slow', style: textStyleFree,))),
-                                  DataCell(Center(child: Text('Fast', style: textStyleVip,))),
-                                ]),
-                                DataRow(cells: [
-                                  DataCell(Text('Rewards', style: textStyle,)),
-                                  DataCell(Center(child: Text('1x', style: textStyleFree,))),
-                                  DataCell(Center(child: Text('10x', style: textStyleVip,))),
-                                ]),
+                                // Features table comparing free vs premium
+                                DataTable(
+                                  columnSpacing: 12.0,
+                                  columns: [
+                                    DataColumn(label: Text('Features', style: justBold)),
+                                    DataColumn(label: Text('Free', style: justBold)),
+                                    DataColumn(label: Text('Premium', style: justBold)),
+                                  ],
+                                  rows: [
+                                    DataRow(cells: [
+                                      DataCell(Text('AutoPlay', style: textStyle,)),
+                                      DataCell(Center(child: Text('20', style: textStyleFree,))),
+                                      DataCell(Center(child: Text('1000', style: textStyleVip,))),
+                                    ]),
+                                    DataRow(cells: [
+                                      DataCell(Text('Ads', style: textStyle,)),
+                                      DataCell(Center(child: Icon(Icons.done, color: theme.secondaryFixedDim,))),
+                                      DataCell(Center(child: Icon(Icons.close, color: theme.errorContainer))),
+                                    ]),
+                                    DataRow(cells: [
+                                      DataCell(Text('Daily Tickets', style: textStyle,)),
+                                      DataCell(Center(child: Text('20', style: textStyleFree,))),
+                                      DataCell(Center(child: Text('100', style: textStyleVip,))),
+                                    ]),
+                                    DataRow(cells: [
+                                      DataCell(Text('Bonus', style: textStyle,)),
+                                      DataCell(Center(child: Icon(Icons.close, color: theme.secondaryFixedDim,))),
+                                      DataCell(Center(child: Icon(Icons.done, color: theme.errorContainer,))),
+                                    ]),
+                                    DataRow(cells: [
+                                      DataCell(Text('Campaign Limit', style: textStyle,)),
+                                      DataCell(Center(child: Text('10', style: textStyleFree,))),
+                                      DataCell(Center(child: Text('100', style: textStyleVip,))),
+                                    ]),
+                                    DataRow(cells: [
+                                      DataCell(Text('Campaign Cost Discount', style: textStyle,)),
+                                      DataCell(Center(child: Text('0%', style: textStyleFree,))),
+                                      DataCell(Center(child: Text('20%', style: textStyleVip,))),
+                                    ]),
+                                    DataRow(cells: [
+                                      DataCell(Text('Campaign Progress', style: textStyle,)),
+                                      DataCell(Center(child: Text('Slow', style: textStyleFree,))),
+                                      DataCell(Center(child: Text('Fast', style: textStyleVip,))),
+                                    ]),
+                                    DataRow(cells: [
+                                      DataCell(Text('LevelUp Score', style: textStyle,)),
+                                      DataCell(Center(child: Text('Slow', style: textStyleFree,))),
+                                      DataCell(Center(child: Text('Fast', style: textStyleVip,))),
+                                    ]),
+                                    DataRow(cells: [
+                                      DataCell(Text('Rewards', style: textStyle,)),
+                                      DataCell(Center(child: Text('1x', style: textStyleFree,))),
+                                      DataCell(Center(child: Text('10x', style: textStyleVip,))),
+                                    ]),
+                                  ],),
+                                const SizedBox(height: 450,)
                               ],),
-                            const SizedBox(height: 450,)
-                          ],),
-                      ),
-                    ),
-
-                  // Premium Plans Section
-                  Positioned(bottom: 0, left: 0, right: 0,
-                    child: Column(children: [
-                      // Container with shadow effect
-                      Container(
-                        width: double.infinity,
-                        decoration: BoxDecoration(
-                            color: theme.primaryFixed,
-                            border: Border(top: BorderSide(color: theme.onPrimaryFixed, width: 1)),
-                            boxShadow: [BoxShadow(color: theme.shadow, spreadRadius: 30, blurRadius: 50)],
-                            borderRadius: const BorderRadius.only(topLeft: Radius.circular(30), topRight: Radius.circular(30))
+                          ),
                         ),
+
+                      // Premium Plans Section
+                      Positioned(bottom: 0, left: 0, right: 0,
                         child: Column(children: [
+                          // Container with shadow effect
                           Container(
-                              padding: const EdgeInsets.symmetric(horizontal: 0, vertical: 5),
-                              margin: const EdgeInsets.all(22),
-                              width: double.infinity,
-                              alignment: Alignment.center,
-                              decoration: BoxDecoration(
-                                gradient: LinearGradient(colors: [theme.errorContainer,Colors.green,]),
-                                border: Border(bottom: BorderSide(color: theme.onPrimaryContainer, width: 2)),
-                                borderRadius: const BorderRadius.only(topRight: Radius.circular(12), topLeft: Radius.circular(12)),
-                              ),
-                              child: Text('PREMIUM PLANS',style: textStyle?.copyWith(color: theme.primaryFixed, fontSize: 20))),
-
-                          // List of premium plans
-                    _planList.isEmpty
-                        ? Ui.loading(context)
-                        : ListView.builder(
-                      shrinkWrap: true,
-                      physics: NeverScrollableScrollPhysics(),
-                      itemCount: _planList.length,
-                      itemBuilder: (context, index) {
-                        final plan = _planList[index];
-                        return _premiumPlan(
-                          context,
-                          plan['plan'],
-                          plan['textLine'],
-                          plan['originalPrice'],
-                          plan['price'],
-                          plan['discount'],
-                          plan['onClick'],
-                        );
-                      },
-                    ),
-                    const SizedBox(height: 20,),
-
-                          // Subscription renewal info
-                          Container(
-                            color: theme.background,
-                            padding: const EdgeInsets.only(left: 10, right: 10, top: 7, bottom: 15),
-                            child: RichText(
-                              textAlign: TextAlign.center,
-                              text: TextSpan(
-                                text: 'All subscriptions automatically renew after the selected subscription period.'
-                                    'The account will be charged for each renewal unless the subscription is canceled. ',
-                                style: TextStyle(fontSize: 11,height: 1.3, fontWeight: FontWeight.w400, color: theme.onPrimaryFixed),
-                                children: [
-                                      TextSpan( text: 'How to cancel?',
-                                        style: TextStyle(fontSize: 11, color: theme.onPrimaryContainer,  fontWeight: FontWeight.bold,
-                                          decoration: TextDecoration.underline,),
-                                        recognizer: TapGestureRecognizer()
-                                          ..onTap = () {
-                                        Ui.Add_campaigns_pop(context, 'Cancel Subscription',
-                                        Container(
-                                          padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 40),
-                                          child: const Text('⚠️ Your subscription will not be cancelled if you uninstall the app.\n\n\n'
-                                              'Follow the instructions\n\n'
-                                              '1. On your android device open the google play store.\n'
-                                              '2. Check if you are signed in to the correct google account.\n'
-                                              '3. Tap menu subscriptions.\n'
-                                              '4. Select the subscription you want to cancel.\n'
-                                              '5. Tap cancel subscription.',
-                                            style: TextStyle(fontSize: 14, fontWeight: FontWeight.w300, height: 1.3),),));
-                                          },),
-                                    ],),
+                            width: double.infinity,
+                            decoration: BoxDecoration(
+                                color: theme.primaryFixed,
+                                border: Border(top: BorderSide(color: theme.onPrimaryFixed, width: 1)),
+                                boxShadow: [BoxShadow(color: theme.shadow, spreadRadius: 30, blurRadius: 50)],
+                                borderRadius: const BorderRadius.only(topLeft: Radius.circular(30), topRight: Radius.circular(30))
                             ),
+                            child: Column(children: [
+                              Container(
+                                  padding: const EdgeInsets.symmetric(horizontal: 0, vertical: 5),
+                                  margin: const EdgeInsets.all(22),
+                                  width: double.infinity,
+                                  alignment: Alignment.center,
+                                  decoration: BoxDecoration(
+                                    gradient: LinearGradient(colors: [theme.errorContainer,Colors.green,]),
+                                    border: Border(bottom: BorderSide(color: theme.onPrimaryContainer, width: 2)),
+                                    borderRadius: const BorderRadius.only(topRight: Radius.circular(12), topLeft: Radius.circular(12)),
+                                  ),
+                                  child: Text('PREMIUM PLANS',style: textStyle?.copyWith(color: theme.primaryFixed, fontSize: 20))),
+
+                              // List of premium plans
+                        _planList.isEmpty
+                            ? Ui.loading(context)
+                            : ListView.builder(
+                          shrinkWrap: true,
+                          physics: NeverScrollableScrollPhysics(),
+                          itemCount: _planList.length,
+                          itemBuilder: (context, index) {
+                            final plan = _planList[index];
+                            return _premiumPlan(
+                              context,
+                              plan['plan'],
+                              plan['textLine'],
+                              plan['originalPrice'],
+                              plan['price'],
+                              plan['discount'],
+                              plan['onClick'],
+                            );
+                          },
+                        ),
+                        const SizedBox(height: 20,),
+
+                              // Subscription renewal info
+                              Container(
+                                color: theme.background,
+                                padding: const EdgeInsets.only(left: 10, right: 10, top: 7, bottom: 15),
+                                child: RichText(
+                                  textAlign: TextAlign.center,
+                                  text: TextSpan(
+                                    text: 'All subscriptions automatically renew after the selected subscription period.'
+                                        'The account will be charged for each renewal unless the subscription is canceled. ',
+                                    style: TextStyle(fontSize: 11,height: 1.3, fontWeight: FontWeight.w400, color: theme.onPrimaryFixed),
+                                    children: [
+                                          TextSpan( text: 'How to cancel?',
+                                            style: TextStyle(fontSize: 11, color: theme.onPrimaryContainer,  fontWeight: FontWeight.bold,
+                                              decoration: TextDecoration.underline,),
+                                            recognizer: TapGestureRecognizer()
+                                              ..onTap = () {
+                                            Ui.Add_campaigns_pop(context, 'Cancel Subscription',
+                                            Container(
+                                              padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 40),
+                                              child: const Text('⚠️ Your subscription will not be cancelled if you uninstall the app.\n\n\n'
+                                                  'Follow the instructions\n\n'
+                                                  '1. On your android device open the google play store.\n'
+                                                  '2. Check if you are signed in to the correct google account.\n'
+                                                  '3. Tap menu subscriptions.\n'
+                                                  '4. Select the subscription you want to cancel.\n'
+                                                  '5. Tap cancel subscription.',
+                                                style: TextStyle(fontSize: 14, fontWeight: FontWeight.w300, height: 1.3),),));
+                                              },),
+                                        ],),
+                                ),
+                              )
+                            ],),
                           )
                         ],),
                       )
                     ],),
-                  )
                 ],),
-            ],),
+            ),
+
+            if(premiumSuccess)
+            Stack(
+              children: [
+                Center(child: Lottie.asset("assets/animations/success_Tick.json", repeat: false,
+                    width: 500)),
+                Center(child: Lottie.asset("assets/animations/party_explosion.json",
+                    width: double.infinity, height: double.infinity, repeat: false,)),
+              ],
+            ),
+
+            // 🔄 Loading overlay
+            if (_purchaseLoading)
+              Center(
+                child: Container(
+                    width: 200, height: 110,
+                    padding: EdgeInsets.all(10),
+                    decoration: BoxDecoration(
+                        color: theme.background,
+                        borderRadius: BorderRadius.circular(15),
+                        boxShadow: [BoxShadow(color: theme.shadow, blurRadius: 30, spreadRadius: 2)]
+                    ),
+                    child: Ui.loading(context)),
+              ),
+          ],
         ),
 
     );
