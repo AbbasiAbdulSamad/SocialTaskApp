@@ -14,7 +14,7 @@ import '../../server_model/provider/leaderboard_provider.dart';
 import '../../server_model/provider/users_provider.dart';
 import '../../ui/ui_helper.dart';
 class MyAccount extends StatefulWidget {
-  MyAccount({super.key});
+  const MyAccount({super.key});
   @override
   State<MyAccount> createState() => _MyAccountState();
 }
@@ -148,19 +148,38 @@ class _MyAccountState extends State<MyAccount> {
             child: SingleChildScrollView(
                   child: Column(mainAxisAlignment: MainAxisAlignment.center,
                                 children: [
-                              Center(
-                                child: Container(
-                                margin: const EdgeInsets.only(top: 20),
-                                width: 90, height: 90,
-                  decoration: BoxDecoration(shape: BoxShape.circle,
-                    border: Border.all(color: theme.onPrimaryContainer, width: 1.0),),
-                  child: ClipOval(
-                    child: user?.photoURL != null
-                    ? Ui.networkImage(context, user!.photoURL!, 'assets/ico/user_profile.webp', 90, 90)
-                    : Image.asset('assets/ico/user_profile.webp'),
-                  ),),
-                    ),
-                  const SizedBox(height: 10,),
+                              Stack(
+                                children: [
+                                  Container(
+                                      decoration: BoxDecoration(
+                                        boxShadow: [BoxShadow(color: theme.onPrimaryFixed, blurRadius: 10, spreadRadius: 3, offset: Offset(0, 5))]
+                                      ),
+                                      child: Image.asset("assets/ico/profile_bg.webp", width: double.infinity,)),
+
+                                  Center(
+                                    child: Container(
+                                    margin: const EdgeInsets.only(top: 30),
+                                    width: 90, height: 90,
+                                                    decoration: BoxDecoration(shape: BoxShape.circle,
+                                                      border: Border.all(color: theme.onPrimaryContainer, width: 1.0),),
+                                                    child: ClipOval(
+                                                      child: user?.photoURL != null
+                                                      ? Ui.networkImage(context, user!.photoURL!, 'assets/ico/user_profile.webp', 90, 90)
+                                                      : Image.asset('assets/ico/user_profile.webp'),
+                                                    ),),
+                                  ),
+
+                                  (_userProvider.currentUser?.isPremium == true)?
+                                  Center(
+                                    child: Container(
+                                        margin: const EdgeInsets.only(top: 33),
+                                        width: 170, height: 100,
+                                        child: Ui.networkImage(context, 'https://blogger.googleusercontent.com/img/b/R29vZ2xl/AVvXsEgYqKTpfnpJ1JNuEWxru39AqdDDnMwrj_4O33AH3QqbH8nN24NV6j6phtZ_Yrs7ejjd7xmVmvK3u_VEyKnXB3UHlMs48sg1ToE4WaO1tg-DwUHnWRXm5FTLmsrdJjxGcKiq_yq9826vZoC2_U4lCzoHzXKiq7vqG-Fab961TSShCpkiOV9l_1Kl_Yd_Ee0/s320/premium_crown.png',
+                                        '', 130, 90)),
+                                  ): SizedBox(),
+                                ],
+                              ),
+                  const SizedBox(height: 05,),
                   Text(_userProvider.currentUser!.name, style: textTheme.labelMedium?.copyWith(fontSize: 25, color: theme.onPrimaryContainer),),
                   
                   Padding(

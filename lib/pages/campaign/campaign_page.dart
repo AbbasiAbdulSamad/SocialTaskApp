@@ -32,12 +32,15 @@ class _CampaignPageState extends State<CampaignPage> {
   @override
   void initState() {
     super.initState();
-    Future.microtask((){
-      Provider.of<CampaignProvider>(context, listen: false).fetchCampaigns(forceRefresh: true);
-      Provider.of<UserProvider>(context, listen: false).fetchCurrentUser();
+    Future.microtask(() async{
+     await refreshData();
     });
   }
 
+  Future<void> refreshData() async{
+    Provider.of<CampaignProvider>(context, listen: false).fetchCampaigns(forceRefresh: true);
+    await FetchDataService.fetchData(context, forceRefresh: true);
+  }
 
   Future<void> reCreateCampaign({
     required BuildContext context,
@@ -118,9 +121,14 @@ class _CampaignPageState extends State<CampaignPage> {
             color: theme.onPrimaryContainer,
             onRefresh: () => campaignProvider.fetchCampaigns(forceRefresh: true), // 🔄 Pull-to-Refresh
             child: campaignProvider.isLoading
-                ? Ui.loading(context) // ✅ Loader
+                ? Ui.loading(context)
                 : campaignProvider.errorMessage.isNotEmpty
-                ? Center(child: Text(campaignProvider.errorMessage, style: const TextStyle(color: Colors.red))) // ⚠️ Error Message
+                ? Center(
+              child: Ui.buildNoInternetUI(theme, textTheme, false,
+                campaignProvider.errorMessage.toString(),
+                'Unstable network connection. Request timed out. Please check your internet connection.',
+                Icons.wifi_off, () => refreshData(),
+              ))
                 : campaignProvider.campaigns.isEmpty
                 ? Center(child: Row(spacing: 10,
                   mainAxisAlignment: MainAxisAlignment.center,
@@ -191,10 +199,10 @@ class _CampaignPageState extends State<CampaignPage> {
                                       {"label": "Details", "icon": Icons.visibility, "value": "details", "onTap": (){
 
                                         if (internetProvider.isConnected) {
-                                        Navigator.push(context, MaterialPageRoute(builder: (context)=> CampaignDetails(videoUrl: campaign['videoUrl'], videoTitle: campaign['title'],
+                                          Helper.navigatePush(context, CampaignDetails(videoUrl: campaign['videoUrl'], videoTitle: campaign['title'],
                                           progress: progress, campaignImg: campaign['campaignImg'], selectedOption: campaign['selectedOption'], quantity: campaign['quantity'], viewers: campaign['viewers'].length, status: campaign['status'],
                                           social: campaign['social'], watchTime: campaign['watchTime'], created: campaign['createdAt'], completedAt: campaign['completedAt'],
-                                            campaignCost: campaign['campaignCost'], campaignId: campaign['_id'])));
+                                            campaignCost: campaign['campaignCost'], campaignId: campaign['_id']));
                                         } else {
                                           AlertMessage.snackMsg(context: context, message: 'No internet connection. Please connect to the network.', time: 3);
                                         }
@@ -241,10 +249,10 @@ class _CampaignPageState extends State<CampaignPage> {
                                       {"label": "Details", "icon": Icons.visibility, "value": "details", "onTap": (){
 
                                         if (internetProvider.isConnected) {
-                                        Navigator.push(context, MaterialPageRoute(builder: (context)=> CampaignDetails(videoUrl: campaign['videoUrl'], videoTitle: campaign['title'],
+                                          Helper.navigatePush(context, CampaignDetails(videoUrl: campaign['videoUrl'], videoTitle: campaign['title'],
                                           progress: progress, campaignImg: campaign['campaignImg'], selectedOption: campaign['selectedOption'], quantity: campaign['quantity'], viewers: campaign['viewers'].length, status: campaign['status'],
                                           social: campaign['social'], watchTime: campaign['watchTime'], created: campaign['createdAt'], completedAt: campaign['completedAt'],
-                                          campaignCost: campaign['campaignCost'], campaignId: campaign['_id'],)));
+                                          campaignCost: campaign['campaignCost'], campaignId: campaign['_id'],));
                                         } else {AlertMessage.snackMsg(context: context, message: 'No internet connection. Please connect to the network.', time: 3);}
                                         },},
                                // Paused/Active Button
@@ -284,7 +292,7 @@ class _CampaignPageState extends State<CampaignPage> {
                                       :Image.asset('assets/ico/instagram_icon.webp', width: 17,),
                                       Text("${campaign['selectedOption']}", maxLines: 1, overflow: TextOverflow.ellipsis, style: textTheme.displaySmall?.copyWith(fontSize: 12),),
                                       Text('${campaign['quantity']} / ${campaign['viewers'] != null ? campaign['viewers'].length : 0}', style: textTheme.displaySmall?.copyWith(fontSize: 12, fontWeight: FontWeight.w800),),
-                                      (campaign['status']=="Completed")?Icon(Icons.check_circle_rounded, color: Colors.green, size: 15,):SizedBox(),
+                                      (campaign['status']=="Completed")?Icon(Icons.check_circle_rounded, color: Colors.green, size: 15,):const SizedBox(),
                                     ],),
 
                                     Container(

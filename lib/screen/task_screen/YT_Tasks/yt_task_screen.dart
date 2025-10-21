@@ -187,103 +187,171 @@ class _YT_Task_ScreenState extends State<YT_Task_Screen> {
 
 
   Future<void> checkLike() async {
-    if (widget.selectedOption == "Likes") {
-      await Future.delayed(Duration(seconds: 1)); // Let the video load
+    if (widget.selectedOption != "Likes") return;
 
-      String? likeCheck = await _controller?.evaluateJavascript(source: '''
+    debugPrint("▶️ Checking Like Status (Normal + Shorts)...");
+
+    try {
+      await Future.delayed(const Duration(seconds: 2));
+
+      String jsCode = '''
       (function() {
         const isShort = window.location.pathname.includes("/shorts/");
-        if (isShort) return "short_video";
 
-        const buttons = Array.from(document.querySelectorAll('button[aria-pressed]'));
-        const likeBtn = buttons.find(btn =>
-          btn.getAttribute('aria-label')?.toLowerCase().includes('like this video')
-        );
+        function findLikeButton() {
+          // Try main Like button (normal videos)
+          let btn = document.querySelector('button[aria-label*="like this video"]');
+          if (btn) return btn;
 
+          // Try Shorts like buttons
+          let shortBtn = document.querySelector('ytd-shorts button[aria-pressed], ytd-reel-video-renderer button[aria-pressed]');
+          if (shortBtn) return shortBtn;
+
+          // General fallback
+          let alt = Array.from(document.querySelectorAll('yt-icon-button, tp-yt-paper-button, button'))
+              .find(b => (b.getAttribute('aria-label') || '').toLowerCase().includes('like'));
+          if (alt) return alt;
+
+          return null;
+        }
+
+        const likeBtn = findLikeButton();
         if (!likeBtn) return "not_found";
 
-        const isLiked = likeBtn.getAttribute('aria-pressed');
-        return isLiked === "true" ? "liked" : "not_liked";
-      })();
-    ''');
+        const state = likeBtn.getAttribute("aria-pressed");
+        if (state === "true") return "liked";
+        if (state === "false") return "not_liked";
 
+        return "unknown";
+      })();
+    ''';
+
+      String? likeCheck = await _controller?.evaluateJavascript(source: jsCode);
       likeCheck = likeCheck?.replaceAll('"', '');
       debugPrint("👍 Like check result: $likeCheck");
 
+      // ✅ Already liked
       if (likeCheck == "liked") {
         taskDone();
-      } else if (likeCheck == "not_liked") {
+        return;
+      }
 
-        AlertMessage.flashMsg(context, "Please like the video to complete this task.", "Like", Icons.thumb_up, 2);
+      // ⚠️ Not liked — alert user to like manually
+      if (likeCheck == "not_liked" || likeCheck == "unknown") {
+        AlertMessage.flashMsg(
+          context,
+          "Please like the video to complete this task.",
+          "Like",
+          Icons.thumb_up,
+          2,
+        );
+        return;
+      }
 
-      } else if (likeCheck == "short_video") {
-        debugPrint("🎬 This is a YouTube Short — skipping like check.");
-        taskDone();
-      } else {
+      // 🔴 Button not found
+      if (likeCheck == "not_found") {
         AlertMessage.snackMsg(
           context: context,
-          message: 'Like button not found.',
+          message: 'Like button not found. Please ensure video is visible.',
           time: 3,
         );
+        return;
       }
+
+    } catch (e) {
+      debugPrint("❌ checkLike error: $e");
+      AlertMessage.snackMsg(
+        context: context,
+        message: 'Error checking like button.',
+        time: 3,
+      );
+    } finally {
+      setState(() => _buttonLoading = false); // ✅ Always stop loading
     }
   }
-
 
 
   Future<void> checkSubscribe() async {
-    if (widget.selectedOption == "Subscribers") {
-      await Future.delayed(Duration(seconds: 1)); // allow video to load
+    if (widget.selectedOption != "Subscribers") return;
 
-      String? subscribeCheck = await _controller?.evaluateJavascript(source: '''
+    debugPrint("▶️ Checking Subscribe Status (Normal + Shorts)...");
+
+    try {
+      await Future.delayed(const Duration(seconds: 2));
+
+      String jsCheck = '''
       (function() {
         const isShort = window.location.pathname.includes("/shorts/");
-        if (isShort) return "short_video";
 
-        const spans = Array.from(document.querySelectorAll('span.yt-core-attributed-string'));
-        let foundSubscribe = false;
-        let foundSubscribed = false;
-
-        for (let span of spans) {
-          const text = span.innerText.trim().toLowerCase();
-          if (text === "subscribe") foundSubscribe = true;
-          if (text === "subscribed") foundSubscribed = true;
+        function getText(el) {
+          return el?.innerText?.trim()?.toLowerCase() || "";
         }
 
-        if (foundSubscribed) return "subscribed";
-        if (foundSubscribe) return "not_subscribed";
+        // Collect all possible subscribe-related buttons/elements
+        let elements = Array.from(document.querySelectorAll(
+          'button, yt-button-shape, tp-yt-paper-button, span.yt-core-attributed-string'
+        ));
 
-        const btns = Array.from(document.querySelectorAll('button'));
-        const shortsBtn = btns.find(btn => btn.innerText.trim().toLowerCase() === "subscribe");
-        if (shortsBtn) return "not_subscribed";
+        let subscribedBtn = elements.find(el => getText(el) === "subscribed");
+        let subscribeBtn = elements.find(el => getText(el) === "subscribe");
 
-        const shortsSubscribed = btns.find(btn => btn.innerText.trim().toLowerCase() === "subscribed");
-        if (shortsSubscribed) return "subscribed";
+        if (subscribedBtn) return "subscribed";
+        if (subscribeBtn) return "not_subscribed";
+
+        // Shorts fallback (some buttons in Shorts DOM differ)
+        if (isShort) {
+          let shortSubBtn = elements.find(el => getText(el).includes("subscribe"));
+          if (shortSubBtn) return "not_subscribed_short";
+        }
 
         return "not_found";
       })();
-    ''');
+    ''';
 
-      subscribeCheck = subscribeCheck?.replaceAll('"', '');
-      debugPrint("🔍 Subscribe button status: $subscribeCheck");
+      String? subCheck = await _controller?.evaluateJavascript(source: jsCheck);
+      subCheck = subCheck?.replaceAll('"', '');
+      debugPrint("🔍 Subscribe check result: $subCheck");
 
-      if (subscribeCheck == "subscribed") {
+      // ✅ User is subscribed
+      if (subCheck == "subscribed") {
         taskDone();
-      } else if (subscribeCheck == "not_subscribed") {
-        AlertMessage.flashMsg(context, "Please subscribe to complete this task.", "Subscribe", Icons.subscriptions, 2);
+        return;
+      }
 
-      } else if (subscribeCheck == "short_video") {
-        debugPrint("⏭️ Skipping subscribe check (YouTube Short)");
-        taskDone();
-      } else {
+      // ⚠️ Not subscribed — ask user to subscribe manually
+      if (subCheck == "not_subscribed" || subCheck == "not_subscribed_short") {
+        AlertMessage.flashMsg(
+          context,
+          "Please subscribe to the channel to complete this task.",
+          "Subscribe",
+          Icons.subscriptions,
+          2,
+        );
+        return;
+      }
+
+      // 🔴 Button not found
+      if (subCheck == "not_found") {
         AlertMessage.snackMsg(
           context: context,
-          message: 'Subscribe button not found.',
+          message: 'Subscribe button not found. Please ensure the channel is visible.',
           time: 3,
         );
+        return;
       }
+
+    } catch (e) {
+      debugPrint("❌ checkSubscribe error: $e");
+      AlertMessage.snackMsg(
+        context: context,
+        message: 'Error checking subscribe button.',
+        time: 3,
+      );
+    } finally {
+      setState(() => _buttonLoading = false);
     }
   }
+
 
   void _startListeningForCommentBox() {
     _commentListenerTimer?.cancel(); // safety
@@ -449,6 +517,9 @@ class _YT_Task_ScreenState extends State<YT_Task_Screen> {
                         InAppWebView(
                           initialUrlRequest: URLRequest(url: WebUri(widget.taskUrl)),
                           initialSettings: InAppWebViewSettings(
+                              mediaPlaybackRequiresUserGesture: false,
+                              allowsInlineMediaPlayback: true,
+                              allowsPictureInPictureMediaPlayback: true,
                             javaScriptEnabled: true,
                             supportMultipleWindows: true,
                               userAgent: "Mozilla/5.0 (Linux; Android 13; Pixel 7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/126.0.6478.120 Mobile Safari/537.36"
@@ -516,6 +587,19 @@ class _YT_Task_ScreenState extends State<YT_Task_Screen> {
                               await _controller?.loadUrl(urlRequest: URLRequest(url: WebUri(widget.taskUrl)),);
                               _startTimer();
                               AlertMessage.snackMsg(context: context, message: 'Login to YouTube successfully.', time: 2);
+                            }
+
+                            // after all your timer and login code, add this:
+                            try {
+                              await controller.evaluateJavascript(source: '''
+                                    (function() {
+                                      var video = document.querySelector('video');
+                                      if (video) { video.muted = false;
+                                          video.volume = 1.0;
+                                          video.play();}
+                                                })(); ''');
+                            } catch (e) {
+                              debugPrint("🎧 Unmute script error: $e");
                             }
                           },
                         ),

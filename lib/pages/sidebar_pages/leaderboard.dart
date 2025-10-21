@@ -208,7 +208,7 @@ class _LeaderboardScreenState extends State<LeaderboardScreen> {
                                 children: [
                                 Text('Rank', style: textTheme.labelSmall?.copyWith(color: theme.primaryFixed, fontSize: 18),),
                                 Text('Name', style: textTheme.labelSmall?.copyWith(color: theme.primaryFixed, fontSize: 18)),
-                                SizedBox(width: 20,),
+                                  const SizedBox(width: 20,),
                                 Text('Score', style: textTheme.labelSmall?.copyWith(color: theme.primaryFixed, fontSize: 18)),
                               ],),
                             ),
@@ -217,7 +217,7 @@ class _LeaderboardScreenState extends State<LeaderboardScreen> {
                               (leaderboardProvider.leaderboard.isEmpty)?
                               Column(
                                 children: [
-                                  SizedBox(height: 30,),
+                                  const SizedBox(height: 30,),
                                   Ui.buildNoInternetUI(theme, textTheme, false, 'Connection Issue',
                                       'We’re having trouble connecting right now. Please check your network or try again in a moment.', Icons.wifi_off,
                                           ()=> leaderboardProvider.fetchLeaderboard()),
@@ -330,7 +330,7 @@ class _LeaderboardScreenState extends State<LeaderboardScreen> {
             child: Column(
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
-                SizedBox(height: 35,),
+                const SizedBox(height: 35,),
                 Container(
                     margin: EdgeInsets.symmetric(vertical: 0, horizontal: 5),
                     child: Text(name, textAlign: TextAlign.center, style: textTheme.displaySmall?.copyWith(fontWeight: FontWeight.bold),

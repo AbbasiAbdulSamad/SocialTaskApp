@@ -204,7 +204,7 @@ class _BuyTicketsState extends State<BuyTickets> {
         (buyedTickets>0)?
         Positioned(left: 0, right: 0, top: 200,
             child: Ui.bgShineRays(context, buyedTickets))
-            :SizedBox(),
+            :const SizedBox(),
 
       ],
     );

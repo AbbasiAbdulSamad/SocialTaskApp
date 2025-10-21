@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'package:app/server_model/rate_app.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../../server_model/internet_provider.dart';
@@ -21,6 +22,7 @@ class Screen3 extends StatefulWidget {
   _Screen3State createState() => _Screen3State();
 }
 class _Screen3State extends State<Screen3> with WidgetsBindingObserver{
+  final AppRating appRating = AppRating();
   late Future<void> _fetchDataFuture;
   bool _internetCheck = true;
   String? lastTikTokUrl;
@@ -30,6 +32,7 @@ class _Screen3State extends State<Screen3> with WidgetsBindingObserver{
   void initState() {
     super.initState();
     _fetchDataFuture = FetchDataService.fetchData(context, forceRefresh: true);
+    appRating.rateApp(context);
     WidgetsBinding.instance.addObserver(this);
   }
 
@@ -273,12 +276,12 @@ class _Screen3State extends State<Screen3> with WidgetsBindingObserver{
                                         (campaign['social']=="YouTube")?
                                         Row(
                                           children: [
-                                            Icon(Icons.access_time_filled, size: 16,),
+                                            const Icon(Icons.access_time_filled, size: 16,),
                                             Text('${campaign['watchTime']}',  maxLines: 1, overflow: TextOverflow.ellipsis, style: _textTheme.displaySmall?.
                                             copyWith(fontSize: 16,  height: 0, fontWeight: FontWeight.bold, color: _theme.onPrimaryContainer,)),
-                                            SizedBox(width: 2,),
+                                            const SizedBox(width: 2,),
                                             Text('Sec', style: TextStyle(fontSize: 10),),
-                                          ],):SizedBox()
+                                          ],):const SizedBox()
                                       ],
                                     ),
                                   ],

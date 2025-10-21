@@ -87,7 +87,7 @@ class MyApp extends StatelessWidget {
       navigatorKey: navigatorKey,
       routes: {
         '/dailyReward': (context) => const EarnTickets(),
-        '/premium': (context) => PremiumAccount(),
+        '/premium': (context) => const PremiumAccount(),
         '/buyTicket': (context) => const BuyTickets(),
       },
       builder: (context, child) {

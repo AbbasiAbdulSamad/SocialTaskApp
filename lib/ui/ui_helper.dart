@@ -38,7 +38,7 @@ class Ui{
           (errorEx)?
           Text('◉ Check internet connection\n'
               '◉ Refresh the page\n'
-              '◉ Restart App\n', style: textTheme.displaySmall?.copyWith(fontSize: 14, height: 1.5,),):SizedBox(),
+              '◉ Restart App\n', style: textTheme.displaySmall?.copyWith(fontSize: 14, height: 1.5,),):const SizedBox(),
           SizedBox(height: 35,
             child: MyButton(txt: 'Refresh', onClick: onClick, borderRadius: 20,
               bgColor: theme.surfaceDim, txtSize: 15, shadowOn: true, shadowColor: theme.primaryFixed, txtColor: Colors.black,),),
@@ -285,7 +285,7 @@ class Ui{
             height: screen.height * value,
             child: Stack(children: [
               Lottie.asset('assets/animations/bg_shine_rays.json', repeat: false, width: screen.width * value),
-              Positioned(left: 0, right: 0, top: 160,
+              Positioned(left: 0, right: 0, top: 170,
                 child: Row(spacing: 3,
                   mainAxisAlignment: MainAxisAlignment.center,
                   crossAxisAlignment: CrossAxisAlignment.center,

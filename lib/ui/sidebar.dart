@@ -1,3 +1,4 @@
+import 'package:app/server_model/functions_helper.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
@@ -67,27 +68,25 @@ class Sidebar extends StatelessWidget{
       
         //🔹Sidebar in list of pages
       
-            Ui.sidebarLabel(Icons.account_circle, 'My Profile', (){Navigator.push(context, MaterialPageRoute(builder: (context)=> MyAccount())); }),
+            Ui.sidebarLabel(Icons.account_circle, 'My Profile', (){Helper.navigatePush(context, const MyAccount()); }),
             Ui.lightLine(),
-            Ui.sidebarLabel(Icons.trending_up, 'Level', (){Navigator.push(context, MaterialPageRoute(builder: (context)=> Level())); }),
+            Ui.sidebarLabel(Icons.trending_up, 'Level', (){Helper.navigatePush(context, const Level()); }),
             Ui.lightLine(),
-            Ui.sidebarLabel(Icons.leaderboard, 'Leaderboard', (){Navigator.push(context, MaterialPageRoute(builder: (context)=> LeaderboardScreen())); }),
+            Ui.sidebarLabel(Icons.leaderboard, 'Leaderboard', (){Helper.navigatePush(context,const LeaderboardScreen()); }),
             Ui.lightLine(),
-            Ui.sidebarLabel(Icons.payments_outlined, 'Earn Rewards', (){Navigator.push(context, MaterialPageRoute(builder: (context)=> const EarnTickets()));}),
+            Ui.sidebarLabel(Icons.payments_outlined, 'Earn Rewards', (){Helper.navigatePush(context, const EarnTickets());}),
             Ui.line(),
             SizedBox(height: 25,),
-            Ui.sidebarLabel(Icons.add_shopping_cart, 'Buy Tickets', (){Navigator.push(context, MaterialPageRoute(builder: (context)=> BuyTickets())); }),
+            Ui.sidebarLabel(Icons.add_shopping_cart, 'Buy Tickets', (){Helper.navigatePush(context, const BuyTickets()); }),
             Ui.lightLine(),
-            Ui.sidebarLabel(Icons.workspace_premium, 'Premium Account', (){Navigator.push(context, MaterialPageRoute(builder: (context)=> PremiumAccount())); }),
+            Ui.sidebarLabel(Icons.workspace_premium, 'Premium Account', (){Helper.navigatePush(context, const PremiumAccount()); }),
             Ui.line(),
             SizedBox(height: 25,),
-            Ui.sidebarLabel(Icons.share_outlined, 'Invite Friends', (){Navigator.push(context, MaterialPageRoute(builder: (context)=> const Invite()));}),
+            Ui.sidebarLabel(Icons.share_outlined, 'Invite Friends', (){Helper.navigatePush(context, const Invite()); }),
             Ui.lightLine(),
-            Ui.sidebarLabel(Icons.support_agent, 'Support', (){Navigator.push(context, MaterialPageRoute(builder: (context)=> SupportPage())); }),
+            Ui.sidebarLabel(Icons.support_agent, 'Support', (){ Helper.navigatePush(context, const SupportPage()); }),
             Ui.lightLine(),
-            Ui.sidebarLabel(Icons.question_mark, 'FAQ', (){Navigator.push(context, MaterialPageRoute(builder: (context)=> FaqPage())); }),
-            Ui.lightLine(),
-            Ui.sidebarLabel(Icons.star_purple500, 'Rate App', (){launchUrl(Uri.parse('https://play.google.com/store/apps/details?id=com.socialtask.app'));}),
+            Ui.sidebarLabel(Icons.question_mark, 'FAQ', (){ Helper.navigatePush(context, FaqPage()); }),
             Ui.lightLine(),
             Ui.sidebarLabel(Icons.privacy_tip_outlined, 'Privacy Policy', (){launchUrl(Uri.parse('https://socialtask.xyz/privacy-policy/'));}),
             Ui.line(),

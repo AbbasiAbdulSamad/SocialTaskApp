@@ -470,6 +470,14 @@ packages:
       url: "https://pub.dev"
     source: hosted
     version: "2.4.6"
+  flutter_rating_bar:
+    dependency: transitive
+    description:
+      name: flutter_rating_bar
+      sha256: d2af03469eac832c591a1eba47c91ecc871fe5708e69967073c043b2d775ed93
+      url: "https://pub.dev"
+    source: hosted
+    version: "4.0.1"
   flutter_svg:
     dependency: "direct main"
     description:
@@ -912,6 +920,14 @@ packages:
       url: "https://pub.dev"
     source: hosted
     version: "6.1.5"
+  rate_my_app:
+    dependency: "direct main"
+    description:
+      name: rate_my_app
+      sha256: aeb400808f99aba7e8b853b911915bca10308aff711fa8e2d46b5f68dc383786
+      url: "https://pub.dev"
+    source: hosted
+    version: "2.3.2"
   rxdart:
     dependency: transitive
     description:

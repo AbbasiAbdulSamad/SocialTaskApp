@@ -180,7 +180,7 @@ class _SupportPageState extends State<SupportPage> {
           itemBuilder: (context, index) {
           final support = tickets[index];
           return Column(children: [
-            SizedBox(height: 25,),
+            const SizedBox(height: 25,),
             Padding(
               padding: const EdgeInsets.symmetric(horizontal: 10),
               child: Stack(
@@ -302,7 +302,7 @@ class _SupportPageState extends State<SupportPage> {
 
 
             // Replay Admin
-            (support['adminReply']=="")? SizedBox()
+            (support['adminReply']=="")? const SizedBox()
              : Padding(
               padding: const EdgeInsets.symmetric(horizontal: 10),
               child: Stack(

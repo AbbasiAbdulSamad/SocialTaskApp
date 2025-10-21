@@ -14,7 +14,7 @@ import '../../ui/bg_box.dart';
 import '../../ui/ui_helper.dart';
 
 class PremiumAccount extends StatefulWidget {
-   PremiumAccount({super.key});
+   const PremiumAccount({super.key});
 
   @override
   State<PremiumAccount> createState() => _PremiumAccountState();
@@ -184,7 +184,7 @@ class _PremiumAccountState extends State<PremiumAccount> {
       // Handle response
       if (response.statusCode == 200) {
         setState(() {premiumSuccess = true;});
-        AlertMessage.successMsg(context, "Premium subscription activated successfully!", "Congratulations!");
+        AlertMessage.successMsg(context, "Premium subscription activated successfully!", "Congratulations!", time: 10);
         Future.delayed(const Duration(seconds: 8), (){
           setState(() {premiumSuccess = false;});
         });

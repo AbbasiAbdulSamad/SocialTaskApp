@@ -33,10 +33,10 @@ class AlertMessage{
   }
 
   //🔹error message display
-  static successMsg(BuildContext context, String message, String title){
+  static successMsg(BuildContext context, String message, String title, {int time=3}){
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(
-        duration: const Duration(seconds: 3),
+        duration: Duration(seconds: time),
         backgroundColor: Colors.green,
         behavior: SnackBarBehavior.floating,
         shape: RoundedRectangleBorder(

@@ -12,6 +12,7 @@ import '../../server_model/provider/users_provider.dart';
 import '../../ui/flash_message.dart';
 import '../../ui/timeLine_ui.dart';
 import '../../ui/ui_helper.dart';
+import 'buy_tickets.dart';
 
 class Level extends StatefulWidget {
   const Level({super.key});
@@ -127,7 +128,7 @@ class _LevelState extends State<Level> with SingleTickerProviderStateMixin {
                             padding: const EdgeInsets.only(right: 10),
                             child: TextButton(
                               onPressed: () {
-                                // Navigator.push(context, MaterialPageRoute(builder: (context)=> BuyTickets()));
+                                Navigator.push(context, MaterialPageRoute(builder: (context)=>const BuyTickets()));
                               },
                               child: Row(spacing: 5,
                                 children: [
@@ -154,14 +155,18 @@ class _LevelState extends State<Level> with SingleTickerProviderStateMixin {
                               Expanded(
                                 child: Stack(
                                   children: [
-                                    Container(
-                                        margin: EdgeInsets.only(top: 260),
-                                        child: Image.asset('assets/images/reward_bg.webp', fit: BoxFit.cover, width: double.infinity,)),
+                                    Column(
+                                      children: [
+                                        const SizedBox(height: 260,),
+                                        Expanded(
+                                            child: Image.asset('assets/images/reward_bg.webp', fit: BoxFit.cover, width: double.infinity,)),
+                                      ],
+                                    ),
 
 
                                     (_levelUpAPI.levelTreasureBox)?
-                                    SizedBox():
-                                    Positioned(bottom: 15, left: 0, right: 0,
+                                    const SizedBox():
+                                    Positioned(bottom: 27, left: 0, right: 0,
                                       child: SizedBox(width: 150, height: 150,
                                           child: GestureDetector(
                                               onTap: (){
@@ -314,18 +319,21 @@ class _LevelState extends State<Level> with SingleTickerProviderStateMixin {
                     ),
                     (_levelUpAPI.levelTreasureBox)?
                     Positioned(left: 0, right: 0, top: 60,
-                            child: Lottie.asset("assets/animations/addTicketsAnimation.json", repeat: false,
-                              controller: _controller,
-                              onLoaded: (composition) {
-                                _controller
-                                  ..duration = composition.duration
-                                  ..forward();
-                              },)):SizedBox(),
+                            child: Padding(
+                              padding: const EdgeInsets.symmetric(horizontal: 3),
+                              child: Lottie.asset("assets/animations/addTicketsAnimation.json", repeat: false,
+                                controller: _controller,
+                                onLoaded: (composition) {
+                                  _controller
+                                    ..duration = composition.duration
+                                    ..forward();
+                                },),
+                            )):const SizedBox(),
 
                      (_levelUpAPI.rewardLastAnimation)?
                     Positioned(left: 0, right: 0, top: 300,
                         child: Ui.bgShineRays(context, levelProvider.reward))
-                         :SizedBox()
+                         :const SizedBox()
                   ],
                 );
               });

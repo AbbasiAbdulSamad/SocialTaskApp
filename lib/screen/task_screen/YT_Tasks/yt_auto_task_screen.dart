@@ -348,7 +348,7 @@ class _YT_Auto_Task_ScreenState extends State<YT_Auto_Task_Screen> {
           debugPrint("▶️ Subscribe click result: $clickResult");
 
           if (clickResult?.contains("clicked") == true) {
-            AlertMessage.snackMsg(context: context, message: 'Subscribed ✅');
+            AlertMessage.snackMsg(context: context, message: 'Subscribed');
           }
         }
       } catch (e) {
@@ -468,6 +468,9 @@ class _YT_Auto_Task_ScreenState extends State<YT_Auto_Task_Screen> {
                         InAppWebView(
                           initialUrlRequest: URLRequest(url: WebUri(taskUrl)),
                           initialSettings: InAppWebViewSettings(
+                              mediaPlaybackRequiresUserGesture: false,
+                              allowsInlineMediaPlayback: true,
+                              allowsPictureInPictureMediaPlayback: true,
                               javaScriptEnabled: true,
                               supportMultipleWindows: true,
                               userAgent: "Mozilla/5.0 (Linux; Android 13; Pixel 7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/126.0.6478.120 Mobile Safari/537.36"
@@ -534,6 +537,19 @@ class _YT_Auto_Task_ScreenState extends State<YT_Auto_Task_Screen> {
                               await _controller?.loadUrl(urlRequest: URLRequest(url: WebUri(taskUrl)),);
                               _startTimer();
                               AlertMessage.snackMsg(context: context, message: 'Login to YouTube successfully.', time: 2);
+                            }
+
+                            // after all your timer and login code, add this:
+                            try {
+                              await controller.evaluateJavascript(source: '''
+                                    (function() {
+                                      var video = document.querySelector('video');
+                                      if (video) { video.muted = false;
+                                          video.volume = 1.0;
+                                          video.play();}
+                                                })(); ''');
+                            } catch (e) {
+                              debugPrint("🎧 Unmute script error: $e");
                             }
                           },
                         ),
