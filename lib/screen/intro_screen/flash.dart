@@ -1,24 +1,15 @@
 import 'dart:async';
-import 'dart:io';
 import 'package:android_play_install_referrer/android_play_install_referrer.dart';
-import 'package:app/pages/sidebar_pages/profile.dart';
-import 'package:app/ui/button.dart';
 import 'package:firebase_auth/firebase_auth.dart';
-import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:flutter/material.dart';
-import 'package:google_sign_in/google_sign_in.dart';
 import 'package:permission_handler/permission_handler.dart';
 import 'package:provider/provider.dart';
 import 'package:shared_preferences/shared_preferences.dart';
-import 'package:http/http.dart' as http;
-import 'package:app_links/app_links.dart';
 import '../../config/authentication.dart';
-import '../../config/config.dart';
 import '../../server_model/firebase_notifications.dart';
 import '../../server_model/functions_helper.dart';
 import '../../server_model/internet_provider.dart';
 import '../../server_model/provider/users_provider.dart';
-import 'package:in_app_update/in_app_update.dart';
 import '../../server_model/update_checking_playstore.dart';
 import '../../ui/flash_message.dart';
 import '../home.dart';
@@ -63,7 +54,7 @@ class _FlashState extends State<Flash> {
     }
 
     bool navigationDone = false;
-    Future.delayed(Duration(seconds: 5), () {
+    Future.delayed(Duration(seconds: 6), () {
       if (mounted && !navigationDone) {
         AlertMessage.snackMsg(context: context, message: 'Unstable network connection', time: 5);
       }

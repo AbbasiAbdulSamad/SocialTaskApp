@@ -1,13 +1,7 @@
 import 'dart:async';
-import 'dart:convert';
-import 'package:app/server_model/functions_helper.dart';
-import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
-import 'package:http/http.dart' as http;
-import 'package:intl/intl.dart';
 import 'package:provider/provider.dart';
-import '../../config/config.dart';
 import '../../server_model/provider/leaderboard_provider.dart';
 import '../../server_model/provider/leaderboard_reward.dart';
 import '../../server_model/provider/users_provider.dart';
@@ -31,7 +25,7 @@ class _LeaderboardScreenState extends State<LeaderboardScreen> {
   int? currentUserRank;
   Map<String, dynamic>? currentUserDataMap;
   bool _isLoading = true;
-  String countdownText = "";
+  late ValueNotifier<String> countdownTextNotifier;
   late Timer _timer;
   DateTime? serverTimePk;
 
@@ -39,31 +33,23 @@ class _LeaderboardScreenState extends State<LeaderboardScreen> {
   @override
   void initState() {
     super.initState();
-    WidgetsBinding.instance.addPostFrameCallback((_) async{
-
+    countdownTextNotifier = ValueNotifier("Loading...");
+    WidgetsBinding.instance.addPostFrameCallback((_) async {
       final leaderboardProvider =
       Provider.of<LeaderboardProvider>(context, listen: false);
-
-      // 🟢 Fetch leaderboard (ye serverTime bhi set karega)
       await leaderboardProvider.fetchLeaderboard();
 
       final serverTimeStr = leaderboardProvider.serverTime;
-
       if (serverTimeStr != null && serverTimeStr.isNotEmpty) {
         DateTime serverTime = DateTime.parse(serverTimeStr);
-
-        // ✅ Convert UTC → Pakistan time
         serverTimePk = serverTime.add(const Duration(hours: 5));
 
-        setState(() {
-          countdownText = getTimeUntilSundayNightText(serverTimePk!);
-        });
+        countdownTextNotifier.value = getTimeUntilSundayNightText(serverTimePk!);
 
         _timer = Timer.periodic(const Duration(seconds: 1), (timer) {
-          setState(() {
-            serverTimePk = serverTimePk!.add(const Duration(seconds: 1));
-            countdownText = getTimeUntilSundayNightText(serverTimePk!);
-          });
+          serverTimePk = serverTimePk!.add(const Duration(seconds: 1));
+          countdownTextNotifier.value =
+              getTimeUntilSundayNightText(serverTimePk!);
         });
       }
     });
@@ -81,7 +67,7 @@ class _LeaderboardScreenState extends State<LeaderboardScreen> {
       nowPk.hour,
       nowPk.minute,
       nowPk.second,
-    ).add(Duration(days: daysUntilSunday)).copyWith(hour: 28, minute: 59, second: 59);
+    ).add(Duration(days: daysUntilSunday)).copyWith(hour: 28, minute: 58, second: 59);
 
 
     if (nowPk.isAfter(targetSunday)) {
@@ -102,6 +88,7 @@ class _LeaderboardScreenState extends State<LeaderboardScreen> {
   @override
   void dispose() {
     _timer.cancel();
+    countdownTextNotifier.dispose();
     leaderboard.clear();
     super.dispose();
   }
@@ -178,7 +165,7 @@ class _LeaderboardScreenState extends State<LeaderboardScreen> {
                                   borderRadius: BorderRadius.only(bottomRight: Radius.circular(5), bottomLeft: Radius.circular(5))),
                               padding: EdgeInsets.symmetric(vertical: 0, horizontal:  0),
                               margin: EdgeInsets.only(top: 0, left: 20, right: 20),
-                              child:(countdownText.isEmpty || countdownText=="")?SizedBox(): Column(
+                              child:(countdownTextNotifier == null || countdownTextNotifier=="")?SizedBox(): Column(
                                 children: [
                                   Row(mainAxisAlignment: MainAxisAlignment.spaceAround,
                                     children: [
@@ -190,7 +177,13 @@ class _LeaderboardScreenState extends State<LeaderboardScreen> {
                                   SizedBox(height: 5,),
                                   Column(
                                     children: [
-                                      Text(" $countdownText", style: textTheme.displaySmall?.copyWith(color: theme.onPrimaryContainer, height: 0, wordSpacing: 30, fontSize: 18), textAlign: TextAlign.end,),
+                                      ValueListenableBuilder<String>(
+                                        valueListenable: countdownTextNotifier,
+                                        builder: (context, value, _) {
+                                          return Text(value, style: textTheme.displaySmall?.copyWith(color: theme.onPrimaryContainer,
+                                              height: 0, wordSpacing: 30, fontSize: 18,), textAlign: TextAlign.end,);
+                                        },),
+
                                       Text("Days Hours Mins   Sec", style: textTheme.labelSmall?.copyWith(color: theme.onPrimaryContainer,height: 0, wordSpacing: 23, fontSize: 14))
                                     ],
                                   ),

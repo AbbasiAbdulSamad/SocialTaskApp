@@ -1,9 +1,7 @@
-import 'package:app/config/authentication.dart';
 import 'package:app/pages/sidebar_pages/buy_tickets.dart';
-import 'package:app/pages/sidebar_pages/profile.dart';
 import 'package:app/pages/sidebar_pages/premium_account.dart';
+import 'package:app/screen/task_screen/Tiktok_Task/tiktok_App_overlay.dart';
 import 'package:app/server_model/local_notifications.dart';
-import 'package:app/server_model/provider/daily_reward.dart';
 import 'package:app/server_model/provider/leaderboard_provider.dart';
 import 'package:app/server_model/provider/leaderboard_reward.dart';
 import 'package:firebase_core/firebase_core.dart';
@@ -24,6 +22,23 @@ import 'server_model/provider/users_provider.dart';
 import 'server_model/remote_config_service.dart';
 import 'server_model/theme/light_theme.dart';
 import 'server_model/theme/dark_theme.dart';
+
+// overlay entry point
+@pragma('vm:entry-point')
+void overlayMain() {
+  WidgetsFlutterBinding.ensureInitialized();
+  runApp(
+    const MaterialApp(
+      debugShowCheckedModeBanner: false,
+      home: Material(
+        color: Colors.transparent,
+        child: TiktokAppOverlay(),
+      ),
+    ),
+  );
+}
+
+
 
 final GlobalKey<NavigatorState> navigatorKey = GlobalKey<NavigatorState>();
 String? globalPendingRoute;

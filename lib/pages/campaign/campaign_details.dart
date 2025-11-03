@@ -118,7 +118,7 @@ class _CampaignDetailsState extends State<CampaignDetails> {
     return Scaffold(
       backgroundColor: theme.primaryFixed,
       appBar: AppBar(
-        title: Text('Campaign Details View'),
+        title: const Text('Campaign Details View', style: TextStyle(fontSize: 20),),
         systemOverlayStyle: SystemUiOverlayStyle(
           statusBarColor: theme.surfaceTint,
           statusBarIconBrightness: Brightness.light,
@@ -319,7 +319,7 @@ class _CampaignDetailsState extends State<CampaignDetails> {
                             : Image.asset('assets/ico/user_profile.webp'),
                       ),
                     ),
-                    title: Text(viewer['name'] ?? 'Unknown', style: textTheme.displaySmall?.copyWith(fontSize: 17),),
+                    title: Text(viewer['name'] ?? 'Unknown', maxLines: 1, overflow: TextOverflow.ellipsis, style: textTheme.displaySmall?.copyWith(fontSize: 17),),
                     trailing: SizedBox(width: 20, height: 20, child: Ui.countryFlag(viewer['country'] ?? 'Unknown'),),),
                 );
               },

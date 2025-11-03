@@ -1,6 +1,7 @@
 import 'package:app/server_model/functions_helper.dart';
 import 'package:app/server_model/provider/daily_reward.dart';
 import 'package:app/server_model/provider/leaderboard_reward.dart';
+import 'package:app/server_model/rate_app.dart';
 import 'package:app/server_model/remote_config_service.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
@@ -43,9 +44,10 @@ class FetchDataService{
         VersionChecker().checkAppVersion(context);
         RemoteConfigService().checkManullayUpdate(context);
         await userProvider.trackActiveUsers();
+        Future.delayed(Duration(seconds: 3), (){
+          AppRating().rateApp(context);
+        });
       }
-
-
 
       // ✅ Step 4: Check reward claim (avoid null errors)
       if (leaderboardRewardProvider.showPopup) {

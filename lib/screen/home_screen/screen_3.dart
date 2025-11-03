@@ -1,6 +1,8 @@
 import 'dart:async';
+import 'dart:ui' as ui;
 import 'package:app/server_model/rate_app.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_overlay_window/flutter_overlay_window.dart';
 import 'package:provider/provider.dart';
 import '../../server_model/internet_provider.dart';
 import '../../server_model/page_load_fetchData.dart';
@@ -22,7 +24,6 @@ class Screen3 extends StatefulWidget {
   _Screen3State createState() => _Screen3State();
 }
 class _Screen3State extends State<Screen3> with WidgetsBindingObserver{
-  final AppRating appRating = AppRating();
   late Future<void> _fetchDataFuture;
   bool _internetCheck = true;
   String? lastTikTokUrl;
@@ -32,7 +33,6 @@ class _Screen3State extends State<Screen3> with WidgetsBindingObserver{
   void initState() {
     super.initState();
     _fetchDataFuture = FetchDataService.fetchData(context, forceRefresh: true);
-    appRating.rateApp(context);
     WidgetsBinding.instance.addObserver(this);
   }
 
@@ -47,14 +47,41 @@ class _Screen3State extends State<Screen3> with WidgetsBindingObserver{
     TikTokTaskHandler.handleLifecycle(state, context);
   }
 
-
-
   Future<void> _checkInternet() async {
     final internetProvider = Provider.of<InternetProvider>(context, listen: false);
     setState(() {
       _internetCheck = internetProvider.isConnected;
     });
   }
+
+
+  Future<void> showOverlayWithPermission() async {
+    bool? granted = await FlutterOverlayWindow.isPermissionGranted();
+
+    if (granted != true) {
+      await FlutterOverlayWindow.requestPermission();
+      granted = await FlutterOverlayWindow.isPermissionGranted();
+    }
+
+    if (granted == true) {
+      await FlutterOverlayWindow.showOverlay(
+        width: WindowSize.matchParent,
+        height: 600,
+        alignment: OverlayAlignment.topLeft,
+        flag: OverlayFlag.defaultFlag,
+        enableDrag: false,
+        overlayTitle: "Social Task Overlay",
+        overlayContent: "overlayMain", // 👈 must match entrypoint
+        visibility: NotificationVisibility.visibilityPublic,
+      );
+    } else {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Overlay permission not granted!')),
+      );
+    }
+  }
+
+
   @override
   Widget build(BuildContext context) {
     ColorScheme _theme = Theme.of(context).colorScheme;
@@ -102,6 +129,7 @@ class _Screen3State extends State<Screen3> with WidgetsBindingObserver{
                       await _checkInternet();
                       // Check Task Click Internet
                       if (_internetCheck) {
+                        // Tiktok Task
                         if(campaign['social']=="TikTok"){
                           TikTokTaskHandler.startTikTokTask(
                             context: context,
@@ -111,6 +139,10 @@ class _Screen3State extends State<Screen3> with WidgetsBindingObserver{
                             reward: campaign['CostPer'],
                             screenFrom: 1,
                           );
+
+// 🟢 Check permission first, then show overlay
+                          await showOverlayWithPermission();
+
                           // Instagram Task Navigate
                         }else if(campaign['social']=="Instagram"){
                           Navigator.push(context, MaterialPageRoute(

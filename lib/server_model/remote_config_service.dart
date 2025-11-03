@@ -17,14 +17,14 @@ class RemoteConfigService {
     try {
       await _remoteConfig.setConfigSettings(
         RemoteConfigSettings(
-          fetchTimeout: const Duration(seconds: 10),
-          minimumFetchInterval: const Duration(minutes: 1),
+          fetchTimeout: const Duration(minutes: 1),
+          minimumFetchInterval: const Duration(days: 5),
         ),
       );
 
       await _remoteConfig.setDefaults({
-        // 'api_url': 'http://10.96.53.48:3000',
-        'api_url': 'https://socialtask-server.fly.dev',
+        'api_url': 'http://10.234.106.48:3000',
+        // 'api_url': 'https://socialtask-server.fly.dev',
         'minimum_app_version': '1.3.5',
       });
 
@@ -37,8 +37,8 @@ class RemoteConfigService {
 
       /// fallback defaults (taake crash na ho)
       await _remoteConfig.setDefaults({
-        // 'api_url': 'http://10.96.53.48:3000',
-        'api_url': 'https://socialtask-server.fly.dev',
+        'api_url': 'http://10.234.106.48:3000',
+        // 'api_url': 'https://socialtask-server.fly.dev',
         'minimum_app_version': '1.3.5',
       });
     }
@@ -47,8 +47,8 @@ class RemoteConfigService {
   String get baseUrl {
     final baseUrl = _remoteConfig.getString('api_url');
     return baseUrl.isNotEmpty
-        ? baseUrl
-        // ? 'http://10.96.53.48:3000'
+        // ? baseUrl
+        ? 'http://10.234.106.48:3000'
         : 'https://socialtask-server.fly.dev';
   }
 

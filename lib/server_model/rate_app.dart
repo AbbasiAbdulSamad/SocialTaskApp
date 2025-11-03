@@ -5,7 +5,7 @@ class AppRating{
   rateApp(BuildContext context){
     RateMyApp rateMyApp = RateMyApp(
       preferencesPrefix: "rateMyApp_",
-      minDays: 2,
+      minDays: 1,
       minLaunches: 5,
       remindDays: 15,
       remindLaunches: 15,

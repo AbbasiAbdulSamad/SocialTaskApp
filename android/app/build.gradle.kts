@@ -33,7 +33,7 @@ android {
     defaultConfig {
         applicationId = "com.socialtask.app"
         minSdk = 24
-        targetSdk = flutter.targetSdkVersion
+        targetSdk = 35
         versionCode = flutter.versionCode
         versionName = flutter.versionName
         multiDexEnabled = true

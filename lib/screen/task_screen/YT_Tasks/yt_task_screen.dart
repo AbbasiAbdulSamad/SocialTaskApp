@@ -43,7 +43,7 @@ class _YT_Task_ScreenState extends State<YT_Task_Screen> {
   String? _lastBaseUrl;
   bool _timerInitialized = false;
   bool _hasUserCommented = false;
-
+  bool _commentAlertShown = false;
 
   @override
   void initState() {
@@ -55,29 +55,42 @@ class _YT_Task_ScreenState extends State<YT_Task_Screen> {
   void _startTimer() {
     _timer?.cancel();
 
-    _timer = Timer.periodic(Duration(seconds: 1), (timer) {
+    _timer = Timer.periodic(const Duration(seconds: 1), (timer) {
       if (!mounted) return;
 
       final internetProvider = Provider.of<InternetProvider>(context, listen: false);
       if (!internetProvider.isConnected) {
         setState(() {
-          _isPaused = true; // Timer pause ho jaye
+          _isPaused = true;
         });
         timer.cancel();
         return;
       }
 
       if (_remainingTime > 0) {
-        setState(() {_remainingTime--;});
+        setState(() {
+          _remainingTime--;
+        });
 
-        if (_remainingTime == 3 && widget.selectedOption == "Comments") {
-          AlertMessage.flashMsg(context, "Write a positive comment.", "Comment on the video", Icons.comment, 8);
+        if (!_commentAlertShown &&
+            _remainingTime <= 3 &&
+            widget.selectedOption == "Comments") {
+          _commentAlertShown = true; // prevent multiple alerts
+          AlertMessage.flashMsg(
+            context,
+            "Write a positive comment.",
+            "Comment on the video",
+            Icons.comment,
+            8,
+          );
           _startListeningForCommentBox();
         }
 
       } else {
         timer.cancel();
-        setState(() {_showReturnButton = true;});
+        setState(() {
+          _showReturnButton = true;
+        });
       }
     });
   }
@@ -195,36 +208,39 @@ class _YT_Task_ScreenState extends State<YT_Task_Screen> {
       await Future.delayed(const Duration(seconds: 2));
 
       String jsCode = '''
-      (function() {
-        const isShort = window.location.pathname.includes("/shorts/");
+(function() {
+  try {
+    const isShort = window.location.pathname.includes("/shorts/");
+    let likeBtn = null;
 
-        function findLikeButton() {
-          // Try main Like button (normal videos)
-          let btn = document.querySelector('button[aria-label*="like this video"]');
-          if (btn) return btn;
+    if (isShort) {
+      // 🔹 Shorts ke liye naya YouTube layout
+      likeBtn = document.querySelector(
+        'button-view-model button[aria-pressed], ' +
+        'ytd-reel-player-overlay-renderer button[aria-pressed], ' +
+        'ytd-shorts button[aria-pressed]'
+      );
+    } else {
+      // 🔹 Normal video ke liye
+      likeBtn = document.querySelector(
+        'ytd-toggle-button-renderer button[aria-pressed], ' +
+        'button[aria-label*="like this video"]'
+      );
+    }
 
-          // Try Shorts like buttons
-          let shortBtn = document.querySelector('ytd-shorts button[aria-pressed], ytd-reel-video-renderer button[aria-pressed]');
-          if (shortBtn) return shortBtn;
+    if (!likeBtn) return "not_found";
 
-          // General fallback
-          let alt = Array.from(document.querySelectorAll('yt-icon-button, tp-yt-paper-button, button'))
-              .find(b => (b.getAttribute('aria-label') || '').toLowerCase().includes('like'));
-          if (alt) return alt;
+    const state = likeBtn.getAttribute("aria-pressed");
+    if (state === "true") return "liked";
+    if (state === "false") return "not_liked";
 
-          return null;
-        }
+    return "unknown";
+  } catch (e) {
+    return "error: " + e.message;
+  }
+})();
+''';
 
-        const likeBtn = findLikeButton();
-        if (!likeBtn) return "not_found";
-
-        const state = likeBtn.getAttribute("aria-pressed");
-        if (state === "true") return "liked";
-        if (state === "false") return "not_liked";
-
-        return "unknown";
-      })();
-    ''';
 
       String? likeCheck = await _controller?.evaluateJavascript(source: jsCode);
       likeCheck = likeCheck?.replaceAll('"', '');
