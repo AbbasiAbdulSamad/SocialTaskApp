@@ -61,11 +61,6 @@ class _Tiktok_LinkGettingState extends State<Tiktok_LinkGetting> {
           videoId = data['embed_product_id'];
           _loading = false;
         });
-        // print("👤 Author Name: $authorName");
-        // print("🔗 Author Profile: $authorProfile");
-        // print("🖼️ Thumbnail URL: $thumbnailUrl");
-        // print("🎬 Video Title: $videoTitle");
-        // print("🎬 Video ID: $videoId");
 
         _videoLink = "$authorProfile/video/$videoId";
         print(_videoLink);
@@ -76,7 +71,7 @@ class _Tiktok_LinkGettingState extends State<Tiktok_LinkGetting> {
       }
     } catch (e) {
       setState(() => _loading = false);
-      AlertMessage.snackMsg(context: context, message: "Something went wrong: please try again");
+      AlertMessage.snackMsg(context: context, message: "Please use VPN\nsomething went wrong please try again", time: 5);
     }
   }
 

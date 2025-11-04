@@ -2,6 +2,7 @@ import 'dart:async';
 import 'dart:math';
 import 'package:app/server_model/provider/users_provider.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_overlay_window/flutter_overlay_window.dart';
 import 'package:provider/provider.dart';
 import '../../server_model/page_load_fetchData.dart';
 import '../../server_model/provider/fetch_taskts.dart';
@@ -9,6 +10,7 @@ import '../../server_model/internet_provider.dart';
 import '../../ui/bg_box.dart';
 import '../../ui/button.dart';
 import '../../ui/flash_message.dart';
+import '../../ui/pop_alert.dart';
 import '../../ui/ui_helper.dart';
 import '../task_screen/Tiktok_Task/tiktok_task_handler.dart';
 import '../task_screen/YT_Tasks/yt_auto_task_screen.dart';
@@ -79,14 +81,13 @@ class _Screen2State extends State<Screen2> with WidgetsBindingObserver{
           ),);
       }else{
         if(social=="TikTok"){
-          TikTokTaskHandler.startTikTokTask(
-            context: context,
-            tiktokUrl: taskUrl,
-            taskType: selectedOption,
-            campaignId: campaignId,
-            reward: reward,
-            screenFrom: 0,
-          );
+          // 🟢 Check permission first, then show overlay
+          await tiktokTaskOverlay(
+              selectedOption,
+              taskUrl,
+              campaignId,
+              reward);
+
         }else if(social=="Instagram"){
           Navigator.push(context, MaterialPageRoute(
               builder: (context) => Instagram_Task_Screen(
@@ -116,6 +117,53 @@ class _Screen2State extends State<Screen2> with WidgetsBindingObserver{
         content: Text("No internet connection. Please check and try again.",
           style: Theme.of(context).textTheme.displaySmall?.copyWith(color: Colors.white),),
       ));
+    }
+  }
+
+  Future<void> tiktokTaskOverlay(String selectOption, String tiktokUrl, String campaignId, int reward, ) async {
+    bool? granted = await FlutterOverlayWindow.isPermissionGranted();
+
+    // Draw Permission Popup Request
+    if (granted != true) {
+      showDialog(context: context,
+        builder: (BuildContext context) {
+          // pop class import from pop_box.dart
+          return pop.backAlert(context: context,icon: Icons.app_settings_alt_sharp, title: 'Draw permission',
+              bodyTxt:'We need Draw over other apps permission.\n\nUsing this feature you switch between SocialTask and TikTok app.',
+              confirm: 'Grant Permission', onConfirm: () async{
+                Navigator.pop(context);
+                await FlutterOverlayWindow.requestPermission();
+                granted = await FlutterOverlayWindow.isPermissionGranted();
+              });
+        },
+      );
+    }
+
+    if (granted == true) {
+      TikTokTaskHandler.startTikTokTask(
+        context: context,
+        tiktokUrl: tiktokUrl,
+        taskType: selectOption,
+        campaignId: campaignId,
+        reward: reward,
+        screenFrom: 0,
+      );
+
+      await FlutterOverlayWindow.showOverlay(
+        width: WindowSize.matchParent,
+        height: 600,
+        alignment: OverlayAlignment.topLeft,
+        flag: OverlayFlag.defaultFlag,
+        enableDrag: false,
+        overlayTitle: "Social Task",
+        visibility: NotificationVisibility.visibilityPublic,
+      );
+      await FlutterOverlayWindow.shareData(selectOption);
+
+    } else {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Please give the permission\nDraw permission not granted')),
+      );
     }
   }
 

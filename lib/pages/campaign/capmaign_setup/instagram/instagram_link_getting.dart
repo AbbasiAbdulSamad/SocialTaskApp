@@ -82,7 +82,7 @@ class _instagram_LinkGettingState extends State<instagram_LinkGetting> {
             "Follow: $Followers");
       } else {
         setState(() => _loading = false);
-        AlertMessage.errorMsg(context, "Something went wrong: Request time out.", "Error!");
+        AlertMessage.errorMsg(context, "Please use VPN\nsomething went wrong please try again. Request time out.", "Error!");
       }
     } catch (e) {
       setState(() => _loading = false);

@@ -10,6 +10,7 @@ import '../../server_model/provider/fetch_taskts.dart';
 import '../../server_model/provider/users_provider.dart';
 import '../../ui/bg_box.dart';
 import '../../ui/flash_message.dart';
+import '../../ui/pop_alert.dart';
 import '../../ui/shimmer_loading.dart';
 import '../../ui/ui_helper.dart';
 import '../task_screen/Tiktok_Task/tiktok_task_handler.dart';
@@ -44,8 +45,16 @@ class _Screen3State extends State<Screen3> with WidgetsBindingObserver{
 
   @override
   void didChangeAppLifecycleState(AppLifecycleState state) {
+    super.didChangeAppLifecycleState(state);
     TikTokTaskHandler.handleLifecycle(state, context);
+
+    // 🔹 Jab app close / background me jaye:
+    if (state == AppLifecycleState.detached) {
+      debugPrint("🧩 App closed or minimized → closing overlay");
+      FlutterOverlayWindow.closeOverlay();
+    }
   }
+
 
   Future<void> _checkInternet() async {
     final internetProvider = Provider.of<InternetProvider>(context, listen: false);
@@ -55,28 +64,49 @@ class _Screen3State extends State<Screen3> with WidgetsBindingObserver{
   }
 
 
-  Future<void> showOverlayWithPermission() async {
+  Future<void> tiktokTaskOverlay(String selectOption, String tiktokUrl, String campaignId, int reward, ) async {
     bool? granted = await FlutterOverlayWindow.isPermissionGranted();
 
+    // Draw Permission Popup Request
     if (granted != true) {
-      await FlutterOverlayWindow.requestPermission();
-      granted = await FlutterOverlayWindow.isPermissionGranted();
+      showDialog(context: context,
+        builder: (BuildContext context) {
+          // pop class import from pop_box.dart
+          return pop.backAlert(context: context,icon: Icons.app_settings_alt_sharp, title: 'Draw permission',
+              bodyTxt:'We need Draw over other apps permission.\n\nUsing this feature you switch between SocialTask and TikTok app.',
+              confirm: 'Grant Permission', onConfirm: () async{
+                Navigator.pop(context);
+                await FlutterOverlayWindow.requestPermission();
+                granted = await FlutterOverlayWindow.isPermissionGranted();
+          });
+        },
+      );
     }
 
     if (granted == true) {
+      TikTokTaskHandler.startTikTokTask(
+        context: context,
+        tiktokUrl: tiktokUrl,
+        taskType: selectOption,
+        campaignId: campaignId,
+        reward: reward,
+        screenFrom: 1,
+      );
+
       await FlutterOverlayWindow.showOverlay(
         width: WindowSize.matchParent,
         height: 600,
         alignment: OverlayAlignment.topLeft,
         flag: OverlayFlag.defaultFlag,
         enableDrag: false,
-        overlayTitle: "Social Task Overlay",
-        overlayContent: "overlayMain", // 👈 must match entrypoint
+        overlayTitle: "Social Task",
         visibility: NotificationVisibility.visibilityPublic,
       );
+      await FlutterOverlayWindow.shareData(selectOption);
+
     } else {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Overlay permission not granted!')),
+        const SnackBar(content: Text('Please give the permission\nDraw permission not granted')),
       );
     }
   }
@@ -131,17 +161,13 @@ class _Screen3State extends State<Screen3> with WidgetsBindingObserver{
                       if (_internetCheck) {
                         // Tiktok Task
                         if(campaign['social']=="TikTok"){
-                          TikTokTaskHandler.startTikTokTask(
-                            context: context,
-                            tiktokUrl: campaign['videoUrl'],
-                            taskType: campaign['selectedOption'],
-                            campaignId: campaign['_id'],
-                            reward: campaign['CostPer'],
-                            screenFrom: 1,
-                          );
 
-// 🟢 Check permission first, then show overlay
-                          await showOverlayWithPermission();
+                  // 🟢 Check permission first, then show overlay
+                      await tiktokTaskOverlay(
+                        campaign['selectedOption'],
+                        campaign['videoUrl'],
+                        campaign['_id'],
+                        campaign['CostPer']);
 
                           // Instagram Task Navigate
                         }else if(campaign['social']=="Instagram"){

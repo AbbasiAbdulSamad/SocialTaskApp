@@ -32,7 +32,7 @@ class EarnTickets extends StatelessWidget {
                     apiCall: ()=> DailyRewardService().claimDailyReward(context)
             ));
       }else{
-        AlertMessage.snackMsg(context: context, message: 'Something went wrong due to which the task4task is not working.', time: 3);
+        AlertMessage.snackMsg(context: context, message: 'Something went wrong due to which the Social Task is not working.', time: 3);
       }
     } else {
       AlertMessage.snackMsg(context: context, message: 'No internet connection. Please connect to the network.', time: 3);

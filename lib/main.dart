@@ -1,4 +1,5 @@
 import 'package:app/pages/sidebar_pages/buy_tickets.dart';
+import 'package:app/pages/sidebar_pages/leaderboard.dart';
 import 'package:app/pages/sidebar_pages/premium_account.dart';
 import 'package:app/screen/task_screen/Tiktok_Task/tiktok_App_overlay.dart';
 import 'package:app/server_model/local_notifications.dart';
@@ -8,6 +9,7 @@ import 'package:firebase_core/firebase_core.dart';
 import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:flutter_overlay_window/flutter_overlay_window.dart';
 import 'package:in_app_purchase/in_app_purchase.dart';
 import 'package:provider/provider.dart';
 import 'pages/sidebar_pages/earn_rewards.dart';
@@ -22,23 +24,6 @@ import 'server_model/provider/users_provider.dart';
 import 'server_model/remote_config_service.dart';
 import 'server_model/theme/light_theme.dart';
 import 'server_model/theme/dark_theme.dart';
-
-// overlay entry point
-@pragma('vm:entry-point')
-void overlayMain() {
-  WidgetsFlutterBinding.ensureInitialized();
-  runApp(
-    const MaterialApp(
-      debugShowCheckedModeBanner: false,
-      home: Material(
-        color: Colors.transparent,
-        child: TiktokAppOverlay(),
-      ),
-    ),
-  );
-}
-
-
 
 final GlobalKey<NavigatorState> navigatorKey = GlobalKey<NavigatorState>();
 String? globalPendingRoute;
@@ -102,6 +87,7 @@ class MyApp extends StatelessWidget {
       navigatorKey: navigatorKey,
       routes: {
         '/dailyReward': (context) => const EarnTickets(),
+        '/leaderboard': (context) => const LeaderboardScreen(),
         '/premium': (context) => const PremiumAccount(),
         '/buyTicket': (context) => const BuyTickets(),
       },
@@ -148,4 +134,32 @@ Future<void> _initializeServices() async {
   } catch (e) {
     debugPrint("⚠️ Initial FCM message fetch failed: $e");
   }
+}
+
+// overlay entry point for TikTok Tasks
+@pragma('vm:entry-point')
+void overlayMain() {
+  WidgetsFlutterBinding.ensureInitialized();
+  // Step 1: show default (loading)
+  runApp(const MaterialApp(
+    debugShowCheckedModeBanner: false,
+    home: Material(
+      color: Colors.transparent,
+      child: TiktokAppOverlay(message: "Loading..."),
+    ),
+  ));
+
+  // Step 2: listen for messages
+  FlutterOverlayWindow.overlayListener.listen((data) {
+    String message = "";
+    // agar string mila
+    if (data is String && data.trim().isNotEmpty) {message = data;}
+    runApp(MaterialApp(
+      debugShowCheckedModeBanner: false,
+      home: Material(
+        color: Colors.transparent,
+        child: TiktokAppOverlay(message: message),
+      ),
+    ));
+  });
 }

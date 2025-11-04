@@ -4,7 +4,8 @@ import 'package:flutter/material.dart';
 import 'package:flutter_overlay_window/flutter_overlay_window.dart';
 
 class TiktokAppOverlay extends StatelessWidget {
-  const TiktokAppOverlay({super.key});
+  final String message;
+  const TiktokAppOverlay({super.key, required this.message});
 
   Future<void> openSocialTaskApp() async {
     const packageName = 'com.socialtask.app';
@@ -34,22 +35,37 @@ class TiktokAppOverlay extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Container(
-      margin: EdgeInsets.only(top: 140),
-      color: Colors.redAccent,
-      padding: const EdgeInsets.all(10),
+      margin:const EdgeInsets.only(top: 165),
+      decoration:const BoxDecoration(
+        gradient: LinearGradient(colors: [Colors.transparent,Colors.transparent,Colors.black87, Colors.black87])
+      ),
       child: Row(
         mainAxisAlignment: MainAxisAlignment.spaceBetween,
         children: [
-          const Text(
-            'Please Like ️',
-            style: TextStyle(color: Colors.white, fontSize: 16),
-          ),
-          ElevatedButton(
-            onPressed: () => FlutterOverlayWindow.closeOverlay(),
-            child: const Text("Close"),
+          InkWell(
+            onTap: ()=> openSocialTaskApp(),
+            child: Container(
+              padding:const EdgeInsets.symmetric(vertical: 15, horizontal: 15),
+              decoration:const BoxDecoration(
+                color: Color(0xff004664),
+                borderRadius: BorderRadius.only(topRight: Radius.circular(25), bottomRight: Radius.circular(25))
+              ),
+              child:const Row(spacing: 2,
+                children: [
+                  Icon(Icons.arrow_back_ios_sharp, color: Colors.white, size: 18,),
+                  Text('Social Task', style: TextStyle(color: Colors.white, fontSize: 14, fontFamily: '3rdRoboto'),),
+                ],
+              ),
+            ),
           ),
 
-          ElevatedButton(onPressed: ()=> openSocialTaskApp(), child: Text("Back App"))
+          Padding(
+            padding: const EdgeInsets.only(right: 15),
+            child: Text((message=="Likes"?"❤️ Like the video":(message=="Followers"?"👤 Follow the account":
+            (message=="Comments"?"💬 Write a positive comment":(message=="Favorites"?"🔖 Favorite the video":"")))),
+              style: const TextStyle(color: Colors.white, fontSize: 16, fontFamily: '3rdRoboto'),
+            ),
+          ),
         ],
       ),
     );

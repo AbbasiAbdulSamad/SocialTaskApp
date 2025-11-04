@@ -1,5 +1,6 @@
 import 'dart:convert';
 import 'package:firebase_auth/firebase_auth.dart';
+import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
@@ -50,8 +51,11 @@ class _AuthenticationState extends State<Authentication> {
          String? token = await user!.getIdToken();
          if (token == null) throw Exception("Failed to get authentication token");
 
-         String country = await getUserCountry();
+         // ✅ Get FCM token
+         String? fcmToken = await FirebaseMessaging.instance.getToken();
+         debugPrint("📲 FCM Token: $fcmToken");
 
+         String country = await getUserCountry();
          var prefs = await SharedPreferences.getInstance();
          await prefs.setString('auth_token', token);
 
@@ -68,6 +72,7 @@ class _AuthenticationState extends State<Authentication> {
            },
            body: jsonEncode({
              "country": country,
+             "fcmToken": fcmToken,
              if (referralCodeFromPrefs != null) "referralCode": referralCodeFromPrefs,
            }),
          );

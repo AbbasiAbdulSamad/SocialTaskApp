@@ -1,5 +1,3 @@
-import 'package:app/pages/campaign/capmaign_setup/facebook/facebook_link_getting.dart';
-
 import 'capmaign_setup/instagram/instagram_link_getting.dart';
 import 'capmaign_setup/tiktok/Tiktok_link_getting.dart';
 import 'capmaign_setup/webSEO/webSEO_link_getting.dart';
@@ -25,12 +23,6 @@ final List<Map<String, dynamic>> instagram = [
   {'name': '💬 Comments', 'page': instagram_LinkGetting(goPage: 'Comments',)},
 ];
 
-final List<Map<String, dynamic>> facebook = [
-  {'name': 'Public Post Reaction', 'page': facebook_LinkGetting(goPage: 'Post Reaction',)},
-  {'name': 'Page Likes', 'page': facebook_LinkGetting(goPage: 'Page Likes',)},
-  {'name': 'Page Followers', 'page': facebook_LinkGetting(goPage: 'Page Followers',)},
-  {'name': 'Group Joining', 'page': facebook_LinkGetting(goPage: 'Group Joining',)},
-];
 
 final List<Map<String, dynamic>> webvisit = [
   {'name': 'SEO Website', 'page': WebSEO_LinkGetting(goPage: 'SEO',)},
