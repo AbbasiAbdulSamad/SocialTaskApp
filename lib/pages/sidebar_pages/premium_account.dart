@@ -9,6 +9,7 @@ import 'package:in_app_purchase/in_app_purchase.dart';
 import 'package:lottie/lottie.dart';
 import '../../config/config.dart';
 import '../../server_model/functions_helper.dart';
+import '../../server_model/local_notifications.dart';
 import '../../server_model/page_load_fetchData.dart';
 import '../../ui/bg_box.dart';
 import '../../ui/ui_helper.dart';
@@ -184,6 +185,11 @@ class _PremiumAccountState extends State<PremiumAccount> {
       // Handle response
       if (response.statusCode == 200) {
         setState(() {premiumSuccess = true;});
+
+        NotificationService.showNotification(
+          title: '🏆 Premium unlocked ✅',
+          body: 'Congratulations! 🎉 subscription activated',
+        );
         AlertMessage.successMsg(context, "Premium subscription activated successfully!", "Congratulations!", time: 10);
         Future.delayed(const Duration(seconds: 8), (){
           setState(() {premiumSuccess = false;});
@@ -396,17 +402,7 @@ class _PremiumAccountState extends State<PremiumAccount> {
 
             // 🔄 Loading overlay
             if (_purchaseLoading)
-              Center(
-                child: Container(
-                    width: 200, height: 110,
-                    padding: EdgeInsets.all(10),
-                    decoration: BoxDecoration(
-                        color: theme.background,
-                        borderRadius: BorderRadius.circular(15),
-                        boxShadow: [BoxShadow(color: theme.shadow, blurRadius: 30, spreadRadius: 2)]
-                    ),
-                    child: Ui.loading(context)),
-              ),
+              Ui.screenLoading(context),
           ],
         ),
 

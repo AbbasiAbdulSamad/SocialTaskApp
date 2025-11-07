@@ -1,6 +1,7 @@
 import 'dart:async';
 import 'dart:math';
 import 'package:app/server_model/provider/users_provider.dart';
+import 'package:app/ui/ads.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_overlay_window/flutter_overlay_window.dart';
 import 'package:provider/provider.dart';
@@ -173,6 +174,19 @@ class _Screen2State extends State<Screen2> with WidgetsBindingObserver{
     ColorScheme theme = Theme.of(context).colorScheme;
     TextTheme textTheme = Theme.of(context).textTheme;
     final userAutoLimit = Provider.of<UserProvider>(context, listen: false).currentUser?.autoLimit ?? 0;
+    // UserProvider Current User from API
+    final userProvider = Provider.of<UserProvider>(context);
+
+    // Unity Ad for premium check
+    bool isPremiumActive(String? expiry) {
+      if (expiry == null || expiry.isEmpty) return false;
+      final expiryDate = DateTime.tryParse(expiry);
+      if (expiryDate == null) return false;
+      return expiryDate.toUtc().isAfter(DateTime.now().toUtc());
+    }
+    final expiry = userProvider.currentUser?.premiumExpiry.toString();
+    final userIsPremium = isPremiumActive(expiry);
+
 
     return FutureBuilder(
         future: _fetchDataFuture,
@@ -211,13 +225,12 @@ class _Screen2State extends State<Screen2> with WidgetsBindingObserver{
                   mainAxisAlignment: MainAxisAlignment.start,
                   children: [
                     // Task Image
-
                     InkWell(onTap: ()=> taskNavigation(
                 campaign['videoUrl'], campaign['selectedOption'],
                 campaign['watchTime'], campaign['CostPer'], campaign['_id'], false, campaign['social']
               ),
                       child: BgBox(
-                        margin: const EdgeInsets.symmetric(vertical: 10, horizontal: 10),
+                        margin: const EdgeInsets.symmetric(vertical: 10, horizontal: 15),
                         padding: const EdgeInsets.symmetric(vertical: 10, horizontal: 0),
                         allRaduis: 7,
                         wth: double.infinity,
@@ -283,7 +296,7 @@ class _Screen2State extends State<Screen2> with WidgetsBindingObserver{
 
                     // Task Details
                     BgBox(
-                      margin: const EdgeInsets.symmetric(vertical: 1, horizontal: 15),
+                      margin: const EdgeInsets.symmetric(vertical: 3, horizontal: 15),
                       padding: const EdgeInsets.symmetric(vertical: 5, horizontal: 0),
                       allRaduis: 7,
                       child:Row(mainAxisAlignment: MainAxisAlignment.spaceEvenly,
@@ -313,7 +326,7 @@ class _Screen2State extends State<Screen2> with WidgetsBindingObserver{
 
                     // Buttons
                     Container(
-                      margin: const EdgeInsets.symmetric(vertical: 20, horizontal: 10),
+                      margin: const EdgeInsets.symmetric(vertical: 10, horizontal: 10),
                       child: Provider.of<UserProvider>(context).autoTask && (campaign['social']=="YouTube") &&
                 (campaign['selectedOption']=="Likes" || campaign['selectedOption']=="Subscribers"|| campaign['selectedOption']=="WatchTime")
                           ?
@@ -415,6 +428,10 @@ class _Screen2State extends State<Screen2> with WidgetsBindingObserver{
                           ),
                         ]),
                     ),
+                    if (!userIsPremium)
+                      Container(
+                        margin: EdgeInsets.only(top: 10), child: UnityAdsManager.bannerAd(),),
+
                   ]),
               ),
             );

@@ -1,10 +1,12 @@
 import 'package:app/pages/sidebar_pages/buy_tickets.dart';
 import 'package:app/pages/sidebar_pages/leaderboard.dart';
 import 'package:app/pages/sidebar_pages/premium_account.dart';
+import 'package:app/screen/home.dart';
 import 'package:app/screen/task_screen/Tiktok_Task/tiktok_App_overlay.dart';
 import 'package:app/server_model/local_notifications.dart';
 import 'package:app/server_model/provider/leaderboard_provider.dart';
 import 'package:app/server_model/provider/leaderboard_reward.dart';
+import 'package:app/server_model/provider/reward_services.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:flutter/material.dart';
@@ -12,6 +14,7 @@ import 'package:flutter/services.dart';
 import 'package:flutter_overlay_window/flutter_overlay_window.dart';
 import 'package:in_app_purchase/in_app_purchase.dart';
 import 'package:provider/provider.dart';
+import 'package:unity_ads_plugin/unity_ads_plugin.dart';
 import 'pages/sidebar_pages/earn_rewards.dart';
 import 'screen/intro_screen/flash.dart';
 import 'server_model/internet_provider.dart';
@@ -63,6 +66,7 @@ Future<void> main() async {
   runApp(
     MultiProvider(
       providers: [
+        ChangeNotifierProvider(create: (_) => RewardProvider(), lazy: true),
         ChangeNotifierProvider(create: (_) => LeaderboardProvider(), lazy: true),
         ChangeNotifierProvider(create: (_) => LevelUpProvider(), lazy: true),
         ChangeNotifierProvider(create: (_) => LeaderboardReward(), lazy: true),
@@ -86,6 +90,7 @@ class MyApp extends StatelessWidget {
     return MaterialApp(
       navigatorKey: navigatorKey,
       routes: {
+        '/myCampaigns': (context) => const Home(onPage: 2),
         '/dailyReward': (context) => const EarnTickets(),
         '/leaderboard': (context) => const LeaderboardScreen(),
         '/premium': (context) => const PremiumAccount(),
@@ -95,8 +100,8 @@ class MyApp extends StatelessWidget {
         return MediaQuery(
           data: MediaQuery.of(context).copyWith(textScaleFactor: 1.0),
           child: SafeArea(
-            top: false, // content status bar ke neeche bhi ja sakta hai
-            bottom: true, // navigation bar ke overlap se bachaata hai
+            top: false,
+            bottom: true,
             child: child!,
           ),
         );

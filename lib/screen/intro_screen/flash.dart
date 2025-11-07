@@ -1,5 +1,6 @@
 import 'dart:async';
 import 'package:android_play_install_referrer/android_play_install_referrer.dart';
+import 'package:app/ui/ads.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:permission_handler/permission_handler.dart';
@@ -28,23 +29,15 @@ class Flash extends StatefulWidget {
 }
 
 class _FlashState extends State<Flash> {
-  bool _initialized = false;
 
   @override
   void initState() {
     super.initState();
     checkInstallReferrer();
     VersionChecker().checkAppVersion(context);
-  }
+    _initServices();
 
-  @override
-  void didChangeDependencies() {
-    super.didChangeDependencies();
-    final internetProvider = Provider.of<InternetProvider>(context, listen: false);
-    if (!_initialized && internetProvider.isConnected) {
-      _initialized = true;
-      _initServices();
-    }
+    UnityAdsManager.initialize();
   }
 
   Future<void> _initServices() async {
@@ -63,7 +56,6 @@ class _FlashState extends State<Flash> {
     try {
       setupFirebaseMessagingListeners();
       Helper.listenForTokenRefresh();
-
       await _handleNavigation(context);
       navigationDone = true;
     } catch (e) {
@@ -104,18 +96,19 @@ class _FlashState extends State<Flash> {
       return;
     }
 
-    await FirebaseAuth.instance.authStateChanges().firstWhere((user) => user != null || user == null);
+    await FirebaseAuth.instance.authStateChanges().first;
     final token = await Helper.getAuthToken();
+    // ✅ globalPendingRoute + widget.initialRoute dono handle karo
+    final route = widget.initialRoute ?? globalPendingRoute;
 
     if (token != null && token.isNotEmpty) {
-      _navigateTo(context, const Home(onPage: 1));
 
-      // ✅ globalPendingRoute + widget.initialRoute dono handle karo
-      final route = widget.initialRoute ?? globalPendingRoute;
       if (route != null) {
         WidgetsBinding.instance.addPostFrameCallback((_) {
           Navigator.pushNamed(context, route);
         });
+      }else{
+        _navigateTo(context, const Home(onPage: 1));
       }
 
       final userProvider = Provider.of<UserProvider>(context, listen: false);

@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'dart:math';
 import 'package:flutter/material.dart';
 import 'package:flutter_inappwebview/flutter_inappwebview.dart';
 import 'package:provider/provider.dart';
@@ -48,25 +49,6 @@ class _Instagram_Task_ScreenState extends State<Instagram_Task_Screen> {
       Future.delayed(Duration(seconds: 3), () {
         setState(() {_showReturnButton = true;});
       });
-    }
-  }
-
-  void _handleInternetChange() {
-    final internetProvider = Provider.of<InternetProvider>(context, listen: false);
-    if (internetProvider.isConnected) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Internet Reconnected', style: TextStyle(color: Colors.white)),
-          backgroundColor: Color(0xFF007306),
-          duration: Duration(seconds: 3),),);
-    } else {
-      // ✅ Internet off hone par SnackBar show karein
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text('No Internet Connection!', style: TextStyle(color: Colors.white)),
-          backgroundColor: Color(0xFF8B0E16),
-          duration: Duration(seconds: 3),
-        ),
-      );
     }
   }
 
@@ -357,7 +339,8 @@ class _Instagram_Task_ScreenState extends State<Instagram_Task_Screen> {
                           initialSettings: InAppWebViewSettings(
                             javaScriptEnabled: true,
                             supportMultipleWindows: true,
-                              userAgent: "Mozilla/5.0 (Linux; Android 13; Pixel 7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/126.0.6478.120 Mobile Safari/537.36"
+                              useHybridComposition: true,
+                              userAgent: "Mozilla/5.0 (Linux; Android 14; Pixel 8 Build/UP1A.240930.001; wv) AppleWebKit/537.36 (KHTML, like Gecko) Version/4.0 Chrome/130.0.6560.90 Mobile Safari/537.36",
                           ),
                           onWebViewCreated: (controller) {
                             _controller = controller;

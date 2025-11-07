@@ -304,7 +304,6 @@ class _YT_Auto_Task_ScreenState extends State<YT_Auto_Task_Screen> {
     }
   }
 
-
   Future<void> autoSubscribe() async {
     if (selectedOption == "Subscribers") {
       try {
@@ -365,6 +364,7 @@ class _YT_Auto_Task_ScreenState extends State<YT_Auto_Task_Screen> {
     internetProvider.removeListener(_handleInternetChange);
     super.dispose();
   }
+
 
   @override
   Widget build(BuildContext context) {
@@ -473,7 +473,8 @@ class _YT_Auto_Task_ScreenState extends State<YT_Auto_Task_Screen> {
                               allowsPictureInPictureMediaPlayback: true,
                               javaScriptEnabled: true,
                               supportMultipleWindows: true,
-                              userAgent: "Mozilla/5.0 (Linux; Android 13; Pixel 7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/126.0.6478.120 Mobile Safari/537.36"
+                              useHybridComposition: true,
+                              userAgent: "Mozilla/5.0 (Linux; Android 14; Pixel 8 Build/UP1A.240930.001; wv) AppleWebKit/537.36 (KHTML, like Gecko) Version/4.0 Chrome/130.0.6560.90 Mobile Safari/537.36",
                           ),
                           onWebViewCreated: (controller) {
                             _controller = controller;

@@ -4,6 +4,7 @@ import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:url_launcher/url_launcher.dart';
+import 'ads.dart';
 import '../pages/sidebar_pages/FAQ_page.dart';
 import '../pages/sidebar_pages/buy_tickets.dart';
 import '../pages/sidebar_pages/earn_rewards.dart';
@@ -85,6 +86,8 @@ class Sidebar extends StatelessWidget{
             Ui.sidebarLabel(Icons.share_outlined, 'Invite Friends', (){Helper.navigatePush(context, const Invite()); }),
             Ui.lightLine(),
             Ui.sidebarLabel(Icons.support_agent, 'Support', (){ Helper.navigatePush(context, const SupportPage()); }),
+            // Ui.lightLine(),
+            // Ui.sidebarLabel(Icons.question_mark, 'Ads', (){ Helper.navigatePush(context, UnityAdExample()); }),
             Ui.lightLine(),
             Ui.sidebarLabel(Icons.question_mark, 'FAQ', (){ Helper.navigatePush(context, FaqPage()); }),
             Ui.lightLine(),

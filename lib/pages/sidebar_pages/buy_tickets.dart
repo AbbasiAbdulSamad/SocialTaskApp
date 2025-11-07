@@ -7,6 +7,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:http/http.dart' as http;
 import 'package:in_app_purchase/in_app_purchase.dart';
+import '../../server_model/local_notifications.dart';
 import '../../server_model/page_load_fetchData.dart';
 import '../../ui/button.dart';
 import '../../ui/ui_helper.dart';
@@ -126,6 +127,11 @@ class _BuyTicketsState extends State<BuyTickets> {
             });
 
             AlertMessage.successMsg(context, "Tickets Purchased successfully!", "$buyedTickets");
+            NotificationService.showNotification(
+              title: '🎟️ $buyedTickets Purchased',
+              body: 'Thank you for purchasing tickets 🙏',
+            );
+
            await FetchDataService.fetchData(context, forceRefresh: true);
 
             Future.delayed(const Duration(seconds: 7),
@@ -188,17 +194,7 @@ class _BuyTicketsState extends State<BuyTickets> {
         ),
 
     if(_isLoading)
-      Center(
-        child: Container(
-            width: 200, height: 110,
-            padding: EdgeInsets.all(10),
-            decoration: BoxDecoration(
-                color: theme.background,
-                borderRadius: BorderRadius.circular(15),
-                boxShadow: [BoxShadow(color: theme.shadow, blurRadius: 30, spreadRadius: 2)]
-            ),
-            child: Ui.loading(context)),
-      ),
+      Ui.screenLoading(context),
 
 
         (buyedTickets>0)?

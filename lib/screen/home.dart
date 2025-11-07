@@ -9,6 +9,7 @@ import '../pages/sidebar_pages/buy_tickets.dart';
 import '../server_model/internet_provider.dart';
 import '../server_model/provider/fetch_taskts.dart';
 import '../server_model/provider/users_provider.dart';
+import '../ui/ads.dart';
 import '../ui/button.dart';
 import '../ui/pop_alert.dart';
 import '../ui/sidebar.dart';
@@ -80,9 +81,12 @@ class _HomeState extends State<Home> {
   Widget build(BuildContext context) {
     ColorScheme theme = Theme.of(context).colorScheme;
     TextTheme textTheme = Theme.of(context).textTheme;
+
     // UserProvider Current User from API
     final userProvider = Provider.of<UserProvider>(context);
     final userAutoLimit = Provider.of<UserProvider>(context, listen: false).currentUser?.autoLimit ?? 0;
+
+
 
     // Filter Pop
     final provider = context.read<AllCampaignsProvider>();
@@ -324,6 +328,7 @@ class _HomeState extends State<Home> {
                 ],
               ),
           ),
+
 
           // 📄 PageView below
           Expanded(

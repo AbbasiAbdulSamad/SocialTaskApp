@@ -23,6 +23,26 @@ class Ui{
     );
   }
 
+  static screenLoading(BuildContext context){
+    ColorScheme theme = Theme.of(context).colorScheme;
+    return Positioned.fill(
+      child: Container(
+        color: Colors.black.withOpacity(0.5),
+        child: Center(
+          child: Container(
+              width: 220, height: 110,
+              padding: EdgeInsets.all(10),
+              decoration: BoxDecoration(
+                  color: theme.background,
+                  borderRadius: BorderRadius.circular(15),
+                  border: Border.all(color: theme.onPrimaryFixed, width: 0.5)
+              ),
+              child: loading(context)),
+        ),
+      ),
+    );
+  }
+
   /// ✅ No Internet UI
  static buildNoInternetUI(ColorScheme theme, TextTheme textTheme,bool errorEx, String title, String dec, IconData icon, VoidCallback onClick){
     return Container(

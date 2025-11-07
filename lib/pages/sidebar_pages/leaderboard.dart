@@ -33,7 +33,7 @@ class _LeaderboardScreenState extends State<LeaderboardScreen> {
   @override
   void initState() {
     super.initState();
-    countdownTextNotifier = ValueNotifier("Loading...");
+    countdownTextNotifier = ValueNotifier(" ");
     WidgetsBinding.instance.addPostFrameCallback((_) async {
       final leaderboardProvider =
       Provider.of<LeaderboardProvider>(context, listen: false);
@@ -165,7 +165,7 @@ class _LeaderboardScreenState extends State<LeaderboardScreen> {
                                   borderRadius: BorderRadius.only(bottomRight: Radius.circular(5), bottomLeft: Radius.circular(5))),
                               padding: EdgeInsets.symmetric(vertical: 0, horizontal:  0),
                               margin: EdgeInsets.only(top: 0, left: 20, right: 20),
-                              child:(countdownTextNotifier == null || countdownTextNotifier=="")?SizedBox(): Column(
+                              child:(countdownTextNotifier == null || countdownTextNotifier.value ==" ")?SizedBox(): Column(
                                 children: [
                                   Row(mainAxisAlignment: MainAxisAlignment.spaceAround,
                                     children: [
@@ -326,7 +326,7 @@ class _LeaderboardScreenState extends State<LeaderboardScreen> {
                 const SizedBox(height: 35,),
                 Container(
                     margin: EdgeInsets.symmetric(vertical: 0, horizontal: 5),
-                    child: Text(name, textAlign: TextAlign.center, style: textTheme.displaySmall?.copyWith(fontWeight: FontWeight.bold),
+                    child: Text(name, textAlign: TextAlign.center, style: textTheme.displaySmall?.copyWith(fontWeight: FontWeight.bold, fontSize: 14),
                       maxLines: 1, overflow: TextOverflow.ellipsis,)),
                 Ui.lightLine(),
                 Container(

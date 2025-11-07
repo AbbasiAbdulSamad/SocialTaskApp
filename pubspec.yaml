@@ -45,6 +45,7 @@ dependencies:
   rate_my_app: ^2.3.2
   flutter_overlay_window: ^0.5.0
   android_intent_plus: ^5.0.2
+  unity_ads_plugin: ^0.3.28
 
 
 

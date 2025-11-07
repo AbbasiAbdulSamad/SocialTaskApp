@@ -40,6 +40,9 @@ class ApiPoints {
   // Daily Reward API
   static String get dailyRewardAPI => '${AppConfig.baseUrl}/api/dailyreward/claim';
 
+  // Ad Reward API
+  static String get adReward => '${AppConfig.baseUrl}/api/adsReward/verify-reward';
+
   // Support Admin
   static String get supportSendMsg => '${AppConfig.baseUrl}/api/support';
 

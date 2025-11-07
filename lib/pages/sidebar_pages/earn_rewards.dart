@@ -1,12 +1,14 @@
 import 'package:app/pages/sidebar_pages/invite.dart';
+import 'package:app/screen/home.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_svg/svg.dart';
 import 'package:provider/provider.dart';
 import 'package:url_launcher/url_launcher.dart';
 import '../../server_model/internet_provider.dart';
-import '../../server_model/provider/daily_reward.dart';
+import '../../server_model/provider/reward_services.dart';
 import '../../server_model/provider/users_provider.dart';
+import '../../ui/ads.dart';
 import '../../ui/bg_box.dart';
 import '../../ui/flash_message.dart';
 import '../../ui/pop_reward.dart';
@@ -22,14 +24,14 @@ class EarnTickets extends StatelessWidget {
         showDialog(
             context: context,
             barrierDismissible: false,
-            builder: (context) => RewardPop.rewardPop(
-                context: context,
+            builder: (dialogContext) => RewardPop.rewardPop(
+                context: dialogContext,
                 img: "assets/animations/gift.json",
                 reward: userProvider.currentUser!.isPremium?"+100 Tickets": "+20 Tickets",
                 description: "You have received your daily reward!",
                 buttonIcon: Icons.payments_outlined,
                 buttonText: 'Claim Reward',
-                    apiCall: ()=> DailyRewardService().claimDailyReward(context)
+                    apiCall: ()=> Provider.of<RewardProvider>(context, listen: false).claimDailyReward(context)
             ));
       }else{
         AlertMessage.snackMsg(context: context, message: 'Something went wrong due to which the Social Task is not working.', time: 3);
@@ -40,27 +42,34 @@ class EarnTickets extends StatelessWidget {
   }
 
   void serviceNotFound(BuildContext context){
-    AlertMessage.snackMsg(context: context, message: 'please wait comming soon');
+    AlertMessage.snackMsg(context: context, message: 'not found coming soon');
   }
   @override
   Widget build(BuildContext context) {
     // Theme and text styles
+    final rewardProviderLoading = Provider.of<RewardProvider>(context).isLoading;
     ColorScheme theme = Theme.of(context).colorScheme;
     final userProvider = Provider.of<UserProvider>(context);
     final isLoading = userProvider.isCurrentUserLoading;
 
     if (userProvider.currentUser == null && !isLoading) {
-      return Scaffold(
-        appBar: AppBar(title: const Text('Earn Rewards')),
-        body: Center(
-          child: Ui.buildNoInternetUI(
-            theme,
-            Theme.of(context).textTheme,
-            false,
-            'Connection Issue',
-            'We’re having trouble loading your profile. Please check your network or try again.',
-            Icons.wifi_off,
-                () => userProvider.fetchCurrentUser(),
+      return WillPopScope(
+        onWillPop: () async {
+          Navigator.pushAndRemoveUntil(context, MaterialPageRoute(builder: (_) => Home(onPage: 1)), (route) => false,);
+          return false;
+        },
+        child: Scaffold(
+          appBar: AppBar(title: const Text('Earn Rewards')),
+          body: Center(
+            child: Ui.buildNoInternetUI(
+              theme,
+              Theme.of(context).textTheme,
+              false,
+              'Connection Issue',
+              'We’re having trouble loading your profile. Please check your network or try again.',
+              Icons.wifi_off,
+                  () => userProvider.fetchCurrentUser(),
+            ),
           ),
         ),
       );
@@ -86,21 +95,15 @@ class EarnTickets extends StatelessWidget {
                       boxHeading(context, 'challenge.svg', 'Regular Challenges'),
                       Ui.line(),
                 // Childs
-                      earnReward(context, Icons.wallet_giftcard_sharp, 'Daily Reward', '20+', (){
-                        showRewardPopup(context);
-                      }, Colors.green),
+                      earnReward(context, Icons.wallet_giftcard_sharp, 'Daily Reward', '+20', ()=> showRewardPopup(context), Colors.green),
                       Ui.lightLine(),
-                      earnReward(context, Icons.video_collection, 'Watch a short video', '10+', (){
-                        serviceNotFound(context);
-                      }, Colors.indigo),
+                      earnReward(context, Icons.video_collection, 'Watch a short video', '+20', ()=> UnityAdsManager.showRewardedAd(context),
+                       Colors.indigo),
                       Ui.lightLine(),
-                      earnReward(context, Icons.message, 'Invite and Earn', '1000+', (){
-                        Navigator.push(context, MaterialPageRoute(builder: (context)=> const Invite()));
-                      }, theme.onPrimaryFixed),
+                      earnReward(context, Icons.message, 'Invite and Earn', '+1000', ()=> Navigator.push(context, MaterialPageRoute(builder: (context)=> const Invite())),
+                        theme.onPrimaryFixed),
                       Ui.lightLine(),
-                      earnReward(context, Icons.download, 'Download App', '1000+', (){
-                        serviceNotFound(context);
-                      }, theme.onPrimaryFixed),
+                      earnReward(context, Icons.download, 'Download App', '+1000', ()=> serviceNotFound(context), theme.onPrimaryFixed),
                     ],)
                 ),
 
@@ -126,18 +129,8 @@ class EarnTickets extends StatelessWidget {
             ),
 
             // 🔄 Loading overlay
-            if (isLoading)
-              Center(
-                child: Container(
-                  width: 200, height: 110,
-                    padding: EdgeInsets.all(10),
-                    decoration: BoxDecoration(
-                        color: theme.background,
-                      borderRadius: BorderRadius.circular(15),
-                      boxShadow: [BoxShadow(color: theme.shadow, blurRadius: 30, spreadRadius: 2)]
-                    ),
-                    child: Ui.loading(context)),
-              ),
+            if (isLoading || rewardProviderLoading)
+              Ui.screenLoading(context)
           ],
         )
     );

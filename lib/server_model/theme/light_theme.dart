@@ -43,7 +43,7 @@ class LightThemesSetup {
 
     // Text Styling Theme
     textTheme: const TextTheme(
-      displaySmall: TextStyle(fontFamily: '3rdRoboto', fontSize: 13),
+      displaySmall: TextStyle(fontFamily: '3rdRoboto', fontSize: 15),
       bodySmall: TextStyle(decoration: TextDecoration.none, color: Colors.black, fontSize: 11),
       labelSmall: TextStyle(decoration: TextDecoration.none, fontWeight: FontWeight.w500, color: Color(0xff335277), fontSize: 16, fontFamily: 'BoostAudience'),
       labelMedium: TextStyle(decoration: TextDecoration.none, color: Color(0xff335277), fontSize: 22, fontFamily: 'BoostAudience'),

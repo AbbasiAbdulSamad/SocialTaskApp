@@ -62,7 +62,7 @@ class AppUser {
       campaigns: json['campaigns'] as int? ?? 0,
       campaignLimit: json['campaignLimit'] as int? ?? 10,
       autoLimit: json['autoLimit'] as int? ?? 25,
-      premiumExpiry: DateTime.tryParse(json['premiumExpiry'] ?? '') ?? DateTime(2000),
+      premiumExpiry: DateTime.tryParse(json['premiumExpiry'] ?? '') ?? DateTime(2020),
       referralCode: json['referralCode'] as String? ?? '',
       referral: (json['referral'] as List<dynamic>? ?? []).map((e) => e.toString()).toList(),
       country: json['country'] as String? ?? "Pakistan",
