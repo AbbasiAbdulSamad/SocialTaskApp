@@ -5,6 +5,7 @@ import 'package:http/http.dart' as http;
 import 'package:shared_preferences/shared_preferences.dart';
 import '../config/authentication.dart';
 import '../ui/flash_message.dart';
+import 'LocalNotificationManager.dart';
 
 class SignOut{
 
@@ -19,7 +20,7 @@ class SignOut{
       // 🔹 Remove token from SharedPreferences
       var prefs = await SharedPreferences.getInstance();
       await prefs.remove('auth_token');
-
+      await LocalNotificationManager.clearAllNotifications();
       Navigator.pushAndRemoveUntil(context, MaterialPageRoute(builder: (_) => Authentication()), (route) => false);
     } catch (e) {
       String errorMessage = handleError(e);

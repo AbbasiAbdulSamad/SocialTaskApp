@@ -6,6 +6,7 @@ import 'package:provider/provider.dart';
 import 'package:http/http.dart' as http;
 import '../../config/config.dart';
 import '../../ui/flash_message.dart';
+import '../LocalNotificationManager.dart';
 import '../functions_helper.dart';
 import '../local_notifications.dart';
 import 'package:firebase_auth/firebase_auth.dart';
@@ -68,6 +69,11 @@ class RewardProvider with ChangeNotifier {
         if (context.mounted) {
           UnityAdsManager.showInterstitialAd(context, _reward);
         }
+        await LocalNotificationManager.saveNotification(
+            title: 'Daily Reward +$_reward 🎁',
+            body: '+$_reward Tickets Claimed Successfully',
+            screenId: "DailyReward"
+        );
       } else {
         _setLoading(false);
         if (context.mounted) {
@@ -110,8 +116,13 @@ class RewardProvider with ChangeNotifier {
       final data = jsonDecode(response.body);
 
       if (response.statusCode == 200 && data['success'] == true) {
-        AlertMessage.successMsg(
-            context, data['message'] ?? "+20 Tickets Reward added!", "Ad Reward");
+        AlertMessage.successMsg(context, data['message'], "+20 Tickets");
+        await LocalNotificationManager.saveNotification(
+            title: 'Ad Bonus Earned 🎁',
+            body: 'You’ve received +20 Tickets for completing an ad!',
+            screenId: "Ads"
+        );
+
       } else {
         AlertMessage.errorMsg(
             context, data['message'] ?? "Something went wrong", "Error!");

@@ -1,7 +1,7 @@
 import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
-import 'package:flutter/cupertino.dart';
-import '../main.dart'; // for globalPendingRoute
+import '../main.dart';
+import 'LocalNotificationManager.dart';
 
 final FlutterLocalNotificationsPlugin flutterLocalNotificationsPlugin =
 FlutterLocalNotificationsPlugin();
@@ -36,12 +36,14 @@ Future<void> setupFirebaseMessagingListeners() async {
       AndroidFlutterLocalNotificationsPlugin>()
       ?.createNotificationChannel(channel);
 
-  // ✅ Foreground message (show local notification)
-  FirebaseMessaging.onMessage.listen((RemoteMessage message) {
+  // ✅ Foreground message (app open, show + save)
+  FirebaseMessaging.onMessage.listen((RemoteMessage message) async {
     final notification = message.notification;
     final android = message.notification?.android;
+    final route = message.data['route'] ?? '';
 
     if (notification != null && android != null) {
+      // 🔔 Show local notification
       flutterLocalNotificationsPlugin.show(
         notification.hashCode,
         notification.title,
@@ -56,19 +58,35 @@ Future<void> setupFirebaseMessagingListeners() async {
             icon: '@mipmap/ic_launcher',
           ),
         ),
-        payload: message.data['route'],
+        payload: route,
+      );
+
+      // 💾 Save notification locally
+      await LocalNotificationManager.saveNotification(
+        title: notification.title ?? 'No Title',
+        body: notification.body ?? 'No Body',
+        screenId: route,
       );
     }
   });
 
-  // ✅ Background / Resumed state (app already open)
-  FirebaseMessaging.onMessageOpenedApp.listen((RemoteMessage message) {
-    final route = message.data['route'];
-    if (route != null && route.isNotEmpty) {
-      // ✅ Only set route if app is already running, NOT during startup
-      if (globalPendingRoute == null) {
-        globalPendingRoute = route;
-      }
+  // ✅ Background / Resumed state (app opened by tapping notification)
+  FirebaseMessaging.onMessageOpenedApp.listen((RemoteMessage message) async {
+    final route = message.data['route'] ?? '';
+
+    // 💾 Save notification (so even background-opened ones are stored)
+    final notification = message.notification;
+    if (notification != null) {
+      await LocalNotificationManager.saveNotification(
+        title: notification.title ?? 'No Title',
+        body: notification.body ?? '',
+        screenId: route,
+      );
+    }
+
+    // Set navigation route
+    if (route.isNotEmpty && globalPendingRoute == null) {
+      globalPendingRoute = route;
     }
   });
 }

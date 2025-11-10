@@ -53,86 +53,90 @@ class EarnTickets extends StatelessWidget {
     final isLoading = userProvider.isCurrentUserLoading;
 
     if (userProvider.currentUser == null && !isLoading) {
-      return WillPopScope(
-        onWillPop: () async {
-          Navigator.pushAndRemoveUntil(context, MaterialPageRoute(builder: (_) => Home(onPage: 1)), (route) => false,);
-          return false;
-        },
-        child: Scaffold(
-          appBar: AppBar(title: const Text('Earn Rewards')),
-          body: Center(
-            child: Ui.buildNoInternetUI(
-              theme,
-              Theme.of(context).textTheme,
-              false,
-              'Connection Issue',
-              'We’re having trouble loading your profile. Please check your network or try again.',
-              Icons.wifi_off,
-                  () => userProvider.fetchCurrentUser(),
-            ),
+      return Scaffold(
+        appBar: AppBar(title: const Text('Earn Rewards')),
+        body: Center(
+          child: Ui.buildNoInternetUI(
+            theme,
+            Theme.of(context).textTheme,
+            false,
+            'Connection Issue',
+            'We’re having trouble loading your profile. Please check your network or try again.',
+            Icons.wifi_off,
+                () => userProvider.fetchCurrentUser(),
           ),
         ),
       );
     }
 
-    return Scaffold(backgroundColor: theme.primaryFixed,
-        appBar: AppBar(title: const Text('Earn Rewards', style: TextStyle(fontSize: 18)),
-          systemOverlayStyle: SystemUiOverlayStyle(
-            statusBarColor: theme.surfaceTint,
-            statusBarIconBrightness: Brightness.light,),
-        ),
-        body:  Stack(
-          children: [
-            SingleChildScrollView(
-              child: Column(
-                children: [
-                BgBox(
-                    wth: double.infinity,
-                    margin: const EdgeInsets.symmetric(horizontal: 12, vertical: 12),
-                    allRaduis: 8,
-                    child: Column(children: [
-                // Box heading icon/text function
-                      boxHeading(context, 'challenge.svg', 'Regular Challenges'),
-                      Ui.line(),
-                // Childs
-                      earnReward(context, Icons.wallet_giftcard_sharp, 'Daily Reward', '+20', ()=> showRewardPopup(context), Colors.green),
-                      Ui.lightLine(),
-                      earnReward(context, Icons.video_collection, 'Watch a short video', '+20', ()=> UnityAdsManager.showRewardedAd(context),
-                       Colors.indigo),
-                      Ui.lightLine(),
-                      earnReward(context, Icons.message, 'Invite and Earn', '+1000', ()=> Navigator.push(context, MaterialPageRoute(builder: (context)=> const Invite())),
-                        theme.onPrimaryFixed),
-                      Ui.lightLine(),
-                      earnReward(context, Icons.download, 'Download App', '+1000', ()=> serviceNotFound(context), theme.onPrimaryFixed),
-                    ],)
-                ),
-
-                  Container(
-                      width: double.infinity,
-                      margin: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+    return WillPopScope(
+      onWillPop: () async {
+        if (Navigator.canPop(context)) {
+          Navigator.pop(context);
+        } else {
+          Navigator.pushAndRemoveUntil(context, MaterialPageRoute(builder: (_) => const Home(onPage: 1)), (route) => false,);
+        }
+        return false;
+      },
+      child: Scaffold(backgroundColor: theme.primaryFixed,
+          appBar: AppBar(title: const Text('Earn Rewards', style: TextStyle(fontSize: 18)),
+            systemOverlayStyle: SystemUiOverlayStyle(
+              statusBarColor: theme.surfaceTint,
+              statusBarIconBrightness: Brightness.light,),
+          ),
+          body:  Stack(
+            children: [
+              SingleChildScrollView(
+                child: Column(
+                  children: [
+                  BgBox(
+                      wth: double.infinity,
+                      margin: const EdgeInsets.symmetric(horizontal: 12, vertical: 12),
+                      allRaduis: 8,
                       child: Column(children: [
-                  //Box heading icon/text function
-                       boxHeading(context, 'heart.svg', 'Follow Offical Social'),
+                  // Box heading icon/text function
+                        boxHeading(context, 'challenge.svg', 'Regular Challenges'),
                         Ui.line(),
                   // Childs
-                        earnReward(context, Icons.facebook, 'Facebook Page', '5+', (){ launchUrl(Uri.parse('https://web.facebook.com/SocialTaskApp'));}, Colors.blueAccent),
+                        earnReward(context, Icons.wallet_giftcard_sharp, 'Daily Reward', '+20', ()=> showRewardPopup(context), Colors.green),
                         Ui.lightLine(),
-                        earnReward(context, Icons.play_arrow, 'Subscribe Channel', '5+', (){ launchUrl(Uri.parse('https://www.youtube.com/@SocialTaskApp'));}, Colors.red),
+                        earnReward(context, Icons.video_collection, 'Watch a short video', '+20', ()=> UnityAdsManager.showRewardedAd(context),
+                         Colors.indigo),
                         Ui.lightLine(),
-                        earnReward(context, Icons.tiktok, 'Follow TikTok', '5+', (){ launchUrl(Uri.parse('https://www.tiktok.com/@socialtaskapp'));}, theme.onPrimaryFixed),
+                        earnReward(context, Icons.message, 'Invite and Earn', '+1000', ()=> Navigator.push(context, MaterialPageRoute(builder: (context)=> const Invite())),
+                          theme.onPrimaryFixed),
                         Ui.lightLine(),
-                        earnReward(context, Icons.telegram, 'Join Telegram', '5+', (){ launchUrl(Uri.parse('https://t.me/SocialTaskApp'));}, Colors.lightBlue),
+                        earnReward(context, Icons.download, 'Download App', '+1000', ()=> serviceNotFound(context), theme.onPrimaryFixed),
                       ],)
                   ),
-                  const SizedBox(height: 100,)
-              ],),
-            ),
 
-            // 🔄 Loading overlay
-            if (isLoading || rewardProviderLoading)
-              Ui.screenLoading(context)
-          ],
-        )
+                    Container(
+                        width: double.infinity,
+                        margin: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+                        child: Column(children: [
+                    //Box heading icon/text function
+                         boxHeading(context, 'heart.svg', 'Follow Offical Social'),
+                          Ui.line(),
+                    // Childs
+                          earnReward(context, Icons.facebook, 'Facebook Page', '5+', (){ launchUrl(Uri.parse('https://web.facebook.com/SocialTaskApp'));}, Colors.blueAccent),
+                          Ui.lightLine(),
+                          earnReward(context, Icons.play_arrow, 'Subscribe Channel', '5+', (){ launchUrl(Uri.parse('https://www.youtube.com/@SocialTaskApp'));}, Colors.red),
+                          Ui.lightLine(),
+                          earnReward(context, Icons.tiktok, 'Follow TikTok', '5+', (){ launchUrl(Uri.parse('https://www.tiktok.com/@socialtaskapp'));}, theme.onPrimaryFixed),
+                          Ui.lightLine(),
+                          earnReward(context, Icons.telegram, 'Join Telegram', '5+', (){ launchUrl(Uri.parse('https://t.me/SocialTaskApp'));}, Colors.lightBlue),
+                        ],)
+                    ),
+                    const SizedBox(height: 100,)
+                ],),
+              ),
+
+              // 🔄 Loading overlay
+              if (isLoading || rewardProviderLoading)
+                Ui.screenLoading(context)
+            ],
+          )
+      ),
     );
   }
 

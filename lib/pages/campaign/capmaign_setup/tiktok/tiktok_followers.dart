@@ -1,8 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../../../../ui/layout_widgets/tiktok_layout.dart';
-import '../../../../ui/layout_widgets/youtube_layout.dart';
-import 'package:youtube_player_flutter/youtube_player_flutter.dart';
 import '../../../../server_model/internet_provider.dart';
 import '../../../../server_model/provider/campaign_api.dart';
 import '../../../../server_model/provider/users_provider.dart';
@@ -58,7 +56,7 @@ class Tiktok_followers extends StatelessWidget {
       await campaignProvider.createCampaign(
         context: context,
         title: accountName!,
-        videoUrl: taskLink!,
+        videoUrl: accountUrl!,
         watchTime: 0,
         quantity: int.tryParse(quantitySubscribers.text) ?? 0,
         selectedOption: "Followers",

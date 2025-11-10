@@ -1,8 +1,13 @@
+import 'dart:convert';
+
 import 'package:app/pages/sidebar_pages/buy_tickets.dart';
+import 'package:app/pages/sidebar_pages/invite.dart';
 import 'package:app/pages/sidebar_pages/leaderboard.dart';
 import 'package:app/pages/sidebar_pages/premium_account.dart';
+import 'package:app/pages/sidebar_pages/support.dart';
 import 'package:app/screen/home.dart';
 import 'package:app/screen/task_screen/Tiktok_Task/tiktok_App_overlay.dart';
+import 'package:app/server_model/LocalNotificationManager.dart';
 import 'package:app/server_model/local_notifications.dart';
 import 'package:app/server_model/provider/leaderboard_provider.dart';
 import 'package:app/server_model/provider/leaderboard_reward.dart';
@@ -14,7 +19,7 @@ import 'package:flutter/services.dart';
 import 'package:flutter_overlay_window/flutter_overlay_window.dart';
 import 'package:in_app_purchase/in_app_purchase.dart';
 import 'package:provider/provider.dart';
-import 'package:unity_ads_plugin/unity_ads_plugin.dart';
+import 'package:rate_my_app/rate_my_app.dart';
 import 'pages/sidebar_pages/earn_rewards.dart';
 import 'screen/intro_screen/flash.dart';
 import 'server_model/internet_provider.dart';
@@ -90,11 +95,13 @@ class MyApp extends StatelessWidget {
     return MaterialApp(
       navigatorKey: navigatorKey,
       routes: {
-        '/myCampaigns': (context) => const Home(onPage: 2),
-        '/dailyReward': (context) => const EarnTickets(),
-        '/leaderboard': (context) => const LeaderboardScreen(),
-        '/premium': (context) => const PremiumAccount(),
-        '/buyTicket': (context) => const BuyTickets(),
+        'Campaigns': (context) => const Home(onPage: 2),
+        'DailyReward': (context) => const EarnTickets(),
+        'LeaderboardScreen': (context) => const LeaderboardScreen(),
+        'PremiumAccount': (context) => const PremiumAccount(),
+        'BuyTickets': (context) => const BuyTickets(),
+        'Invite': (context) => const Invite(),
+        'SupportPage': (context) => const SupportPage(),
       },
       builder: (context, child) {
         return MediaQuery(
@@ -131,14 +138,30 @@ Future<void> _initializeServices() async {
   }
 
   try {
+    // 🔹 Check for initial notification (when app launched from terminated state)
     final initialMessage = await FirebaseMessaging.instance.getInitialMessage();
-    final initialRoute = initialMessage?.data['route'];
-    if (initialRoute != null) {
-      globalPendingRoute = initialRoute;
+    if (initialMessage != null) {
+      final route = initialMessage.data['route'] ?? '';
+
+      // 💾 Save notification locally — so even terminated ones are stored
+      final notification = initialMessage.notification;
+      if (notification != null) {
+        await LocalNotificationManager.saveNotification(
+          title: notification.title ?? 'No Title',
+          body: notification.body ?? '',
+          screenId: route,
+        );
+      }
+
+      // Set navigation route for when app opens
+      if (route.isNotEmpty && globalPendingRoute == null) {
+        globalPendingRoute = route;
+      }
     }
   } catch (e) {
     debugPrint("⚠️ Initial FCM message fetch failed: $e");
   }
+
 }
 
 // overlay entry point for TikTok Tasks

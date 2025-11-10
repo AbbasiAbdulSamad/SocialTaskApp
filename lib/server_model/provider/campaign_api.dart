@@ -5,6 +5,7 @@ import 'package:provider/provider.dart';
 import '../../config/config.dart';
 import '../../screen/home.dart';
 import '../../ui/flash_message.dart';
+import '../LocalNotificationManager.dart';
 import '../functions_helper.dart';
 
 class CampaignProvider with ChangeNotifier {
@@ -109,6 +110,13 @@ class CampaignProvider with ChangeNotifier {
         AlertMessage.successMsg(context, 'Your $selectedOption campaign is now active.', 'Success');
         debugPrint('Created seccues');
         fetchCampaigns(forceRefresh: true);
+
+      await LocalNotificationManager.saveNotification(
+        title: '$social Campaign Created',
+        body: '$social $quantity $selectedOption',
+        screenId: 'Campaigns'
+      );
+
       } else {
         // ✅ Extract error message from response
         String errorMessage = "Something went wrong, please try again.";

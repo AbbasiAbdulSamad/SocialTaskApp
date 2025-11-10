@@ -20,30 +20,30 @@ class UnityAdsManager {
 
   /// 🔹 Initialize Unity Ads
   static Future<void> initialize() async {
-    await UnityAds.init(
+    UnityAds.init(
       gameId: _androidGameId,
-      testMode: true,
+      testMode: false,
       onComplete: () {
-        print("✅ Unity Ads Initialized");
+        debugPrint("✅ Unity Ads Initialized");
         loadRewardedAd();
         loadInterstitialAd();
       },
       onFailed: (error, message) =>
-          print("❌ Unity Ads Init Failed: $error - $message"),
+          debugPrint("❌ Unity Ads Init Failed: $error - $message"),
     );
   }
 
   /// 🔹 Load Rewarded Ad
   static void loadRewardedAd() {
-    print("⏳ Loading Rewarded Ad...");
+    debugPrint("⏳ Loading Rewarded Ad...");
     UnityAds.load(
       placementId: _rewardedId,
       onComplete: (placementId) {
-        print("🎉 Rewarded Ad Loaded: $placementId");
+        debugPrint("🎉 Rewarded Ad Loaded: $placementId");
         _rewardedLoaded = true;
       },
       onFailed: (placementId, error, message) {
-        print("❌ Failed to Load Rewarded Ad: $error - $message");
+        debugPrint("❌ Failed to Load Rewarded Ad: $error - $message");
         _rewardedLoaded = false;
       },
     );
@@ -52,7 +52,7 @@ class UnityAdsManager {
   /// 🔹 Show Rewarded Ad
   static Future<void> showRewardedAd(BuildContext context) async {
     if (!_rewardedLoaded) {
-      print("⚠️ Rewarded Ad not loaded yet!");
+      debugPrint("⚠️ Rewarded Ad not loaded yet!");
       loadRewardedAd();
       return;
     }
@@ -61,7 +61,7 @@ class UnityAdsManager {
       placementId: _rewardedId,
       onStart: (placementId) => print('▶️ Rewarded Ad Started: $placementId'),
       onComplete: (placementId) {
-        print('✅ Reward Completed: $placementId');
+        debugPrint('✅ Reward Completed: $placementId');
         if (context.mounted) {
           Provider.of<RewardProvider>(context, listen: false).claimAdsReward(context);
         }
@@ -80,15 +80,15 @@ class UnityAdsManager {
 
   /// 🔹 Load Interstitial Ad
   static void loadInterstitialAd() {
-    print("⏳ Loading Interstitial Ad...");
+    debugPrint("⏳ Loading Interstitial Ad...");
     UnityAds.load(
       placementId: _interstitialId,
       onComplete: (placementId) {
-        print("🎉 Interstitial Ad Loaded: $placementId");
+        debugPrint("🎉 Interstitial Ad Loaded: $placementId");
         _interstitialLoaded = true;
       },
       onFailed: (placementId, error, message) {
-        print("❌ Failed to Load Interstitial Ad: $error - $message");
+        debugPrint("❌ Failed to Load Interstitial Ad: $error - $message");
         _interstitialLoaded = false;
       },
     );
@@ -96,7 +96,7 @@ class UnityAdsManager {
   /// 🔹 Show Interstitial Ad
   static Future<void> showInterstitialAd(BuildContext context, int reward) async {
     if (!_interstitialLoaded) {
-      print("⚠️ Interstitial Ad not loaded yet!");
+      debugPrint("⚠️ Interstitial Ad not loaded yet!");
       loadInterstitialAd();
       return;
     }

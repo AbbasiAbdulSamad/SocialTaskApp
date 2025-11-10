@@ -1,4 +1,3 @@
-import 'package:app/pages/campaign/camp_select_list_data.dart';
 import 'package:app/pages/sidebar_pages/buy_tickets.dart';
 import 'package:app/pages/sidebar_pages/level.dart';
 import 'package:app/ui/bg_box.dart';
@@ -8,7 +7,6 @@ import 'package:flutter/services.dart';
 import 'package:google_sign_in/google_sign_in.dart';
 import 'package:intl/intl.dart';
 import 'package:provider/provider.dart';
-import '../../server_model/level_data_provider.dart';
 import '../../server_model/page_load_fetchData.dart';
 import '../../server_model/provider/leaderboard_provider.dart';
 import '../../server_model/provider/users_provider.dart';
@@ -378,7 +376,7 @@ class _MyAccountState extends State<MyAccount> {
 
                           ],
                         ),
-                        const SizedBox(height: 50,)
+                        const SizedBox(height: 10,)
                       ]
                     ),
                   ),

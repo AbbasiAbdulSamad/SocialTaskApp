@@ -1,10 +1,13 @@
 import 'dart:convert';
+import 'package:app/server_model/provider/users_provider.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
+import 'package:provider/provider.dart';
 import '../../config/api_config.dart';
 import '../../config/config.dart';
 import '../../pages/sidebar_pages/level.dart';
+import '../LocalNotificationManager.dart';
 import '../functions_helper.dart';
 
 class LevelUpProvider with ChangeNotifier {
@@ -41,6 +44,7 @@ class LevelUpProvider with ChangeNotifier {
       );
 
       final responseData = jsonDecode(response.body);
+
       if (response.statusCode == 200) {
         _message = "✅ Level Checking: ${responseData['message']}";
       } else {
@@ -56,6 +60,10 @@ class LevelUpProvider with ChangeNotifier {
 
   // 🔥 **Function to Claim Level Reward**
   Future<void> claimLevelReward(BuildContext context) async {
+    final user = Provider.of<UserProvider>(context, listen: false).currentUser;
+    final userLevel = user!.levelData.level+1;
+    final levelReward = user.levelData.levelReward;
+
     Navigator.pop(context);
     await Future.delayed(const Duration(milliseconds: 100));
     Navigator.push(context, MaterialPageRoute(builder: (context) => const Level()));
@@ -65,7 +73,8 @@ class LevelUpProvider with ChangeNotifier {
       notifyListeners();
 
 
-    Future.delayed(const Duration(seconds: 2), () async{
+    Future.delayed(const Duration(seconds: 1), () async{
+
     try {
       _isLoading = true;
       notifyListeners();
@@ -89,7 +98,13 @@ class LevelUpProvider with ChangeNotifier {
       );
 
       final responseData = jsonDecode(response.body);
+
       if (response.statusCode == 200) {
+        LocalNotificationManager.saveNotification(
+            title: 'Level Up $userLevel 🎉',
+            body: '+$levelReward Tickets Level Reward',
+            screenId: "Level"
+        );
         _message = "🎉 Reward Claimed: ${responseData['message']}";
       } else {
         _message = "❌ Failed to claim reward: ${response.body}";
@@ -112,8 +127,8 @@ class LevelUpProvider with ChangeNotifier {
         _rewardLastAnimation = false;
         notifyListeners();
       });
-    });
 
+    });
     });
     });  // treasurebox On 1 sec delay
 

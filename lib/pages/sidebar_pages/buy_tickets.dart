@@ -7,6 +7,8 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:http/http.dart' as http;
 import 'package:in_app_purchase/in_app_purchase.dart';
+import '../../screen/home.dart';
+import '../../server_model/LocalNotificationManager.dart';
 import '../../server_model/local_notifications.dart';
 import '../../server_model/page_load_fetchData.dart';
 import '../../ui/button.dart';
@@ -132,6 +134,11 @@ class _BuyTicketsState extends State<BuyTickets> {
               body: 'Thank you for purchasing tickets 🙏',
             );
 
+            await LocalNotificationManager.saveNotification(
+                title: '🎟️ $buyedTickets Purchased',
+                body: 'Tickets Purchased successfully!',
+                screenId: "BuyTickets"
+            );
            await FetchDataService.fetchData(context, forceRefresh: true);
 
             Future.delayed(const Duration(seconds: 7),
@@ -167,42 +174,52 @@ class _BuyTicketsState extends State<BuyTickets> {
   @override
   Widget build(BuildContext context) {
     ColorScheme theme = Theme.of(context).colorScheme;
-    return Stack(
-      children: [
-        Scaffold(
-          backgroundColor: theme.primaryFixed,
-          appBar: AppBar(
-            title: const Text('Purchase Tickets', style: TextStyle(fontSize: 18)),
-            systemOverlayStyle: SystemUiOverlayStyle(
-              statusBarColor: theme.surfaceTint,
-              statusBarIconBrightness: Brightness.light,
-            ),
-          ),
-          body: Padding(
-            padding: const EdgeInsets.symmetric(vertical: 30, horizontal: 16),
-            child: Center(
-              child: Wrap(
-                alignment: WrapAlignment.center,
-                spacing: 20,
-                runSpacing: 50,
-                children: _ticketPrice.map((ticket) {
-                  return _buyTicketBox(context, ticket, _getPrice(ticket['id']));
-                }).toList(),
+    return WillPopScope(
+      onWillPop: () async {
+        if (Navigator.canPop(context)) {
+          Navigator.pop(context);
+        } else {
+          Navigator.pushAndRemoveUntil(context, MaterialPageRoute(builder: (_) => const Home(onPage: 1)), (route) => false,);
+        }
+        return false;
+      },
+      child: Stack(
+        children: [
+          Scaffold(
+            backgroundColor: theme.primaryFixed,
+            appBar: AppBar(
+              title: const Text('Purchase Tickets', style: TextStyle(fontSize: 18)),
+              systemOverlayStyle: SystemUiOverlayStyle(
+                statusBarColor: theme.surfaceTint,
+                statusBarIconBrightness: Brightness.light,
               ),
             ),
-          )
-        ),
+            body: Padding(
+              padding: const EdgeInsets.symmetric(vertical: 30, horizontal: 16),
+              child: Center(
+                child: Wrap(
+                  alignment: WrapAlignment.center,
+                  spacing: 20,
+                  runSpacing: 50,
+                  children: _ticketPrice.map((ticket) {
+                    return _buyTicketBox(context, ticket, _getPrice(ticket['id']));
+                  }).toList(),
+                ),
+              ),
+            )
+          ),
 
-    if(_isLoading)
-      Ui.screenLoading(context),
+      if(_isLoading)
+        Ui.screenLoading(context),
 
 
-        (buyedTickets>0)?
-        Positioned(left: 0, right: 0, top: 200,
-            child: Ui.bgShineRays(context, buyedTickets))
-            :const SizedBox(),
+          (buyedTickets>0)?
+          Positioned(left: 0, right: 0, top: 200,
+              child: Ui.bgShineRays(context, buyedTickets))
+              :const SizedBox(),
 
-      ],
+        ],
+      ),
     );
   }
 

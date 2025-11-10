@@ -1,17 +1,28 @@
+import 'package:app/pages/sidebar_pages/earn_rewards.dart';
+import 'package:app/pages/sidebar_pages/invite.dart';
+import 'package:app/pages/sidebar_pages/level.dart';
+import 'package:app/pages/sidebar_pages/premium_account.dart';
+import 'package:app/pages/sidebar_pages/support.dart';
 import 'package:app/screen/social_login.dart';
+import 'package:app/server_model/functions_helper.dart';
+import 'package:app/ui/bg_box.dart';
 import 'package:app/ui/flash_message.dart';
 import 'package:curved_navigation_bar/curved_navigation_bar.dart';
 import 'package:dropdown_button2/dropdown_button2.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:provider/provider.dart';
+import 'package:url_launcher/url_launcher.dart';
 import '../pages/sidebar_pages/buy_tickets.dart';
+import '../pages/sidebar_pages/leaderboard.dart';
+import '../server_model/LocalNotificationManager.dart';
 import '../server_model/internet_provider.dart';
 import '../server_model/provider/fetch_taskts.dart';
 import '../server_model/provider/users_provider.dart';
 import '../ui/ads.dart';
 import '../ui/button.dart';
 import '../ui/pop_alert.dart';
+import '../ui/shortPageOpen.dart';
 import '../ui/sidebar.dart';
 import '../ui/ui_helper.dart';
 import 'home_screen/screen_1.dart';
@@ -32,6 +43,7 @@ class _HomeState extends State<Home> {
   late PageController _pageController;
   late int _currentIndex;
   bool _internetCheck = true;
+  int notificationCount = 0;
 
   // List of Pages
   final List<Widget> _pages = [
@@ -57,12 +69,27 @@ class _HomeState extends State<Home> {
     checkInternet();
     _currentIndex = widget.onPage;
     _pageController = PageController(initialPage: widget.onPage);
+    _loadNotificationCount();
 
     Future.microtask(() async {
       await Future.wait([
         Provider.of<AllCampaignsProvider>(context, listen: false).fetchAllCampaigns(context: context, forceRefresh: true),
         Provider.of<UserProvider>(context, listen: false).fetchCurrentUser(),
       ]);
+    });
+  }
+
+  Future<void> _loadNotificationCount() async {
+    final count = await LocalNotificationManager.getNotificationCount();
+    setState(() {
+      notificationCount = count;
+    });
+  }
+  // Call this method when page opens to reset
+  void _resetCount() async {
+    await LocalNotificationManager.resetNotificationCount();
+    setState(() {
+      notificationCount = 0;
     });
   }
 
@@ -85,8 +112,6 @@ class _HomeState extends State<Home> {
     // UserProvider Current User from API
     final userProvider = Provider.of<UserProvider>(context);
     final userAutoLimit = Provider.of<UserProvider>(context, listen: false).currentUser?.autoLimit ?? 0;
-
-
 
     // Filter Pop
     final provider = context.read<AllCampaignsProvider>();
@@ -122,7 +147,7 @@ class _HomeState extends State<Home> {
                   Text("${userProvider.currentUser?.coin ?? 0}",
                     overflow: TextOverflow.ellipsis,
                     maxLines: 1,
-                    style: Theme.of(context).textTheme.displaySmall?.copyWith(
+                    style: textTheme.displaySmall?.copyWith(
                       fontSize: 22,
                       color: const Color(0xFFFFFFFF),
                     ),
@@ -308,23 +333,32 @@ class _HomeState extends State<Home> {
                       message: "Task Filters",
                       child: Row(
                         children: [
-                          Text('Filters', style: TextStyle(fontSize: 17, fontFamily: '3rdRoboto', color: theme.onPrimaryFixed),),
                           Icon(Icons.filter_alt, color: theme.onPrimaryFixed,),
+                          Text('Filters', style: TextStyle(fontSize: 17, fontFamily: '3rdRoboto', color: theme.onPrimaryFixed),),
                         ],
                       ),
                     ),
                   ),
-                  Tooltip(
-                    message: "Reset all filters",
-                    child: IconButton(onPressed: (){
-                      selectedSocial.clear();
-                      selectedOptions.clear();
-                      selectedCategories.clear();
-                      provider.clearFilters();
-                      AlertMessage.snackMsg(context: context, message: "Filters have been reset", time: 1);
-                    }, icon: Icon(Icons.refresh, size: 25, color: theme.errorContainer,)),
-                  ),
+                  const SizedBox(width: 10,),
+                  Tooltip(message: "Notifications",
+                    child: Stack(
+                      children: [
+                        IconButton(icon: Icon(Icons.notifications, size: 27,), color: theme.onPrimaryFixed,
+                          onPressed: (){
+                            _resetCount();
+                          Shortpageopen.shortPage(context, Icons.notifications, 'Notifications', _notificationsWidget(context));
+                          } ,),
 
+                        if(notificationCount>0)
+                        Positioned(right: 10, top: 10,
+                            child: Text(
+                              (notificationCount>=100)?"99+":
+                              "$notificationCount", style: textTheme.displaySmall?.
+                            copyWith(color: theme.errorContainer, fontWeight: FontWeight.w800, fontSize: 13),))
+
+                      ],
+                    ),
+                  ),
                 ],
               ),
           ),
@@ -389,4 +423,133 @@ class _HomeState extends State<Home> {
       ),
     );
   }
+
+
+  Future<List<Map<String, dynamic>>> _fetchNotifications() async {
+    return await LocalNotificationManager.getNotifications();
+  }
+
+  Widget _notificationsWidget(BuildContext context) {
+    ColorScheme theme = Theme.of(context).colorScheme;
+    TextTheme textTheme = Theme.of(context).textTheme;
+    return FutureBuilder<List<Map<String, dynamic>>>(
+      future: _fetchNotifications(),
+      builder: (context, snapshot) {
+        if (!snapshot.hasData) {
+          return const Center(child: CircularProgressIndicator());
+        }
+
+        final notifications = snapshot.data!;
+        if (notifications.isEmpty) {
+          return const Center(child: Text("No notifications yet."));
+        }
+
+        // Map screen names to actual Widgets
+        final Map<String, Widget> screenMap = {
+          'LeaderboardScreen':const LeaderboardScreen(),
+          'Campaigns':const Home(onPage: 2),
+          'DailyReward':const EarnTickets(),
+          'Ads':const EarnTickets(),
+          'Level':const Level(),
+          'BuyTickets':const BuyTickets(),
+          'PremiumAccount':const PremiumAccount(),
+          'Invite':const Invite(),
+          'SupportPage':const SupportPage(),
+          // Add all your screens here
+        };
+
+        return Padding(
+          padding: const EdgeInsets.only(bottom: 10, left: 20, right: 20),
+          child: ListView.builder(
+            itemCount: notifications.length,
+            itemBuilder: (context, index) {
+              final notif = notifications[index];
+              final title = notif['title'] ?? '';
+              final body = notif['body'] ?? '';
+              final dateStr = notif['date'] ?? '';
+              final date = DateTime.tryParse(dateStr);
+              final screenId = notif['screenId'] ?? '';
+
+              return InkWell(
+                onTap: () async{
+                  if(screenId=="" || screenId=="Login" || screenId==null){
+                    return;
+                  }else if(screenId=="Update"){
+                    final Uri url = Uri.parse("https://play.google.com/store/apps/details?id=com.socialtask.app",);
+
+                    if (await canLaunchUrl(url)) {
+                  await launchUrl(url,mode: LaunchMode.externalApplication,);
+                  } else {
+                  debugPrint("Could not launch $url");
+                  }
+                  }else{
+                    Helper.navigatePush(context, screenMap[screenId]!);
+                  }
+                      },
+                child: Container(
+                  margin: const EdgeInsets.symmetric(vertical: 10),
+                  padding:const  EdgeInsets.only(top: 2, bottom: 10, left: 10, right: 10),
+                  width: double.infinity,
+                  decoration: BoxDecoration(
+                    color: theme.background,
+                      border: Border(bottom: BorderSide(width: 0.4, color: theme.onPrimaryContainer), right: BorderSide(width: 0.5, color: theme.onPrimaryContainer)),
+                    borderRadius: const BorderRadius.only(topRight: Radius.circular(12), bottomLeft: Radius.circular(12), bottomRight: Radius.circular(12)),
+                      boxShadow: [BoxShadow(color: theme.shadow, blurRadius: 8, spreadRadius: 2, offset: Offset(5, 5))]
+                                ),
+                  child: Column( crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Container(
+                        padding: EdgeInsets.symmetric(horizontal: 2),
+                        decoration: BoxDecoration(
+                          border: Border(bottom: BorderSide(width: 0.5, color: theme.onPrimaryFixed))
+                        ),
+                        child: Text(date != null
+                            ? "${date.hour}:${date.minute.toString().padRight(2, '0')}  ${date.day}-${date.month}-${date.year}"
+                            : '', style: textTheme.displaySmall?.copyWith(color: theme.onPrimaryFixed, fontSize: 12), textAlign: TextAlign.right,),
+                      ),
+
+                      const SizedBox(height: 16,),
+                      Row( spacing: 15,
+                        children: [
+                          Icon((screenId=="Campaigns")?Icons.campaign:
+                          (screenId=="Level")?Icons.trending_up:
+                          (screenId=="DailyReward")?Icons.card_giftcard:
+                          (screenId=="LeaderboardScreen")?Icons.leaderboard:
+                          (screenId=="Login")?Icons.login:
+                          (screenId=="BuyTickets")?Icons.payments_outlined:
+                          (screenId=="PremiumAccount")?Icons.workspace_premium:
+                          (screenId=="Invite")?Icons.share:
+                          (screenId=="Update")?Icons.download:
+                          (screenId=="SupportPage")?Icons.support_agent:
+                          (screenId=="Ads")?Icons.ads_click:Icons.notifications, size: 32,),
+
+                          Expanded(
+                            child: Column( spacing: 4,
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              mainAxisSize: MainAxisSize.min,
+                              children: [
+                                Text(title, maxLines: 1, overflow: TextOverflow.ellipsis,
+                                  style: textTheme.displaySmall?.copyWith(fontSize: 16),
+                                ),
+
+                                Text(body, maxLines: 2, overflow: TextOverflow.ellipsis,
+                                  style: const TextStyle(fontSize: 13, height: 1.3),
+                                ),
+                              ],
+                            ),
+                          ),
+
+                        ],
+                      ),
+                    ],
+                  ),
+                ),
+              );
+            },
+          ),
+        );
+      },
+    );
+  }
+
 }

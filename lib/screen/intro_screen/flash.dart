@@ -1,6 +1,7 @@
 import 'dart:async';
 import 'package:android_play_install_referrer/android_play_install_referrer.dart';
 import 'package:app/ui/ads.dart';
+import 'package:app/ui/flash_message.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:permission_handler/permission_handler.dart';
@@ -12,10 +13,10 @@ import '../../server_model/functions_helper.dart';
 import '../../server_model/internet_provider.dart';
 import '../../server_model/provider/users_provider.dart';
 import '../../server_model/update_checking_playstore.dart';
-import '../../ui/flash_message.dart';
 import '../home.dart';
 import 'onboarding.dart';
 import '../../main.dart';
+import 'package:firebase_remote_config/firebase_remote_config.dart';
 
 class Flash extends StatefulWidget {
   static const String KEYLOGIN = "login";
@@ -29,48 +30,79 @@ class Flash extends StatefulWidget {
 }
 
 class _FlashState extends State<Flash> {
+  bool _navigationDone = false;
 
   @override
   void initState() {
     super.initState();
-    checkInstallReferrer();
-    VersionChecker().checkAppVersion(context);
-    _initServices();
-
-    UnityAdsManager.initialize();
+    _initializeApp();
   }
 
-  Future<void> _initServices() async {
-// 🟡 Request Notification Permission if not granted
-    if (await Permission.notification.isDenied || await Permission.notification.isRestricted) {
-      await Permission.notification.request();
-    }
-
-    bool navigationDone = false;
-    Future.delayed(Duration(seconds: 6), () {
-      if (mounted && !navigationDone) {
-        AlertMessage.snackMsg(context: context, message: 'Unstable network connection', time: 5);
+  Future<void> _initializeApp() async {
+    // 1️⃣ Start a 6-sec timer — show "Unstable network" if delay occurs
+    Timer(const Duration(seconds: 6), () {
+      if (mounted && !_navigationDone) {
+        AlertMessage.snackMsg(context: context, message: "Unstable network connection");
       }
     });
 
-    try {
-      setupFirebaseMessagingListeners();
-      Helper.listenForTokenRefresh();
+    // 2️⃣ Parallel background initialization
+    await Future.wait([
+      _checkInstallReferrer(),
+      _checkRemoteConfig(),
+      _requestNotificationPermission(),
+      VersionChecker().checkAppVersion(context),
+      Future(() => UnityAdsManager.initialize()),
+    ]);
+
+    // 3️⃣ Firebase setup (non-blocking)
+    unawaited(setupFirebaseMessagingListeners());
+    Helper.listenForTokenRefresh();
+
+    // 4️⃣ Navigate after 2 seconds
+    Future.delayed(const Duration(seconds: 2), () async {
       await _handleNavigation(context);
-      navigationDone = true;
+      _navigationDone = true;
+    });
+  }
+
+  Future<void> _checkRemoteConfig() async {
+    try {
+      final prefs = await SharedPreferences.getInstance();
+      final lastFetchTime = prefs.getInt("remote_config_last_fetch") ?? 0;
+      final now = DateTime.now().millisecondsSinceEpoch;
+      const threeDays = 3 * 24 * 60 * 60 * 1000;
+
+      if (now - lastFetchTime < threeDays) {
+        debugPrint("🕐 Skipping Remote Config fetch (cached <3 days)");
+        return;
+      }
+
+      final remoteConfig = FirebaseRemoteConfig.instance;
+      await remoteConfig.setConfigSettings(RemoteConfigSettings(
+        fetchTimeout: const Duration(seconds: 10),
+        minimumFetchInterval: Duration.zero,
+      ));
+
+      await remoteConfig.fetchAndActivate();
+      await prefs.setInt("remote_config_last_fetch", now);
+      debugPrint("✅ Remote Config fetched & activated");
     } catch (e) {
-      debugPrint("⚠️ Navigation error: $e");
-      Navigator.pushAndRemoveUntil(context, MaterialPageRoute(builder: (_) => Authentication()), (route) => false,);
+      debugPrint("⚠️ Remote Config error: $e");
     }
   }
 
-  // ✅ Only Play Store referrer remains
-  Future<void> checkInstallReferrer() async {
-    try {
-      final ReferrerDetails details = await AndroidPlayInstallReferrer.installReferrer;
-      final String? referrerUrl = details.installReferrer;
+  Future<void> _requestNotificationPermission() async {
+    final status = await Permission.notification.status;
+    if (status.isDenied || status.isRestricted) {
+      await Permission.notification.request();
+    }
+  }
 
-      debugPrint("🎯 Referrer URL: $referrerUrl");
+  Future<void> _checkInstallReferrer() async {
+    try {
+      final details = await AndroidPlayInstallReferrer.installReferrer;
+      final referrerUrl = details.installReferrer;
 
       if (referrerUrl != null && referrerUrl.contains("ref=")) {
         final uri = Uri.splitQueryString(referrerUrl);
@@ -78,9 +110,8 @@ class _FlashState extends State<Flash> {
         if (code != null && code.isNotEmpty) {
           final prefs = await SharedPreferences.getInstance();
           await prefs.setString("pending_referral_code", code);
+          debugPrint("🎯 Referral code saved: $code");
         }
-      } else {
-        debugPrint("ℹ️ No referral info found in Play Store URL.");
       }
     } catch (e) {
       debugPrint("❌ Install Referrer Error: $e");
@@ -89,8 +120,8 @@ class _FlashState extends State<Flash> {
 
   Future<void> _handleNavigation(BuildContext context) async {
     final prefs = await SharedPreferences.getInstance();
-
     final isOnboardingViewed = prefs.getBool(Flash.KEYLOGIN) ?? false;
+
     if (!isOnboardingViewed) {
       _navigateTo(context, const OnBoarding());
       return;
@@ -98,21 +129,18 @@ class _FlashState extends State<Flash> {
 
     await FirebaseAuth.instance.authStateChanges().first;
     final token = await Helper.getAuthToken();
-    // ✅ globalPendingRoute + widget.initialRoute dono handle karo
     final route = widget.initialRoute ?? globalPendingRoute;
 
     if (token != null && token.isNotEmpty) {
-
       if (route != null) {
         WidgetsBinding.instance.addPostFrameCallback((_) {
           Navigator.pushNamed(context, route);
         });
-      }else{
+      } else {
         _navigateTo(context, const Home(onPage: 1));
       }
 
-      final userProvider = Provider.of<UserProvider>(context, listen: false);
-      userProvider.fetchCurrentUser();
+      unawaited(Provider.of<UserProvider>(context, listen: false).fetchCurrentUser());
     } else {
       _navigateTo(context, Authentication());
     }
@@ -120,54 +148,55 @@ class _FlashState extends State<Flash> {
 
   void _navigateTo(BuildContext context, Widget screen) {
     if (!mounted) return;
-    Navigator.pushReplacement(context,
+    Navigator.pushReplacement(
+      context,
       PageRouteBuilder(
         pageBuilder: (_, __, ___) => screen,
-        transitionDuration: Duration(milliseconds: 500),
-        transitionsBuilder: (_, a, __, c) => FadeTransition(opacity: a, child: c),
+        transitionDuration: const Duration(milliseconds: 400),
+        transitionsBuilder: (_, a, __, c) =>
+            FadeTransition(opacity: a, child: c),
       ),
     );
   }
 
-
-
   @override
   Widget build(BuildContext context) {
-    ColorScheme theme = Theme.of(context).colorScheme;
+    final theme = Theme.of(context).colorScheme;
     return Consumer<InternetProvider>(
       builder: (context, internetProvider, _) {
         return Scaffold(
           backgroundColor: theme.secondaryContainer,
           body: Container(
             decoration: BoxDecoration(
-            gradient: LinearGradient(
-            colors: [theme.secondaryContainer, theme.secondary,],
-            begin: Alignment.topCenter,
-            end: Alignment.bottomCenter,
-        ),),
+              gradient: LinearGradient(
+                colors: [theme.secondaryContainer, theme.secondary],
+                begin: Alignment.topCenter,
+                end: Alignment.bottomCenter,
+              ),
+            ),
             child: Center(
               child: internetProvider.isConnected
-                  ? SizedBox(
-                width: 120,
-                height: 120,
-                child: Image.asset('assets/images/socialtask.png'),
+                  ? Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Image.asset('assets/images/socialtask.png',
+                      width: 120, height: 120),
+                ],
               )
                   : Column(
                 mainAxisAlignment: MainAxisAlignment.spaceEvenly,
                 children: [
-                  SizedBox(
-                    width: 120,
-                    height: 120,
-                    child: Image.asset('assets/images/socialtask.png'),
-                  ),
+                  Image.asset('assets/images/socialtask.png',
+                      width: 120, height: 120),
                   Column(
-                    mainAxisAlignment: MainAxisAlignment.start,
-                    children: [
-                      const Icon(Icons.wifi_off, color: Colors.white, size: 60),
-                      const SizedBox(height: 12),
-                      const Text(
+                    children: const [
+                      Icon(Icons.wifi_off,
+                          color: Colors.white, size: 60),
+                      SizedBox(height: 12),
+                      Text(
                         "No Internet Connection",
-                        style: TextStyle(color: Colors.white, fontSize: 18),
+                        style:
+                        TextStyle(color: Colors.white, fontSize: 18),
                       ),
                     ],
                   ),

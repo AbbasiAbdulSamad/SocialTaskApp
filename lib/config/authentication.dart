@@ -9,6 +9,7 @@ import 'package:http/http.dart' as http;
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:url_launcher/url_launcher.dart';
 import '../screen/home.dart';
+import '../server_model/LocalNotificationManager.dart';
 import '../server_model/signout.dart';
 import '../ui/button.dart';
 import '../ui/flash_message.dart';
@@ -31,6 +32,7 @@ class _AuthenticationState extends State<Authentication> {
 
    // ✅ Google Sign-In and Authentication with Backend
    Future<UserCredential?> signInWithGoogle(BuildContext context) async {
+     if (!mounted) return null;
      setState(() => _loading = true);
      try {
        final GoogleSignInAccount? googleUser = await _googleSignIn.signIn();
@@ -82,6 +84,7 @@ class _AuthenticationState extends State<Authentication> {
          if (response.statusCode == 200 || (response.statusCode == 400 && data["message"] == "User already exists")) {
            debugPrint("✅ Login Successful Country : $country}");
 
+
            // ✅ Clear referral after using
            if (referralCodeFromPrefs != null) {
              await prefs.remove('pending_referral_code');
@@ -94,7 +97,12 @@ class _AuthenticationState extends State<Authentication> {
            Navigator.pushAndRemoveUntil(
              context,
              MaterialPageRoute(builder: (_) => const Home(onPage: 1)),
-                 (route) => false,
+                 (route) => false,);
+
+           await LocalNotificationManager.saveNotification(
+               title: 'Login Successfully',
+               body: '📍$country',
+               screenId: "Login"
            );
          } else {
            AlertMessage.errorMsg(context, '${data['message']}', 'Error!');
@@ -107,6 +115,7 @@ class _AuthenticationState extends State<Authentication> {
        AlertMessage.errorMsg(context, errorMessage, 'Error!');
        return null;
      } finally {
+       if (!mounted) return null;
        setState(() => _loading = false);
      }
    }

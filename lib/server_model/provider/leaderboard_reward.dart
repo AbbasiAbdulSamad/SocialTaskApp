@@ -8,6 +8,7 @@ import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 import 'package:provider/provider.dart';
+import '../LocalNotificationManager.dart';
 import '../local_notifications.dart';
 import '../page_load_fetchData.dart';
 
@@ -78,6 +79,11 @@ class LeaderboardReward with ChangeNotifier {
           body: 'You earned +${_reward ?? 0} tickets from leaderboard!',
         );
 
+        await LocalNotificationManager.saveNotification(
+          title: '🏆 Top #$_rank Ranked',
+          body: '+$_reward tickets earned reward from leaderboard!',
+          screenId: "LeaderboardScreen"
+        );
 
         Future.delayed(const Duration(seconds: 5), () {
           _animation = false;
