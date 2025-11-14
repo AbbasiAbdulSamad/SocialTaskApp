@@ -13,16 +13,16 @@ class UnityAdsManager {
   static const String _androidGameId = "5980273";
   static const String _bannerId = "Banner_Android";
   static const String _rewardedId = "Rewarded_Android";
-  static const String _interstitialId = "Interstitial_Android"; // 🆕 New Interstitial ID
+  static const String _interstitialId = "Interstitial_Android";
 
   static bool _rewardedLoaded = false;
-  static bool _interstitialLoaded = false; // 🆕 New flag
+  static bool _interstitialLoaded = false;
 
   /// 🔹 Initialize Unity Ads
   static Future<void> initialize() async {
     UnityAds.init(
       gameId: _androidGameId,
-      testMode: false,
+      testMode: true,
       onComplete: () {
         debugPrint("✅ Unity Ads Initialized");
         loadRewardedAd();

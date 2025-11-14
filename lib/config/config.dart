@@ -54,6 +54,8 @@ class ApiPoints {
 
   // Social Data
   static String get socialInstagramData => '${AppConfig.baseUrl}/api/instagram';
+  static String get tiktokTaskCheck => '${AppConfig.baseUrl}/api/tiktok/tiktok-check-task';
+  static String get tiktokTaskVerify => '${AppConfig.baseUrl}/api/tiktok/tiktok-verify-task';
 
   // App Version Checking
   // static String get appVersionUpdate => '${AppConfig.baseUrl}/api/app-version';

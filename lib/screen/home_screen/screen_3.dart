@@ -1,6 +1,4 @@
 import 'dart:async';
-import 'dart:ui' as ui;
-import 'package:app/server_model/rate_app.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_overlay_window/flutter_overlay_window.dart';
 import 'package:provider/provider.dart';
@@ -85,25 +83,13 @@ class _Screen3State extends State<Screen3> with WidgetsBindingObserver{
 
     if (granted == true) {
       TikTokTaskHandler.startTikTokTask(
-        context: context,
+        contextPop: context,
         tiktokUrl: tiktokUrl,
         taskType: selectOption,
         campaignId: campaignId,
         reward: reward,
         screenFrom: 1,
       );
-
-      await FlutterOverlayWindow.showOverlay(
-        width: WindowSize.matchParent,
-        height: 600,
-        alignment: OverlayAlignment.topLeft,
-        flag: OverlayFlag.defaultFlag,
-        enableDrag: false,
-        overlayTitle: "Social Task",
-        visibility: NotificationVisibility.visibilityPublic,
-      );
-      await FlutterOverlayWindow.shareData(selectOption);
-
     } else {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(content: Text('Please give the permission\nDraw permission not granted')),
@@ -159,10 +145,12 @@ class _Screen3State extends State<Screen3> with WidgetsBindingObserver{
                       await _checkInternet();
                       // Check Task Click Internet
                       if (_internetCheck) {
+
+
                         // Tiktok Task
                         if(campaign['social']=="TikTok"){
 
-                  // 🟢 Check permission first, then show overlay
+                  // TikTok Check permission first, then show overlay
                       await tiktokTaskOverlay(
                         campaign['selectedOption'],
                         campaign['videoUrl'],

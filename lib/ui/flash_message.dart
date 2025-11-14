@@ -2,11 +2,11 @@ import 'package:flutter/material.dart';
 class AlertMessage{
 
 //🔹error message display
-  static errorMsg(BuildContext context, String message, String title){
+  static errorMsg(BuildContext context, String message, String title, {int time=5}){
     ColorScheme theme = Theme.of(context).colorScheme;
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(
-        duration: const Duration(seconds: 5),
+        duration: Duration(seconds: time),
         backgroundColor: theme.error,
         behavior: SnackBarBehavior.floating,
         shape: RoundedRectangleBorder(

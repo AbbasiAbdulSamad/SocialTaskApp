@@ -142,7 +142,7 @@ class _Screen2State extends State<Screen2> with WidgetsBindingObserver{
 
     if (granted == true) {
       TikTokTaskHandler.startTikTokTask(
-        context: context,
+        contextPop: context,
         tiktokUrl: tiktokUrl,
         taskType: selectOption,
         campaignId: campaignId,
