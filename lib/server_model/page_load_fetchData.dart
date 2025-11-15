@@ -26,6 +26,7 @@ class FetchDataService{
 
     // ✅ Step 1: Fetch campaigns first (so UI updates quickly)
     await allCampaignsProvider.fetchAllCampaigns(context: context, forceRefresh: forceRefresh);
+    allCampaignsProvider.clearSelectionMode();
 
     // ✅ Step 2: Run other APIs in the background
     Future.delayed(Duration.zero, () async {

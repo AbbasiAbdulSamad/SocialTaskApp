@@ -19,6 +19,7 @@ class DotMenuList extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    ColorScheme theme = Theme.of(context).colorScheme;
     return SizedBox(
       height: 30,
       child: PopupMenuButton<String>(
@@ -31,7 +32,7 @@ class DotMenuList extends StatelessWidget {
             value: item.value,
             child: Row(
               children: [
-                Icon(item.icon, size: 18),
+                Icon(item.icon, size: 18, color: theme.onPrimaryContainer,),
                 const SizedBox(width: 5),
                 Text(item.label, style: textTheme.displaySmall),
               ],

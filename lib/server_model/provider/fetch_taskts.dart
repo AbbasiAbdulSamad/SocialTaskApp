@@ -1,6 +1,7 @@
 import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
+import 'package:shared_preferences/shared_preferences.dart';
 import '../../config/authentication.dart';
 import '../../config/config.dart';
 import '../functions_helper.dart';
@@ -16,7 +17,106 @@ class AllCampaignsProvider with ChangeNotifier {
   List<String>? _selectedCategories;
   List<String>? _selectedOptions;
 
-  // Getters
+  // ----------------------------
+  // SELECTION MODE & Selected Tasks
+  // ----------------------------
+  bool _isSelectionMode = false;
+  List<String> _selectedTaskIds = [];
+  // CHECK IF ANY TASKS ARE HIDDEN
+  bool get hasHiddenTasks => _hiddenTasksWithExpiry.isNotEmpty;
+
+
+  // ----------------------------
+  // HIDDEN TASKS (SharedPreferences)
+  // ----------------------------
+  Map<String, String> _hiddenTasksWithExpiry = {}; // taskId -> expiry ISO string
+
+  bool get isSelectionMode => _isSelectionMode;
+  List<String> get selectedTaskIds => _selectedTaskIds;
+  List<String> get hiddenTaskIds => _hiddenTasksWithExpiry.keys.toList();
+
+  void enterSelectionMode(String taskId) {
+    if (!_isSelectionMode) _isSelectionMode = true;
+    if (!_selectedTaskIds.contains(taskId)) _selectedTaskIds.add(taskId);
+    notifyListeners();
+  }
+
+  void toggleTaskSelection(String taskId) {
+    if (_selectedTaskIds.contains(taskId)) {
+      _selectedTaskIds.remove(taskId);
+      if (_selectedTaskIds.isEmpty) _isSelectionMode = false;
+    } else {
+      _selectedTaskIds.add(taskId);
+    }
+    notifyListeners();
+  }
+
+  void clearSelectionMode() {
+    _isSelectionMode = false;
+    _selectedTaskIds.clear();
+    notifyListeners();
+  }
+
+  // ----------------------------
+  // RESET HIDDEN TASKS
+  // ----------------------------
+  Future<void> resetHiddenTasks() async {
+    _hiddenTasksWithExpiry.clear();
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.remove('hiddenTasksMap'); // remove from storage
+    _applyFilters(); // refresh the campaigns list
+  }
+
+
+  // ----------------------------
+  // HIDE TASKS WITH DURATION
+  // ----------------------------
+  Future<void> hideSelectedTasks(String duration) async {
+    int days = int.tryParse(duration.split(" ")[0]) ?? 1; // '3 day' -> 3
+    final now = DateTime.now();
+
+    for (String taskId in _selectedTaskIds) {
+      final expiry = now.add(Duration(days: days));
+      _hiddenTasksWithExpiry[taskId] = expiry.toIso8601String();
+    }
+
+    await _saveHiddenTasksToPrefs();
+    clearSelectionMode();
+    _applyFilters();
+  }
+
+  Future<void> hideTaskLocally(String taskId) async {
+    final now = DateTime.now();
+    _hiddenTasksWithExpiry[taskId] = now.add(Duration(days: 1)).toIso8601String();
+    await _saveHiddenTasksToPrefs();
+    _applyFilters();
+  }
+
+  Future<void> _saveHiddenTasksToPrefs() async {
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.setString('hiddenTasksMap', jsonEncode(_hiddenTasksWithExpiry));
+  }
+
+  Future<void> loadHiddenTasks() async {
+    final prefs = await SharedPreferences.getInstance();
+    final hiddenJson = prefs.getString('hiddenTasksMap');
+    if (hiddenJson != null) {
+      _hiddenTasksWithExpiry = Map<String, String>.from(jsonDecode(hiddenJson));
+    }
+
+    // Remove expired tasks automatically
+    final now = DateTime.now();
+    _hiddenTasksWithExpiry.removeWhere((key, value) {
+      final expiry = DateTime.tryParse(value);
+      return expiry == null || expiry.isBefore(now);
+    });
+
+    _applyFilters();
+  }
+
+  // ----------------------------
+  // FILTERS
+  // ----------------------------
   List<Map<String, dynamic>> get allCampaigns => _allCampaigns;
   bool get isLoading => _isLoading;
   String get errorMessage => _errorMessage;
@@ -24,61 +124,56 @@ class AllCampaignsProvider with ChangeNotifier {
   List<String>? get selectedCategories => _selectedCategories;
   List<String>? get selectedOptions => _selectedOptions;
 
-  // Set Filters
   void setSelectedSocial(List<String>? social) {
     _selectedSocial = social;
     _applyFilters();
   }
+
   void setSelectedCategories(List<String>? categories) {
     _selectedCategories = categories;
     _applyFilters();
   }
+
   void setSelectedOptions(List<String>? options) {
     _selectedOptions = options;
     _applyFilters();
   }
 
-  // Apply Filters on Original List
-  void _applyFilters() {
-    if ((_selectedCategories == null || _selectedCategories!.isEmpty) &&
-        (_selectedOptions == null || _selectedOptions!.isEmpty) &&
-        (_selectedSocial == null || _selectedSocial!.isEmpty)) {
-      _allCampaigns = List<Map<String, dynamic>>.from(_originalCampaigns);
-    } else {
-      _allCampaigns = _originalCampaigns.where((campaign) {
-        final matchCategory = _selectedCategories == null ||
-            _selectedCategories!.isEmpty ||
-            _selectedCategories!.contains(campaign['catagory']);
-
-        final matchOption = _selectedOptions == null ||
-            _selectedOptions!.isEmpty ||
-            _selectedOptions!.contains(campaign['selectedOption']);
-
-        final matchSocial = _selectedSocial == null ||
-            _selectedSocial!.isEmpty ||
-            _selectedSocial!.contains(campaign['social']);
-
-        return matchCategory && matchOption && matchSocial;
-      }).toList();
-    }
-    notifyListeners();
-  }
-
-
-  // Clear Filters
   void clearFilters() {
     _selectedSocial = null;
     _selectedCategories = null;
     _selectedOptions = null;
-    _allCampaigns = List<Map<String, dynamic>>.from(_originalCampaigns);
+    _applyFilters();
+  }
+
+  void _applyFilters() {
+    final now = DateTime.now();
+    _allCampaigns = _originalCampaigns.where((campaign) {
+      final matchCategory = _selectedCategories == null ||
+          _selectedCategories!.isEmpty ||
+          _selectedCategories!.contains(campaign['catagory']);
+
+      final matchOption = _selectedOptions == null ||
+          _selectedOptions!.isEmpty ||
+          _selectedOptions!.contains(campaign['selectedOption']);
+
+      final matchSocial = _selectedSocial == null ||
+          _selectedSocial!.isEmpty ||
+          _selectedSocial!.contains(campaign['social']);
+
+      final isHidden = _hiddenTasksWithExpiry.containsKey(campaign['_id']) &&
+          DateTime.tryParse(_hiddenTasksWithExpiry[campaign['_id']]!)?.isAfter(now) == true;
+
+      return matchCategory && matchOption && matchSocial && !isHidden;
+    }).toList();
     notifyListeners();
   }
 
-  // Fetch Data from API
+  // ----------------------------
+  // FETCH DATA
+  // ----------------------------
   Future<void> fetchAllCampaigns({required BuildContext context, bool forceRefresh = false}) async {
-    if (!forceRefresh) {
-      return;
-    }
+    if (!forceRefresh) return;
 
     _isLoading = true;
     _errorMessage = "";
@@ -107,8 +202,9 @@ class AllCampaignsProvider with ChangeNotifier {
           List<dynamic> campaigns = jsonDecode(response.body);
           _originalCampaigns = campaigns.cast<Map<String, dynamic>>();
 
+          // Load hidden tasks from SharedPreferences
+          await loadHiddenTasks();
           _applyFilters();
-
         } catch (e) {
           debugPrint("⚠️ JSON Decode Error: $e");
           _errorMessage = "Invalid response from server!";

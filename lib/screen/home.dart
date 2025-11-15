@@ -126,6 +126,7 @@ class _HomeState extends State<Home> {
       "Business", "Lifestyle", "Motivation", "News & Politics", "Sports",
     ];
 
+
     return Scaffold(
       backgroundColor: theme.primaryFixed,
       appBar: AppBar(
@@ -139,9 +140,7 @@ class _HomeState extends State<Home> {
           Padding(
             padding: const EdgeInsets.only(right: 10),
             child: TextButton(
-              onPressed: () {
-                Navigator.push(context, MaterialPageRoute(builder: (context)=> BuyTickets()));
-                },
+              onPressed: () {Helper.navigatePush(context, const BuyTickets());},
               child: Row(spacing: 5,
                 children: [
                   Text("${userProvider.currentUser?.coin ?? 0}",
@@ -170,197 +169,250 @@ class _HomeState extends State<Home> {
       Column(
         children: [
 
-          // 🔝 Fixed Hearder Tools bar
+          // 🔝 Header Tools bar
           (_currentIndex==2)?
           const SizedBox():
-          Container(
-            padding: const EdgeInsets.only(left: 5, right: 10),
-            width: double.infinity,
-            color: theme.shadow,
-            child: Row(
-                mainAxisAlignment: MainAxisAlignment.center,
+      Consumer<AllCampaignsProvider>(
+          builder: (context, allCampaignsProvider, child) {
+            return Container(
+              padding: Provider.of<AllCampaignsProvider>(context, listen: false).isSelectionMode?
+              const EdgeInsets.only(top: 2, bottom: 2, right: 20, left: 25):
+              const EdgeInsets.only(left: 5, right: 10),
+              width: double.infinity,
+              color: theme.shadow,
+              child:
+              Provider.of<AllCampaignsProvider>(context, listen: false).isSelectionMode?
+
+            // If Select any task show this Bar tools
+              Row(
                 children: [
-                  Tooltip(
-                    message: "Social Logins",
-                    child: IconButton(onPressed: (){
-                      Ui.Add_campaigns_pop(context, "Login Your Social Accounts",
-                          Container(
-                            width: double.infinity,
-                            height: 250,
-                            color: theme.primaryFixed,
-                            child: Column(spacing: 15,
-                              mainAxisAlignment: MainAxisAlignment.center,
-                              children: [
-                                MyButton(txt: 'YouTube Login', img: 'youtube_icon.webp', bgColor: theme.secondary,
-                                    borderLineOn: true, borderColor: theme.onPrimaryContainer, borderLineSize: 0.5, borderRadius: 20,
-                                    txtColor: Colors.white, txtSize: 15, icoSize: 30, pading: EdgeInsets.symmetric(horizontal: 30),
-                                    onClick: (){
-                                      Navigator.push(context, MaterialPageRoute(builder: (context)=>
-                                          SocialLogins(loginSocial: "YouTube")));
-                                    }),
-
-                                MyButton(txt: 'Instagram Login', img: 'instagram_icon.webp', bgColor: theme.secondary,
-                                    borderLineOn: true, borderColor: theme.onPrimaryContainer, borderLineSize: 0.5, borderRadius: 20,
-                                    txtColor: Colors.white, txtSize: 15, icoSize: 30, pading: EdgeInsets.symmetric(horizontal: 30),
-                                    onClick: (){
-                                      Navigator.push(context, MaterialPageRoute(builder: (context)=>
-                                          SocialLogins(loginSocial: "Instagram")));
-                                    }),
-
-                              ],),
-                          ));
-
-                    }, icon: Icon(Icons.login, size: 25, color: theme.onPrimaryContainer,)),
-                  ),
-
-
-                  Transform.scale(
-                    scale: 0.8,
-                    child: Switch(
-                      value: Provider.of<UserProvider>(context).autoTask,
-                      activeColor: theme.errorContainer,
-                      inactiveThumbColor: Colors.red,
-                      onChanged: (value) {
-                        Provider.of<UserProvider>(context, listen: false).setAutoTask(value);
-                        if(value==true){
-                          AlertMessage.snackMsg(context: context, message: "Auto YouTube Like/Subscribe Tasks Supported.", time: 2);
-                        }
-                      },
-                    ),
-                  ),
-                  Text(Provider.of<UserProvider>(context).autoTask==true? "$userAutoLimit": "Auto",
-                    style:Provider.of<UserProvider>(context).autoTask==true?TextStyle(fontSize: 23):
-                    textTheme.labelMedium?.copyWith(fontSize: 20, color: theme.onPrimaryContainer)
-                    ,),
-                  const Expanded(child: SizedBox()),
                   InkWell(
-                    onTap: (){
-                      showDialog(
-                        context: context,
-                        builder: (BuildContext context) {
-                          return StatefulBuilder(
-                            builder: (context, setState) {
-                              return AlertDialog(
-                                backgroundColor: Colors.transparent,
-                                contentPadding: EdgeInsets.zero,
-                                insetPadding: const EdgeInsets.all(20),
-                                shape:  RoundedRectangleBorder(borderRadius: BorderRadius.circular(8),),
-                                content: SingleChildScrollView(
-                                  child: Container(
-                                    height: 350,
-                                    decoration: BoxDecoration(
-                                      gradient: LinearGradient(
-                                        colors: [theme.secondary, theme.secondaryContainer,],
-                                        begin: Alignment.topRight,
-                                        end: Alignment.bottomLeft,
-                                      ),
-                                      borderRadius: BorderRadius.circular(12),
-                                    ),
-                                    padding: const EdgeInsets.all(20),
-                                    child: Column(
-                                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                                      children: [
-                                        Column(
-                                          children: [
-                                            Row(spacing: 5,
-                                              children: [
-                                                const Icon(Icons.filter_alt, color: Colors.white,),
-                                                Text("Task Filters", style: Theme.of(context).textTheme.displaySmall?.
-                                                copyWith(fontSize: 20, color: Colors.white),),
-                                              ],
-                                            ),
-                                            const SizedBox(height: 50),
-                                            Ui.buildMultiSelectDropdown(context,
-                                              title: "Social Task", items: socialList,
-                                              selectedItems: selectedSocial, setState: setState,
-                                            ),
-
-                                            const SizedBox(height: 20,),
-                                            Ui.buildMultiSelectDropdown(context,
-                                              title: "Categories", items: categoryList,
-                                              selectedItems: selectedCategories, setState: setState,),
-
-                                            const SizedBox(height: 20),
-                                            Ui.buildMultiSelectDropdown(context,
-                                              title: "Task Type", items: optionList,
-                                              selectedItems: selectedOptions, setState: setState,
-                                            ),
-
-                                          ],
-                                        ),
-
-                                        Row(mainAxisAlignment: MainAxisAlignment.end,
-                                          spacing: 10,
-                                          children: [
-                                            TextButton(
-                                              child: const Row(spacing: 2,
-                                                children: [
-                                                  Icon(Icons.refresh, color: Colors.orange, size: 20,),
-                                                  Text("Reset", style: TextStyle(color: Colors.orange, fontSize: 20, fontFamily: "3rdRoboto"),),
-                                                ],
-                                              ),
-                                              onPressed: () {
-                                                selectedSocial.clear();
-                                                selectedOptions.clear();
-                                                selectedCategories.clear();
-                                                provider.clearFilters();
-                                                Navigator.of(context).pop(false);
-                                              },
-                                            ),
-                                            SizedBox(height: 35, width: 100,
-                                              child: MyButton(txt: "Apply", borderRadius: 40, pading: const EdgeInsets.only(left: 20, right: 20), shadowOn: true,
-                                                  bgColor: theme.onPrimary, borderLineOn: true, borderLineSize: 0.5, borderColor: theme.onPrimaryContainer, txtSize: 16, txtColor: Colors.black,
-                                                  onClick: (){
-                                                    provider.setSelectedSocial(selectedSocial);
-                                                    provider.setSelectedCategories(selectedCategories);
-                                                    provider.setSelectedOptions(selectedOptions);
-                                                    Navigator.of(context).pop(true);
-                                                  } ),
-                                            ),
-                                          ],
-                                        ),
-                                      ],
-                                    ),
-                                  ),
-                                ),
-                              );
-                            },
-                          );
-                        },
-                      );
-                    },
-                    child: Tooltip(
-                      message: "Task Filters",
-                      child: Row(
-                        children: [
-                          Icon(Icons.filter_alt, color: theme.onPrimaryFixed,),
-                          Text('Filters', style: TextStyle(fontSize: 17, fontFamily: '3rdRoboto', color: theme.onPrimaryFixed),),
-                        ],
-                      ),
-                    ),
-                  ),
-                  const SizedBox(width: 10,),
-                  Tooltip(message: "Notifications",
-                    child: Stack(
+                    onTap: (){Provider.of<AllCampaignsProvider>(context, listen: false).clearSelectionMode();},
+                    child: Row(spacing: 3,
                       children: [
-                        IconButton(icon: Icon(Icons.notifications, size: 27,), color: theme.onPrimaryFixed,
-                          onPressed: (){
-                            _resetCount();
-                          Shortpageopen.shortPage(context, Icons.notifications, 'Notifications', _notificationsWidget(context));
-                          } ,),
-
-                        if(notificationCount>0)
-                        Positioned(right: 10, top: 10,
-                            child: Text(
-                              (notificationCount>=100)?"99+":
-                              "$notificationCount", style: textTheme.displaySmall?.
-                            copyWith(color: theme.errorContainer, fontWeight: FontWeight.w800, fontSize: 13),))
-
+                        Icon(Icons.select_all, color: theme.onPrimaryContainer),
+                        Text("Unselect", style: Theme.of(context).textTheme.displaySmall?.
+                        copyWith(fontSize: 18, color: theme.onPrimaryContainer),),
                       ],
                     ),
                   ),
+                 const Expanded(child: SizedBox()),
+                  SizedBox(width: 125,
+                    child: DropdownButton<String>(
+                      hint: Text("Hide Selected", style: Theme.of(context).textTheme.displaySmall?.
+                      copyWith(fontSize: 18, color: theme.onPrimaryContainer),),
+                      isExpanded: true,
+                      underline:const  SizedBox(),
+                      items: ["1 day", "3 day", "5 day", "7 day"].map((option) {
+                        return DropdownMenuItem<String>(
+                          value: option,
+                          child: Text(option),
+                        );
+                      }).toList(),
+                      onChanged: (value) {
+                        if (value != null) {
+                          final provider = Provider.of<AllCampaignsProvider>(context, listen: false);
+                          provider.hideSelectedTasks(value);
+                          provider.clearSelectionMode();
+                          AlertMessage.snackMsg(context: context, message: "Selected Tasks Hidden");
+                        }
+                      },
+                    ),
+                  )
                 ],
-              ),
+              ):
+
+              Row(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    Tooltip(
+                      message: "Social Logins",
+                      child: IconButton(onPressed: (){
+                        Ui.Add_campaigns_pop(context, "Login Your Social Accounts",
+                            Container(
+                              width: double.infinity,
+                              height: 250,
+                              color: theme.primaryFixed,
+                              child: Column(spacing: 15,
+                                mainAxisAlignment: MainAxisAlignment.center,
+                                children: [
+                                  MyButton(txt: 'YouTube Login', img: 'youtube_icon.webp', bgColor: theme.secondary,
+                                      borderLineOn: true, borderColor: theme.onPrimaryContainer, borderLineSize: 0.5, borderRadius: 20,
+                                      txtColor: Colors.white, txtSize: 15, icoSize: 30, pading: EdgeInsets.symmetric(horizontal: 30),
+                                      onClick: (){
+                                    Helper.navigatePush(context, const  SocialLogins(loginSocial: "YouTube"));
+                                      }),
+
+                                  MyButton(txt: 'Instagram Login', img: 'instagram_icon.webp', bgColor: theme.secondary,
+                                      borderLineOn: true, borderColor: theme.onPrimaryContainer, borderLineSize: 0.5, borderRadius: 20,
+                                      txtColor: Colors.white, txtSize: 15, icoSize: 30, pading: EdgeInsets.symmetric(horizontal: 30),
+                                      onClick: (){
+                                        Helper.navigatePush(context, const  SocialLogins(loginSocial: "Instagram"));
+                                      }),
+
+                                ],),
+                            ));
+
+                      }, icon: Icon(Icons.login, size: 25, color: theme.onPrimaryContainer,)),
+                    ),
+
+
+                    Transform.scale(
+                      scale: 0.8,
+                      child: Switch(
+                        value: Provider.of<UserProvider>(context).autoTask,
+                        activeColor: theme.errorContainer,
+                        inactiveThumbColor: Colors.red,
+                        onChanged: (value) {
+                          Provider.of<UserProvider>(context, listen: false).setAutoTask(value);
+                          if(value==true){
+                            AlertMessage.snackMsg(context: context, message: "Auto YouTube Like/Subscribe Tasks Supported.", time: 2);
+                          }
+                        },
+                      ),
+                    ),
+                    Text(Provider.of<UserProvider>(context).autoTask==true? "$userAutoLimit": "Auto",
+                      style:Provider.of<UserProvider>(context).autoTask==true?TextStyle(fontSize: 23):
+                      textTheme.labelMedium?.copyWith(fontSize: 20, color: theme.onPrimaryContainer)
+                      ,),
+                    const Expanded(child: SizedBox()),
+                    if(provider.hasHiddenTasks)Tooltip(
+                        message: "Show Hidden Tasks",
+                        child: IconButton(onPressed: () async{
+                          await provider.resetHiddenTasks();
+                          AlertMessage.snackMsg(context: context, message: "Hidden Tasks Shown", time: 4);
+                        }, icon: Icon(Icons.restart_alt, size: 27, color: theme.onPrimaryFixed),)),
+
+                    InkWell(
+                      onTap: (){
+                        showDialog(
+                          context: context,
+                          builder: (BuildContext context) {
+                            return StatefulBuilder(
+                              builder: (context, setState) {
+                                return AlertDialog(
+                                  backgroundColor: Colors.transparent,
+                                  contentPadding: EdgeInsets.zero,
+                                  insetPadding: const EdgeInsets.all(20),
+                                  shape:  RoundedRectangleBorder(borderRadius: BorderRadius.circular(8),),
+                                  content: SingleChildScrollView(
+                                    child: Container(
+                                      height: 350,
+                                      decoration: BoxDecoration(
+                                        gradient: LinearGradient(
+                                          colors: [theme.secondary, theme.secondaryContainer,],
+                                          begin: Alignment.topRight,
+                                          end: Alignment.bottomLeft,
+                                        ),
+                                        borderRadius: BorderRadius.circular(12),
+                                      ),
+                                      padding: const EdgeInsets.all(20),
+                                      child: Column(
+                                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                                        children: [
+                                          Column(
+                                            children: [
+                                              Row(spacing: 5,
+                                                children: [
+                                                  const Icon(Icons.filter_alt, color: Colors.white,),
+                                                  Text("Task Filters", style: Theme.of(context).textTheme.displaySmall?.
+                                                  copyWith(fontSize: 20, color: Colors.white),),
+                                                ],
+                                              ),
+                                              const SizedBox(height: 50),
+                                              Ui.buildMultiSelectDropdown(context,
+                                                title: "Social Task", items: socialList,
+                                                selectedItems: selectedSocial, setState: setState,
+                                              ),
+
+                                              const SizedBox(height: 20,),
+                                              Ui.buildMultiSelectDropdown(context,
+                                                title: "Categories", items: categoryList,
+                                                selectedItems: selectedCategories, setState: setState,),
+
+                                              const SizedBox(height: 20),
+                                              Ui.buildMultiSelectDropdown(context,
+                                                title: "Task Type", items: optionList,
+                                                selectedItems: selectedOptions, setState: setState,
+                                              ),
+
+                                            ],
+                                          ),
+
+                                          Row(mainAxisAlignment: MainAxisAlignment.end,
+                                            spacing: 10,
+                                            children: [
+                                              TextButton(
+                                                child: const Row(spacing: 2,
+                                                  children: [
+                                                    Icon(Icons.refresh, color: Colors.orange, size: 20,),
+                                                    Text("Reset", style: TextStyle(color: Colors.orange, fontSize: 20, fontFamily: "3rdRoboto"),),
+                                                  ],
+                                                ),
+                                                onPressed: () {
+                                                  selectedSocial.clear();
+                                                  selectedOptions.clear();
+                                                  selectedCategories.clear();
+                                                  provider.clearFilters();
+                                                  Navigator.of(context).pop(false);
+                                                },
+                                              ),
+                                              SizedBox(height: 35, width: 100,
+                                                child: MyButton(txt: "Apply", borderRadius: 40, pading: const EdgeInsets.only(left: 20, right: 20), shadowOn: true,
+                                                    bgColor: theme.onPrimary, borderLineOn: true, borderLineSize: 0.5, borderColor: theme.onPrimaryContainer, txtSize: 16, txtColor: Colors.black,
+                                                    onClick: (){
+                                                      provider.setSelectedSocial(selectedSocial);
+                                                      provider.setSelectedCategories(selectedCategories);
+                                                      provider.setSelectedOptions(selectedOptions);
+                                                      Navigator.of(context).pop(true);
+                                                    } ),
+                                              ),
+                                            ],
+                                          ),
+                                        ],
+                                      ),
+                                    ),
+                                  ),
+                                );
+                              },
+                            );
+                          },
+                        );
+                      },
+                      child: Tooltip(message: "Task Filters",
+                        child: Row(
+                          children: [
+                            Icon(Icons.filter_alt, color: theme.onPrimaryFixed,),
+                            Text('Filters', style: TextStyle(fontSize: 17, fontFamily: '3rdRoboto', color: theme.onPrimaryFixed),),
+                          ],
+                        ),
+                      ),
+                    ),
+
+                    const SizedBox(width: 10,),
+                    Tooltip(message: "Notifications",
+                      child: Stack(
+                        children: [
+                          IconButton(icon: Icon(Icons.notifications, size: 27,), color: theme.onPrimaryFixed,
+                            onPressed: (){
+                              _resetCount();
+                            Shortpageopen.shortPage(context, Icons.notifications, 'Notifications', _notificationsWidget(context));
+                            } ,),
+
+                          if(notificationCount>0)
+                          Positioned(right: 10, top: 10,
+                              child: Text(
+                                (notificationCount>=100)?"99+":
+                                "$notificationCount", style: textTheme.displaySmall?.
+                              copyWith(color: theme.errorContainer, fontWeight: FontWeight.w800, fontSize: 13),))
+
+                        ],
+                      ),
+                    ),
+                  ],
+                ),
+            );
+            }
           ),
 
 

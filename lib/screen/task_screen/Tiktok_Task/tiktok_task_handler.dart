@@ -8,7 +8,6 @@ import 'package:flutter_overlay_window/flutter_overlay_window.dart';
 import 'package:http/http.dart' as http;
 import 'package:url_launcher/url_launcher.dart';
 import '../../../ui/flash_message.dart';
-import '../../../ui/pop_alert.dart';
 
 class TikTokTaskHandler {
   static bool _taskLaunched = false;

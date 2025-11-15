@@ -42,64 +42,6 @@ class _CampaignPageState extends State<CampaignPage> {
     await FetchDataService.fetchData(context, forceRefresh: true);
   }
 
-  Future<void> reCreateCampaign({
-    required BuildContext context,
-    required String title,
-    required String videoUrl,
-    required int watchTime,
-    required int quantity,
-    required String selectedOption,
-    required String campaignImg,
-    required String social,
-    required String catagory,
-  }) async {
-    try {
-      // ✅ Validate quantity before proceeding
-      if (quantity <= 0) {
-        AlertMessage.errorMsg(context, "Quantity must be greater than 10.", "Invalid Input");
-        return;
-      }
-      String? token = await Helper.getAuthToken();
-      if (token == null) return;
-      final response = await http.post(
-        Uri.parse(ApiPoints.campaignsPost),
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': 'Bearer $token',
-        },
-        body: jsonEncode({
-          'title': title,
-          'videoUrl': videoUrl,
-          'watchTime': watchTime,
-          'quantity': quantity,
-          'selectedOption': selectedOption,
-          'campaignImg': campaignImg,
-          'social': social,
-          'catagory': catagory,
-        }),
-      );
-
-      if (response.statusCode == 201){
-        Navigator.pushAndRemoveUntil(context, MaterialPageRoute(builder: (_) => const Home(onPage: 2)), (route) => false);
-        AlertMessage.successMsg(context, 'New $selectedOption campaign is now active.', 'Success');
-      } else {
-        String errorMessage = "Something went wrong, please try again.";
-        try {
-          final errorJson = jsonDecode(response.body);
-          if (errorJson.containsKey('error')) {
-            errorMessage = errorJson['error'];
-          }
-        } catch (e) {
-          debugPrint("⚠️ Error parsing JSON response: $e");
-        }
-        // ✅ Show actual error message
-        AlertMessage.errorMsg(context, errorMessage, 'Not enough');
-      }
-    } catch (e) {
-      debugPrint("❌ Exception: $e");
-      AlertMessage.errorMsg(context, 'Something went wrong, please try again.', 'An Error');
-    }
-  }
   @override
   Widget build(BuildContext context) {
     ColorScheme theme = Theme.of(context).colorScheme;
@@ -146,7 +88,6 @@ class _CampaignPageState extends State<CampaignPage> {
                     ? (campaign['viewers'].length >= campaign['quantity'] ? 1.0 : campaign['viewers'].length / campaign['quantity'])
                     : 0;
 
-
                 return Card(
                   margin: const EdgeInsets.symmetric(horizontal: 15, vertical: 5),
                   color: theme.background,
@@ -154,162 +95,177 @@ class _CampaignPageState extends State<CampaignPage> {
                   shape: RoundedRectangleBorder(
                     borderRadius: BorderRadius.circular(7),
                   ),
-                  child:  Padding(
-                    padding: const EdgeInsets.all(6.0),
-                    child: Row(spacing: 10,
-                      children: [
-                        (campaign['campaignImg'] != '')
-                            ? (campaign['selectedOption'] == 'Subscribers' || campaign['selectedOption'] == 'Followers')
-                            ? Container(
-                          width: 65,
-                          decoration: BoxDecoration(
-                            shape: BoxShape.circle,
-                            border: Border.all(color: theme.onPrimaryContainer, width: 1.0),
-                          ),
-                          child: ClipOval(
-                            child: Ui.networkImage(context, "${campaign['campaignImg']}", 'assets/ico/image_loading.png', 65, 63)
-                          ),
-                        )
-                            : ClipRRect(
-                          borderRadius: BorderRadius.circular(5),
-                          child: Ui.networkImage(context, "${campaign['campaignImg']}", 'assets/ico/image_loading.png', 80, 55)
-                        ) : Image.asset('assets/ico/image_loading.png',
-                            width: 75, height: 50, color: theme.onPrimaryContainer),
+                  child:  InkWell(
+                    onTap: (){
+                      Helper.navigatePush(context, CampaignDetails(videoUrl: campaign['videoUrl'], videoTitle: campaign['title'],
+                          progress: progress, campaignImg: campaign['campaignImg'], selectedOption: campaign['selectedOption'], quantity: campaign['quantity'], viewers: campaign['viewers'].length, status: campaign['status'],
+                          social: campaign['social'], watchTime: campaign['watchTime'], created: campaign['createdAt'], category: campaign['catagory'], completedAt: campaign['completedAt'],
+                          campaignCost: campaign['campaignCost'], campaignId: campaign['_id']));
+                    },
+                    child: Padding(
+                      padding: const EdgeInsets.all(6.0),
+                      child: Row(spacing: 10,
+                        children: [
+                          (campaign['campaignImg'] != '')
+                              ? (campaign['selectedOption'] == 'Subscribers' || campaign['selectedOption'] == 'Followers')
+                              ? Container(
+                            width: 65,
+                            decoration: BoxDecoration(
+                              shape: BoxShape.circle,
+                              border: Border.all(color: theme.onPrimaryContainer, width: 1.0),
+                            ),
+                            child: ClipOval(
+                              child: Ui.networkImage(context, "${campaign['campaignImg']}", 'assets/ico/image_loading.png', 65, 63)
+                            ),
+                          )
+                              : ClipRRect(
+                            borderRadius: BorderRadius.circular(5),
+                            child: Ui.networkImage(context, "${campaign['campaignImg']}", 'assets/ico/image_loading.png', 80, 55)
+                          ) : Image.asset('assets/ico/image_loading.png',
+                              width: 75, height: 50, color: theme.onPrimaryContainer),
 
 
-                        Expanded(
-                          child: Column(spacing: 7,
-                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                            crossAxisAlignment: CrossAxisAlignment.start, // Left align everything
-                            children: [
+                          Expanded(
+                            child: Column(spacing: 7,
+                              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                              crossAxisAlignment: CrossAxisAlignment.start, // Left align everything
+                              children: [
 
-                              Row(
-                                children: [
-                                  Expanded(
-                                    child: Text(campaign['title'] ?? '', maxLines: 1, overflow: TextOverflow.ellipsis, style: textTheme.displaySmall?.
-                                    copyWith(fontSize: 14, height: 0.8, fontWeight: FontWeight.bold, color: theme.onPrimaryContainer,
-                                      ),),
-                                  ),
-
-                                  campaign['status']=="Completed"?
-                      // Completed Campaigns Menu Actions
-                                  getDefaultDotMenu(context,
-                                    [
-                              // Details Button
-                                      {"label": "Details", "icon": Icons.visibility, "value": "details", "onTap": (){
-
-                                        if (internetProvider.isConnected) {
-                                          Helper.navigatePush(context, CampaignDetails(videoUrl: campaign['videoUrl'], videoTitle: campaign['title'],
-                                          progress: progress, campaignImg: campaign['campaignImg'], selectedOption: campaign['selectedOption'], quantity: campaign['quantity'], viewers: campaign['viewers'].length, status: campaign['status'],
-                                          social: campaign['social'], watchTime: campaign['watchTime'], created: campaign['createdAt'], completedAt: campaign['completedAt'],
-                                            campaignCost: campaign['campaignCost'], campaignId: campaign['_id']));
-                                        } else {
-                                          AlertMessage.snackMsg(context: context, message: 'No internet connection. Please connect to the network.', time: 3);
-                                        }
-                                        },},
-                              // Recreate Button
-                                      {"label": "Recreate", "icon": Icons.settings_backup_restore, "value": "recreate", "onTap": () async{
-                                        if (internetProvider.isConnected) {
-                                          await reCreateCampaign(
-                                            context: context,
-                                            title: campaign['title']!,
-                                            videoUrl: campaign['videoUrl']!,
-                                            watchTime: (campaign['social']=="YouTube")?campaign['watchTime']:0,
-                                            quantity: campaign['quantity'],
-                                            selectedOption: campaign['selectedOption'],
-                                            campaignImg: campaign['campaignImg'],
-                                            social: campaign['social'],
-                                            catagory: campaign["catagory"],
-                                          );
-                                        } else {
-                                          AlertMessage.snackMsg(context: context, message: 'No internet connection. Please connect to the network.', time: 3);
-                                        }
-                                      },},
-                              // Delete Button
-                                      {"label": "Delete", "icon": Icons.delete, "value": "delete", "onTap": (){
-
-                                        if (internetProvider.isConnected) {
-                                        showDialog(context: context,
-                                          builder: (BuildContext context) {
-                                            // pop class import from pop_box.dart
-                                            return pop.backAlert(context: context,icon: Icons.delete, title: 'Confirm Delete',
-                                                bodyTxt:'Are you sure you want to delete this campaign? cannot be undone.',
-                                                confirm: 'Delete', onConfirm: (){CampaignsAction.deleteCompletedCampaign(context, campaign['_id']);} );
-                                          },
-                                        );
-                                        } else {AlertMessage.snackMsg(context: context, message: 'No internet connection. Please connect to the network.', time: 3);}
-                                      },},
-                                    ],
-                                  ):
-
-                      // Processing / Paused Campaigns Menu Actions
-                                  getDefaultDotMenu(context,
-                                    [
-                              // Details Button
-                                      {"label": "Details", "icon": Icons.visibility, "value": "details", "onTap": (){
-
-                                        if (internetProvider.isConnected) {
-                                          Helper.navigatePush(context, CampaignDetails(videoUrl: campaign['videoUrl'], videoTitle: campaign['title'],
-                                          progress: progress, campaignImg: campaign['campaignImg'], selectedOption: campaign['selectedOption'], quantity: campaign['quantity'], viewers: campaign['viewers'].length, status: campaign['status'],
-                                          social: campaign['social'], watchTime: campaign['watchTime'], created: campaign['createdAt'], completedAt: campaign['completedAt'],
-                                          campaignCost: campaign['campaignCost'], campaignId: campaign['_id'],));
-                                        } else {AlertMessage.snackMsg(context: context, message: 'No internet connection. Please connect to the network.', time: 3);}
-                                        },},
-                               // Paused/Active Button
-                                      {"label": campaign['status']=="Processing"?"Pause":"Active",
-                                        "icon":campaign['status']=="Processing"?Icons.pause_circle:Icons.campaign, "value": "pause", "onTap": () {
-
-                                        if (internetProvider.isConnected) {
-                                        if(campaign['status']=="Processing"){
-                                          CampaignsAction.pauseCampaign(context, campaign['_id']);
-                                        }else{
-                                          CampaignsAction.resumeCampaign(context, campaign['_id']);
-                                        }
-                                        } else {AlertMessage.snackMsg(context: context, message: 'No internet connection. Please connect to the network.', time: 3);}
-                                      },},
-                                    ],
-                                  )
-                                ],
-                              ),
-
-
-                              // Progress Bar should touch the left side
-                              Row(mainAxisAlignment: MainAxisAlignment.end,
-                                children: [
-                                  Expanded(
-                                    child: Ui.progressBar(progress, "", 4, 8),
-                                  ),
-                                ],
-                              ),
-
-                              Container(margin: const EdgeInsets.only(left: 11),
-                                child: Row(spacing: 5,
-                                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                                Row(
                                   children: [
-                                    Row(spacing: 3, children: [
-                                      (campaign['social']=="YouTube")?Image.asset('assets/ico/youtube_icon.webp', width: 17,):
-                                      (campaign['social']=="TikTok")?Image.asset('assets/ico/tiktok_icon.webp', width: 17,)
-                                      :Image.asset('assets/ico/instagram_icon.webp', width: 17,),
-                                      Text("${campaign['selectedOption']}", maxLines: 1, overflow: TextOverflow.ellipsis, style: textTheme.displaySmall?.copyWith(fontSize: 12),),
-                                      Text('${campaign['quantity']} / ${campaign['viewers'] != null ? campaign['viewers'].length : 0}', style: textTheme.displaySmall?.copyWith(fontSize: 12, fontWeight: FontWeight.w800),),
-                                      (campaign['status']=="Completed")?Icon(Icons.check_circle_rounded, color: Colors.green, size: 15,):const SizedBox(),
-                                    ],),
+                                    Expanded(
+                                      child: Text(campaign['title'] ?? '', maxLines: 1, overflow: TextOverflow.ellipsis, style: textTheme.displaySmall?.
+                                      copyWith(fontSize: 14, height: 0.8, fontWeight: FontWeight.bold, color: theme.onPrimaryContainer,
+                                        ),),
+                                    ),
 
-                                    Container(
-                                      margin: EdgeInsets.only(right: 10),
-                                      decoration: BoxDecoration(
-                                        color: (campaign['status']=="Completed")? Colors.green.shade500: (campaign['status']=="Processing") ? Colors.yellow.shade200 : Colors.red.shade400,
-                                        borderRadius: BorderRadius.circular(3)
-                                      ),
-                                      padding: const EdgeInsets.symmetric(horizontal: 7, vertical: 1),
-                                      child: Text("${campaign['status']}", style: textTheme.displaySmall?.copyWith(fontSize: 10, color: (campaign['status']=="Processing")? Colors.black: Colors.white, fontWeight: FontWeight.bold),),
+                                    campaign['status']=="Completed"?
+                        // Completed Campaigns Menu Actions
+                                    getDefaultDotMenu(context,
+                                      [
+                                // Details Button
+                                        {"label": "Details", "icon": Icons.visibility, "value": "details", "onTap": (){
+                                          if (internetProvider.isConnected) {
+                                            Helper.navigatePush(context, CampaignDetails(videoUrl: campaign['videoUrl'], videoTitle: campaign['title'],
+                                            progress: progress, campaignImg: campaign['campaignImg'], selectedOption: campaign['selectedOption'], quantity: campaign['quantity'], viewers: campaign['viewers'].length, status: campaign['status'],
+                                            social: campaign['social'], watchTime: campaign['watchTime'], created: campaign['createdAt'], category: campaign['catagory'], completedAt: campaign['completedAt'],
+                                              campaignCost: campaign['campaignCost'], campaignId: campaign['_id']));
+                                          } else {
+                                            AlertMessage.snackMsg(context: context, message: 'No internet connection. Please connect to the network.', time: 3);
+                                          }
+                                          },},
+                                // Recreate Button
+                                        {"label": "Recreate", "icon": Icons.settings_backup_restore, "value": "recreate", "onTap": () async{
+                                          if (internetProvider.isConnected) {
+                                            showDialog(context: context,
+                                              builder: (BuildContext context) {
+                                                // pop class import from pop_box.dart
+                                                return pop.backAlert(context: context,icon: Icons.campaign, title: 'Recreate Campaign',
+                                                    bodyTxt:'Are you sure you want to recreate same campaign?',
+                                                    confirm: 'Yes Create', onConfirm: () async{
+                                                      await CampaignsAction.reCreateCampaign(
+                                                      context: context,
+                                                      title: campaign['title']!,
+                                                      videoUrl: campaign['videoUrl']!,
+                                                      watchTime: (campaign['social']=="YouTube")?campaign['watchTime']:0,
+                                                      quantity: campaign['quantity'],
+                                                      selectedOption: campaign['selectedOption'],
+                                                      campaignImg: campaign['campaignImg'],
+                                                      social: campaign['social'],
+                                                      catagory: campaign["catagory"],
+                                                      );
+                                                  } );
+                                              },
+                                            );
+                                          } else {AlertMessage.snackMsg(context: context, message: 'No internet connection. Please connect to the network.', time: 3);}
+
+                                        },},
+                                // Delete Button
+                                        {"label": "Delete", "icon": Icons.delete, "value": "delete", "onTap": (){
+
+                                          if (internetProvider.isConnected) {
+                                          showDialog(context: context,
+                                            builder: (BuildContext context) {
+                                              // pop class import from pop_box.dart
+                                              return pop.backAlert(context: context,icon: Icons.delete, title: 'Confirm Delete',
+                                                  bodyTxt:'Are you sure you want to delete this campaign? cannot be undone.',
+                                                  confirm: 'Delete', onConfirm: (){CampaignsAction.deleteCompletedCampaign(context, campaign['_id']);} );
+                                            },
+                                          );
+                                          } else {AlertMessage.snackMsg(context: context, message: 'No internet connection. Please connect to the network.', time: 3);}
+                                        },},
+                                      ],
+                                    ):
+
+                        // Processing / Paused Campaigns Menu Actions
+                                    getDefaultDotMenu(context,
+                                      [
+                                // Details Button
+                                        {"label": "Details", "icon": Icons.visibility, "value": "details", "onTap": (){
+
+                                          if (internetProvider.isConnected) {
+                                            Helper.navigatePush(context, CampaignDetails(videoUrl: campaign['videoUrl'], videoTitle: campaign['title'],
+                                            progress: progress, campaignImg: campaign['campaignImg'], selectedOption: campaign['selectedOption'], quantity: campaign['quantity'], viewers: campaign['viewers'].length, status: campaign['status'],
+                                            social: campaign['social'], watchTime: campaign['watchTime'], created: campaign['createdAt'], category: campaign['catagory'], completedAt: campaign['completedAt'],
+                                            campaignCost: campaign['campaignCost'], campaignId: campaign['_id'],));
+                                          } else {AlertMessage.snackMsg(context: context, message: 'No internet connection. Please connect to the network.', time: 3);}
+                                          },},
+                                 // Paused/Active Button
+                                        {"label": campaign['status']=="Processing"?"Pause":"Active",
+                                          "icon":campaign['status']=="Processing"?Icons.pause_circle:Icons.campaign, "value": "pause", "onTap": () {
+
+                                          if (internetProvider.isConnected) {
+                                          if(campaign['status']=="Processing"){
+                                            CampaignsAction.pauseCampaign(context, campaign['_id']);
+                                          }else{
+                                            CampaignsAction.resumeCampaign(context, campaign['_id']);
+                                          }
+                                          } else {AlertMessage.snackMsg(context: context, message: 'No internet connection. Please connect to the network.', time: 3);}
+                                        },},
+                                      ],
                                     )
-                                ],),
-                              )
-                            ],
+                                  ],
+                                ),
+
+
+                                // Progress Bar should touch the left side
+                                Row(mainAxisAlignment: MainAxisAlignment.end,
+                                  children: [
+                                    Expanded(
+                                      child: Ui.progressBar(progress, "", 4, 8),
+                                    ),
+                                  ],
+                                ),
+
+                                Container(margin: const EdgeInsets.only(left: 11),
+                                  child: Row(spacing: 5,
+                                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                                    children: [
+                                      Row(spacing: 3, children: [
+                                        (campaign['social']=="YouTube")?Image.asset('assets/ico/youtube_icon.webp', width: 17,):
+                                        (campaign['social']=="TikTok")?Image.asset('assets/ico/tiktok_icon.webp', width: 17,)
+                                        :Image.asset('assets/ico/instagram_icon.webp', width: 17,),
+                                        Text("${campaign['selectedOption']}", maxLines: 1, overflow: TextOverflow.ellipsis, style: textTheme.displaySmall?.copyWith(fontSize: 12),),
+                                        Text('${campaign['quantity']} / ${campaign['viewers'] != null ? campaign['viewers'].length : 0}', style: textTheme.displaySmall?.copyWith(fontSize: 12, fontWeight: FontWeight.w800),),
+                                        (campaign['status']=="Completed")?Icon(Icons.check_circle_rounded, color: Colors.green, size: 15,):const SizedBox(),
+                                      ],),
+
+                                      Container(
+                                        margin: EdgeInsets.only(right: 10),
+                                        decoration: BoxDecoration(
+                                          color: (campaign['status']=="Completed")? Colors.green.shade500: (campaign['status']=="Processing") ? Colors.yellow.shade200 : Colors.red.shade400,
+                                          borderRadius: BorderRadius.circular(3)
+                                        ),
+                                        padding: const EdgeInsets.symmetric(horizontal: 7, vertical: 1),
+                                        child: Text("${campaign['status']}", style: textTheme.displaySmall?.copyWith(fontSize: 10, color: (campaign['status']=="Processing")? Colors.black: Colors.white, fontWeight: FontWeight.bold),),
+                                      )
+                                  ],),
+                                )
+                              ],
+                            ),
                           ),
-                        ),
-                      ],),
+                        ],),
+                    ),
                   ) // End Container
                 );
               },

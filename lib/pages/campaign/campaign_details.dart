@@ -1,16 +1,24 @@
 import 'dart:convert';
 
+import 'package:app/pages/campaign/campaign_page.dart';
 import 'package:app/ui/bg_box.dart';
 import 'package:app/ui/ui_helper.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:http/http.dart' as http;
 import 'package:intl/intl.dart';
+import 'package:provider/provider.dart';
 import 'package:url_launcher/url_launcher.dart';
 import 'package:youtube_player_flutter/youtube_player_flutter.dart';
 
 import '../../config/config.dart';
+import '../../screen/home.dart';
 import '../../server_model/functions_helper.dart';
+import '../../server_model/internet_provider.dart';
+import '../../server_model/provider/campaigns_action.dart';
+import '../../ui/dot_menu_list.dart';
+import '../../ui/flash_message.dart';
+import '../../ui/pop_alert.dart';
 
 class CampaignDetails extends StatefulWidget {
   final String videoUrl;
@@ -25,11 +33,12 @@ class CampaignDetails extends StatefulWidget {
   final String social;
   final String status;
   final String created;
+  final String category;
   final String? completedAt;
   final String campaignId;
   const CampaignDetails({super.key, required this.videoUrl, required this.videoTitle, required this.selectedOption, required this.campaignImg,
     required this.progress, required this.quantity, required this.viewers, required this.social, required this.status, required this.watchTime,
-      required this.campaignCost, required this.created, required this.completedAt, required this.campaignId});
+      required this.campaignCost, required this.created, required this.category, required this.completedAt, required this.campaignId});
 
   @override
   State<CampaignDetails> createState() => _CampaignDetailsState();
@@ -114,15 +123,85 @@ class _CampaignDetailsState extends State<CampaignDetails> {
   Widget build(BuildContext context) {
     final ColorScheme theme = Theme.of(context).colorScheme;
     final TextTheme textTheme = Theme.of(context).textTheme;
+    final internetProvider = Provider.of<InternetProvider>(context, listen: false);
 
     return Scaffold(
       backgroundColor: theme.primaryFixed,
       appBar: AppBar(
-        title: const Text('Campaign Details View', style: TextStyle(fontSize: 20),),
+        title: const Text('Campaign Details', style: TextStyle(fontSize: 20),),
         systemOverlayStyle: SystemUiOverlayStyle(
           statusBarColor: theme.surfaceTint,
           statusBarIconBrightness: Brightness.light,
         ),
+        actions: [
+          widget.status=="Completed"?
+          // Completed Campaigns Menu Actions
+          getDefaultDotMenu(context,
+            [
+              // Recreate Button
+              {"label": "Recreate", "icon": Icons.settings_backup_restore, "value": "recreate", "onTap": () async{
+                if (internetProvider.isConnected) {
+                  showDialog(context: context,
+                    builder: (BuildContext context) {
+                      // pop class import from pop_box.dart
+                      return pop.backAlert(context: context,icon: Icons.campaign, title: 'Recreate Campaign',
+                          bodyTxt:'Are you sure you want to recreate same campaign?',
+                          confirm: 'Yes Create', onConfirm: () async{
+                            await CampaignsAction.reCreateCampaign(
+                              context: context,
+                              title: widget.videoTitle.toString(),
+                              videoUrl: widget.videoUrl.toString(),
+                              watchTime: widget.watchTime,
+                              quantity: widget.quantity,
+                              selectedOption: widget.selectedOption,
+                              campaignImg: widget.campaignImg,
+                              social: widget.social,
+                              catagory: widget.category,
+                            );
+                          } );
+                    },
+                  );
+                } else {AlertMessage.snackMsg(context: context, message: 'No internet connection. Please connect to the network.', time: 3);}
+
+              },},
+              // Delete Button
+              {"label": "Delete", "icon": Icons.delete, "value": "delete", "onTap": (){
+                if (internetProvider.isConnected) {
+                  showDialog(context: context,
+                    builder: (BuildContext context) {
+                      // pop class import from pop_box.dart
+                      return pop.backAlert(context: context,icon: Icons.delete, title: 'Confirm Delete',
+                          bodyTxt:'Are you sure you want to delete this campaign? cannot be undone.',
+                          confirm: 'Delete', onConfirm: () async{
+                        await CampaignsAction.deleteCompletedCampaign(context, widget.campaignId);
+                        Navigator.pushAndRemoveUntil(context, MaterialPageRoute(builder: (context)=>const Home(onPage: 2)), (route)=> false);
+                      } );
+                    },
+                  );
+                } else {AlertMessage.snackMsg(context: context, message: 'No internet connection. Please connect to the network.', time: 3);}
+              },},
+            ],
+          ):
+
+          // Processing / Paused Campaigns Menu Actions
+          getDefaultDotMenu(context,
+            [ // Paused/Active Button
+              {"label": widget.status=="Processing"?"Pause":"Active",
+                "icon": widget.status=="Processing"?Icons.pause_circle:Icons.campaign, "value": "pause", "onTap": () {
+
+                if (internetProvider.isConnected) {
+                  if(widget.status=="Processing"){
+                    CampaignsAction.pauseCampaign(context, widget.campaignId);
+                    Navigator.pushAndRemoveUntil(context, MaterialPageRoute(builder: (context)=>const Home(onPage: 2)), (route)=> false);
+                  }else{
+                    CampaignsAction.resumeCampaign(context, widget.campaignId);
+                    Navigator.pushAndRemoveUntil(context, MaterialPageRoute(builder: (context)=>const Home(onPage: 2)), (route)=> false);
+                  }
+                } else {AlertMessage.snackMsg(context: context, message: 'No internet connection. Please connect to the network.', time: 3);}
+              },},
+            ],
+          )
+        ],
       ),
       body: SingleChildScrollView(
         child: Column(

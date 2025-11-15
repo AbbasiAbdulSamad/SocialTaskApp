@@ -1,4 +1,5 @@
 import 'dart:convert';
+import 'package:app/screen/home.dart';
 import 'package:app/ui/flash_message.dart';
 import 'package:http/http.dart' as http;
 import 'package:flutter/material.dart';
@@ -79,6 +80,66 @@ class CampaignsAction {
     } catch (e) {
       debugPrint("❌ Exception during campaign delete: $e");
       return false;
+    }
+  }
+
+
+  static Future<void> reCreateCampaign({
+    required BuildContext context,
+    required String title,
+    required String videoUrl,
+    required int watchTime,
+    required int quantity,
+    required String selectedOption,
+    required String campaignImg,
+    required String social,
+    required String catagory,
+  }) async {
+    try {
+      // ✅ Validate quantity before proceeding
+      if (quantity <= 0) {
+        AlertMessage.errorMsg(context, "Quantity must be greater than 10.", "Invalid Input");
+        return;
+      }
+      String? token = await Helper.getAuthToken();
+      if (token == null) return;
+      final response = await http.post(
+        Uri.parse(ApiPoints.campaignsPost),
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': 'Bearer $token',
+        },
+        body: jsonEncode({
+          'title': title,
+          'videoUrl': videoUrl,
+          'watchTime': watchTime,
+          'quantity': quantity,
+          'selectedOption': selectedOption,
+          'campaignImg': campaignImg,
+          'social': social,
+          'catagory': catagory,
+        }),
+      );
+
+      if (response.statusCode == 201){
+        Navigator.pushAndRemoveUntil(context, MaterialPageRoute(builder: (_) => const Home(onPage: 2)), (route) => false);
+        AlertMessage.successMsg(context, 'New $selectedOption campaign is now active.', 'Success');
+      } else {
+        String errorMessage = "Something went wrong, please try again.";
+        try {
+          final errorJson = jsonDecode(response.body);
+          if (errorJson.containsKey('error')) {
+            errorMessage = errorJson['error'];
+          }
+        } catch (e) {
+          debugPrint("⚠️ Error parsing JSON response: $e");
+        }
+        // ✅ Show actual error message
+        AlertMessage.errorMsg(context, errorMessage, 'Not enough');
+      }
+    } catch (e) {
+      debugPrint("❌ Exception: $e");
+      AlertMessage.errorMsg(context, 'Something went wrong, please try again.', 'An Error');
     }
   }
 }

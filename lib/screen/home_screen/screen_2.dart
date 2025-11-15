@@ -147,20 +147,8 @@ class _Screen2State extends State<Screen2> with WidgetsBindingObserver{
         taskType: selectOption,
         campaignId: campaignId,
         reward: reward,
-        screenFrom: 0,
+        screenFrom: 1,
       );
-
-      await FlutterOverlayWindow.showOverlay(
-        width: WindowSize.matchParent,
-        height: 600,
-        alignment: OverlayAlignment.topLeft,
-        flag: OverlayFlag.defaultFlag,
-        enableDrag: false,
-        overlayTitle: "Social Task",
-        visibility: NotificationVisibility.visibilityPublic,
-      );
-      await FlutterOverlayWindow.shareData(selectOption);
-
     } else {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(content: Text('Please give the permission\nDraw permission not granted')),
