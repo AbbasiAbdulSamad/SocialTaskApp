@@ -105,14 +105,6 @@ class UnityAdsManager {
       onStart: (placementId) => print('▶️ Interstitial Ad Started: $placementId'),
       onClick: (placementId) => print('🖱️ Interstitial Clicked: $placementId'),
       onComplete: (placementId) {
-
-        // Reward Claim Success Message
-        AlertMessage.successMsg(context, "Daily Reward +$reward Added Successfully 🎉", "Successfully Claimed", time: 5);
-
-        NotificationService.showNotification(
-          title: '🎉 Daily Reward Claimed!',
-          body: 'You earned +$reward tickets from Daily Reward!',
-        );
         _interstitialLoaded = false;
         loadInterstitialAd();
       },

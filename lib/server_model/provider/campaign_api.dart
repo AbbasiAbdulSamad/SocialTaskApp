@@ -103,12 +103,11 @@ class CampaignProvider with ChangeNotifier {
 
       if (response.statusCode == 201) {
    // Campaign create success goto Home Page
-
-      Navigator.pushAndRemoveUntil(context, MaterialPageRoute(builder: (_) => const Home(onPage: 2)), (route) => false);
+        Helper.navigateAndRemove(context, const Home(onPage: 2));
 
    // Success Alert
-        AlertMessage.successMsg(context, 'Your $selectedOption campaign is now active.', 'Success');
-        debugPrint('Created seccues');
+        AlertMessage.successMsg(context, 'Your $social $selectedOption campaign is now active.', 'Success');
+        debugPrint('Created success');
         fetchCampaigns(forceRefresh: true);
 
       await LocalNotificationManager.saveNotification(

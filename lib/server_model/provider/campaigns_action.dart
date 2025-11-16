@@ -6,6 +6,7 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
 import '../../config/config.dart';
+import '../LocalNotificationManager.dart';
 import '../functions_helper.dart';
 import 'campaign_api.dart';
 
@@ -122,9 +123,16 @@ class CampaignsAction {
       );
 
       if (response.statusCode == 201){
-        Navigator.pushAndRemoveUntil(context, MaterialPageRoute(builder: (_) => const Home(onPage: 2)), (route) => false);
-        AlertMessage.successMsg(context, 'New $selectedOption campaign is now active.', 'Success');
+        Helper.navigateAndRemove(context, const Home(onPage: 2));
+        AlertMessage.successMsg(context, 'New $social $selectedOption campaign is now active.', 'Success');
+
+        await LocalNotificationManager.saveNotification(
+            title: '$social Campaign Recreated',
+            body: '$social $quantity $selectedOption',
+            screenId: 'Campaigns'
+        );
       } else {
+        Navigator.pop(context);
         String errorMessage = "Something went wrong, please try again.";
         try {
           final errorJson = jsonDecode(response.body);
@@ -138,6 +146,7 @@ class CampaignsAction {
         AlertMessage.errorMsg(context, errorMessage, 'Not enough');
       }
     } catch (e) {
+      Navigator.pop(context);
       debugPrint("❌ Exception: $e");
       AlertMessage.errorMsg(context, 'Something went wrong, please try again.', 'An Error');
     }

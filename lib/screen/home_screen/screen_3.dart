@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'package:app/server_model/functions_helper.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_overlay_window/flutter_overlay_window.dart';
 import 'package:provider/provider.dart';
@@ -153,8 +154,6 @@ class _Screen3State extends State<Screen3> with WidgetsBindingObserver{
                     return InkWell(
                       onLongPress: () {
                         allCampaignsProvider.enterSelectionMode(campaign['_id'].toString());
-
-                        
                       },
                       onTap: () async {
                         await _checkInternet();
@@ -174,15 +173,13 @@ class _Screen3State extends State<Screen3> with WidgetsBindingObserver{
 
                               // Instagram Task Navigate
                             } else if (campaign['social'] == "Instagram") {
-                              Navigator.push(context, MaterialPageRoute(
-                                builder: (context) =>
-                                    Instagram_Task_Screen(
-                                      taskUrl: campaign['videoUrl'],
-                                      selectedOption: campaign['selectedOption'],
-                                      reward: campaign['CostPer'],
-                                      campaignId: campaign['_id'],
-                                      screenFrom: 1,),
-                              ),);
+                              Helper.navigatePush(context,
+                                Instagram_Task_Screen(
+                                taskUrl: campaign['videoUrl'],
+                                selectedOption: campaign['selectedOption'],
+                                reward: campaign['CostPer'],
+                                campaignId: campaign['_id'],
+                                screenFrom: 1,),);
                             }
                             else {
                               //  YT Auto Task Conditions
@@ -206,28 +203,26 @@ class _Screen3State extends State<Screen3> with WidgetsBindingObserver{
                                       false);
                                 } else {
                                   //  YT Auto Task Navigate
-                                  Navigator.push(context, MaterialPageRoute(
-                                    builder: (context) =>
-                                        YT_Auto_Task_Screen(
-                                          taskUrl: campaign['videoUrl'],
-                                          selectedOption: campaign['selectedOption'],
-                                          watchTime: campaign['watchTime'],
-                                          reward: campaign['CostPer'],
-                                          campaignId: campaign['_id'],
-                                          screenFrom: 1,),
-                                  ),);
+                                  Helper.navigatePush(context,
+                                    YT_Auto_Task_Screen(
+                                      taskUrl: campaign['videoUrl'],
+                                      selectedOption: campaign['selectedOption'],
+                                      watchTime: campaign['watchTime'],
+                                      reward: campaign['CostPer'],
+                                      campaignId: campaign['_id'],
+                                      screenFrom: 1,),);
                                 }
                               } else {
                                 //  YT Simple Task Navigate
-                                Navigator.push(context,
-                                    MaterialPageRoute(builder: (context) =>
-                                        YT_Task_Screen(
-                                          taskUrl: campaign['videoUrl'],
-                                          selectedOption: campaign['selectedOption'],
-                                          watchTime: campaign['watchTime'],
-                                          reward: campaign['CostPer'],
-                                          campaignId: campaign['_id'],
-                                          screenFrom: 1,)));
+                                Helper.navigatePush(context,
+                                    YT_Task_Screen(
+                                      taskUrl: campaign['videoUrl'],
+                                      selectedOption: campaign['selectedOption'],
+                                      watchTime: campaign['watchTime'],
+                                      reward: campaign['CostPer'],
+                                      campaignId: campaign['_id'],
+                                      screenFrom: 1,));
+
                               }
                             }
                           } else {

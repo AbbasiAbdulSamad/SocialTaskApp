@@ -171,14 +171,14 @@ class _SupportPageState extends State<SupportPage> {
         if (Navigator.canPop(context)) {
           Navigator.pop(context);
         } else {
-          Navigator.pushAndRemoveUntil(context, MaterialPageRoute(builder: (_) => const Home(onPage: 1)), (route) => false,);
+          Helper.navigateAndRemove(context, const Home(onPage: 1));
         }
         return false;
       },
       child: Scaffold(
         backgroundColor: Theme.of(context).colorScheme.primaryFixed,
         appBar: AppBar(
-          title: const Text('Support'),
+          title: Text('Support', style: textTheme.displaySmall?.copyWith(fontSize: 23, color: Colors.white)),
           systemOverlayStyle: SystemUiOverlayStyle(
             statusBarColor: theme.surfaceTint,
             statusBarIconBrightness: Brightness.light,

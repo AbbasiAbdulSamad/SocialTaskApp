@@ -5,6 +5,7 @@ import 'package:flutter/services.dart';
 import 'package:flutter_svg/svg.dart';
 import 'package:provider/provider.dart';
 import 'package:url_launcher/url_launcher.dart';
+import '../../server_model/functions_helper.dart';
 import '../../server_model/internet_provider.dart';
 import '../../server_model/provider/reward_services.dart';
 import '../../server_model/provider/users_provider.dart';
@@ -46,6 +47,7 @@ class EarnTickets extends StatelessWidget {
   }
   @override
   Widget build(BuildContext context) {
+    final textTheme = Theme.of(context).textTheme;
     // Theme and text styles
     final rewardProviderLoading = Provider.of<RewardProvider>(context).isLoading;
     ColorScheme theme = Theme.of(context).colorScheme;
@@ -74,12 +76,12 @@ class EarnTickets extends StatelessWidget {
         if (Navigator.canPop(context)) {
           Navigator.pop(context);
         } else {
-          Navigator.pushAndRemoveUntil(context, MaterialPageRoute(builder: (_) => const Home(onPage: 1)), (route) => false,);
+          Helper.navigateAndRemove(context, const Home(onPage: 1));
         }
         return false;
       },
       child: Scaffold(backgroundColor: theme.primaryFixed,
-          appBar: AppBar(title: const Text('Earn Rewards', style: TextStyle(fontSize: 18)),
+          appBar: AppBar(title: Text('Earn Rewards', style: textTheme.displaySmall?.copyWith(fontSize: 22, color: Colors.white)),
             systemOverlayStyle: SystemUiOverlayStyle(
               statusBarColor: theme.surfaceTint,
               statusBarIconBrightness: Brightness.light,),

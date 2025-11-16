@@ -1,5 +1,6 @@
 import 'dart:async';
 import 'dart:math';
+import 'package:app/server_model/functions_helper.dart';
 import 'package:app/server_model/provider/users_provider.dart';
 import 'package:app/ui/ads.dart';
 import 'package:flutter/material.dart';
@@ -70,16 +71,14 @@ class _Screen2State extends State<Screen2> with WidgetsBindingObserver{
     await _checkInternet();
     if (_internetCheck) {
       if(autoTask){
-          Navigator.push(context, MaterialPageRoute(
-            builder: (context) => YT_Auto_Task_Screen(
-              taskUrl: taskUrl,
-              selectedOption: selectedOption,
-              watchTime: watchTime,
-              reward: reward,
-              campaignId: campaignId,
-              screenFrom: 0,
-            ),
-          ),);
+        Helper.navigatePush(context, YT_Auto_Task_Screen(
+          taskUrl: taskUrl,
+          selectedOption: selectedOption,
+          watchTime: watchTime,
+          reward: reward,
+          campaignId: campaignId,
+          screenFrom: 0,
+        ),);
       }else{
         if(social=="TikTok"){
           // 🟢 Check permission first, then show overlay
@@ -90,26 +89,23 @@ class _Screen2State extends State<Screen2> with WidgetsBindingObserver{
               reward);
 
         }else if(social=="Instagram"){
-          Navigator.push(context, MaterialPageRoute(
-              builder: (context) => Instagram_Task_Screen(
+          Helper.navigatePush(context, Instagram_Task_Screen(
             taskUrl: taskUrl,
             selectedOption: selectedOption,
             reward: reward,
             campaignId: campaignId,
-            screenFrom: 0,)
-          ),);
+            screenFrom: 0,));
 
         }else{
-          Navigator.push(context, MaterialPageRoute(
-            builder: (context) => YT_Task_Screen(
-              taskUrl: taskUrl,
-              selectedOption: selectedOption,
-              watchTime: watchTime,
-              reward: reward,
-              campaignId: campaignId,
-              screenFrom: 0,
-            ),
+          Helper.navigatePush(context, YT_Task_Screen(
+            taskUrl: taskUrl,
+            selectedOption: selectedOption,
+            watchTime: watchTime,
+            reward: reward,
+            campaignId: campaignId,
+            screenFrom: 0,
           ),);
+
         }
       }
     } else {
@@ -275,7 +271,7 @@ class _Screen2State extends State<Screen2> with WidgetsBindingObserver{
                               Center(
                                 child: Image.asset('assets/ico/${campaign['social'] == "YouTube"?'youtube_icon.webp':
                                 campaign['social'] == "TikTok" ? "tiktok_icon.webp"
-                                    : 'instagram_icon.webp'}', width: 80,),
+                                    : 'instagram_icon.webp'}', width: 40,),
                               ),
                             ],
                           ),
@@ -290,10 +286,11 @@ class _Screen2State extends State<Screen2> with WidgetsBindingObserver{
                       child:Row(mainAxisAlignment: MainAxisAlignment.spaceEvenly,
                         children: [
                           Row(spacing: 3,
-                            crossAxisAlignment: CrossAxisAlignment.end,
+                            crossAxisAlignment: CrossAxisAlignment.center,
                             children: [
+                              Image.asset('assets/ico/1xTickets.webp', width: 35,),
+                              SizedBox(width: 5,),
                               Text('${campaign['CostPer']}', style: textTheme.bodySmall?.copyWith(fontSize: 30, fontWeight: FontWeight.bold),),
-                              Text('Tickets', style: textTheme.bodySmall?.copyWith(height: 2.2, fontWeight: FontWeight.bold)),
                             ],),
 
                           Container(width: 3, height: 35, color: theme.shadow,),

@@ -80,4 +80,33 @@ class Helper {
     );
   }
 
+  static void navigateAndRemove(BuildContext context, Widget page) {
+    Navigator.pushAndRemoveUntil(
+      context,
+      PageRouteBuilder(
+        transitionDuration: const Duration(milliseconds: 200),
+        reverseTransitionDuration: const Duration(milliseconds: 150),
+        pageBuilder: (context, animation, secondaryAnimation) => page,
+        transitionsBuilder: (context, animation, secondaryAnimation, child) {
+          final curvedAnimation = CurvedAnimation(
+            parent: animation,
+            curve: Curves.easeOutCubic,
+            reverseCurve: Curves.easeInCubic,
+          );
+
+          // Slide from right + slight fade
+          return SlideTransition(
+            position: Tween<Offset>(
+              begin: const Offset(1.0, 0.0),
+              end: Offset.zero,
+            ).animate(curvedAnimation),
+            child: FadeTransition(
+              opacity: curvedAnimation,
+              child: child,
+            ),
+          );
+        },
+      ), (route) => false,
+    );
+  }
 }

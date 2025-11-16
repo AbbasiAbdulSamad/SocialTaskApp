@@ -226,12 +226,12 @@ class _PremiumAccountState extends State<PremiumAccount> {
         if (Navigator.canPop(context)) {
           Navigator.pop(context);
         } else {
-          Navigator.pushAndRemoveUntil(context, MaterialPageRoute(builder: (_) => const Home(onPage: 1)), (route) => false,);
+          Helper.navigateAndRemove(context, const Home(onPage: 1));
         }
         return false;
       },
       child: Scaffold(backgroundColor: theme.primaryFixed,
-          appBar: AppBar(title: const Text('Premium Subscription', style: TextStyle(fontSize: 18)),
+          appBar: AppBar(title: Text('Premium Subscription', style: textStyle?.copyWith(fontSize: 20, color: Colors.white)),
             systemOverlayStyle: SystemUiOverlayStyle(
               statusBarColor: theme.surfaceTint,
               statusBarIconBrightness: Brightness.light,),

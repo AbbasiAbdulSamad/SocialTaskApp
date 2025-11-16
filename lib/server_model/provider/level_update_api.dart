@@ -66,7 +66,8 @@ class LevelUpProvider with ChangeNotifier {
 
     Navigator.pop(context);
     await Future.delayed(const Duration(milliseconds: 100));
-    Navigator.push(context, MaterialPageRoute(builder: (context) => const Level()));
+
+    Helper.navigatePush(context, const Level());
 
     Future.delayed(const Duration(seconds: 2), () async {
       _levelTreasureBox = true;

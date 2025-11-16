@@ -148,15 +148,8 @@ class _FlashState extends State<Flash> {
 
   void _navigateTo(BuildContext context, Widget screen) {
     if (!mounted) return;
-    Navigator.pushReplacement(
-      context,
-      PageRouteBuilder(
-        pageBuilder: (_, __, ___) => screen,
-        transitionDuration: const Duration(milliseconds: 400),
-        transitionsBuilder: (_, a, __, c) =>
-            FadeTransition(opacity: a, child: c),
-      ),
-    );
+
+    Helper.navigateAndRemove(context, screen);
   }
 
   @override

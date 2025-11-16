@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:provider/provider.dart';
 import '../../screen/home.dart';
+import '../../server_model/functions_helper.dart';
 import '../../server_model/provider/leaderboard_provider.dart';
 import '../../server_model/provider/leaderboard_reward.dart';
 import '../../server_model/provider/users_provider.dart';
@@ -112,12 +113,12 @@ class _LeaderboardScreenState extends State<LeaderboardScreen> {
         if (Navigator.canPop(context)) {
           Navigator.pop(context);
         } else {
-          Navigator.pushAndRemoveUntil(context, MaterialPageRoute(builder: (_) => const Home(onPage: 1)), (route) => false,);
+          Helper.navigateAndRemove(context, const Home(onPage: 1));
         }
         return false;
       },
       child: Scaffold(
-        appBar: AppBar(title: const Text('Leaderboard'),
+        appBar: AppBar(title: Text('Leaderboard', style: textTheme.displaySmall?.copyWith(fontSize: 23, color: Colors.white),),
           systemOverlayStyle: SystemUiOverlayStyle(
             statusBarColor: theme.surfaceTint,
             statusBarIconBrightness: Brightness.light,),

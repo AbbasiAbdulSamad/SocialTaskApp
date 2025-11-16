@@ -1,4 +1,5 @@
 import 'dart:convert';
+import 'package:app/server_model/functions_helper.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:flutter/cupertino.dart';
@@ -94,10 +95,7 @@ class _AuthenticationState extends State<Authentication> {
            bool userExists = await checkUserExists(context);
            if (!userExists) return null;
 
-           Navigator.pushAndRemoveUntil(
-             context,
-             MaterialPageRoute(builder: (_) => const Home(onPage: 1)),
-                 (route) => false,);
+           Helper.navigateAndRemove(context, const Home(onPage: 1));
 
            await LocalNotificationManager.saveNotification(
                title: 'Login Successfully',

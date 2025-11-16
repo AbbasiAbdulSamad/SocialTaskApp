@@ -173,13 +173,14 @@ class _BuyTicketsState extends State<BuyTickets> {
 
   @override
   Widget build(BuildContext context) {
+    final textTheme = Theme.of(context).textTheme;
     ColorScheme theme = Theme.of(context).colorScheme;
     return WillPopScope(
       onWillPop: () async {
         if (Navigator.canPop(context)) {
           Navigator.pop(context);
         } else {
-          Navigator.pushAndRemoveUntil(context, MaterialPageRoute(builder: (_) => const Home(onPage: 1)), (route) => false,);
+          Helper.navigateAndRemove(context, const Home(onPage: 1));
         }
         return false;
       },
@@ -188,7 +189,7 @@ class _BuyTicketsState extends State<BuyTickets> {
           Scaffold(
             backgroundColor: theme.primaryFixed,
             appBar: AppBar(
-              title: const Text('Purchase Tickets', style: TextStyle(fontSize: 18)),
+              title: Text('Purchase Tickets', style: textTheme.displaySmall?.copyWith(fontSize: 22, color: Colors.white)),
               systemOverlayStyle: SystemUiOverlayStyle(
                 statusBarColor: theme.surfaceTint,
                 statusBarIconBrightness: Brightness.light,

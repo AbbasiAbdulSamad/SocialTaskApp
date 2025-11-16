@@ -68,6 +68,8 @@ class RewardProvider with ChangeNotifier {
         _setLoading(false);
         if (context.mounted) {
           UnityAdsManager.showInterstitialAd(context, _reward);
+          // Reward Claim Success Message
+          AlertMessage.successMsg(context, "Daily Reward +$reward Added Successfully 🎉", "Successfully Claimed", time: 5);
         }
         await LocalNotificationManager.saveNotification(
             title: 'Daily Reward +$_reward 🎁',

@@ -133,7 +133,7 @@ class _MyAccountState extends State<MyAccount> {
     }
 
     return Scaffold( backgroundColor: theme.primaryFixed,
-        appBar: AppBar(title: const Text('My Profile', style: TextStyle(fontSize: 18)),
+        appBar: AppBar(title: Text('My Profile', style: textTheme.displaySmall?.copyWith(fontSize: 20, color: Colors.white)),
           systemOverlayStyle: SystemUiOverlayStyle(
             statusBarColor: theme.surfaceTint,
             statusBarIconBrightness: Brightness.light,),

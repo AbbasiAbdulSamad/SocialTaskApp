@@ -15,7 +15,7 @@ class pop{
       title: Row(spacing: 5,
         children: [
           Icon(icon, size: 28, color: theme.secondaryFixedDim),
-          Text(title, style: Theme.of(context).textTheme.displaySmall?.copyWith(fontSize: 25),),
+          Text(title, style: Theme.of(context).textTheme.displaySmall?.copyWith(fontSize: 22),),
         ],
       ),
       content: Text(bodyTxt, style: Theme.of(context).textTheme.displaySmall?.copyWith(wordSpacing: 1, fontSize: 15)),

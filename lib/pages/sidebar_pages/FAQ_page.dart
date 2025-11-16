@@ -59,8 +59,9 @@ class FaqPage extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     ColorScheme theme=Theme.of(context).colorScheme;
+    final textTheme = Theme.of(context).textTheme;
     return Scaffold( backgroundColor: Theme.of(context).colorScheme.primaryFixed,
-          appBar: AppBar(title: const Text('Frequently Asked Questions', style: TextStyle(fontSize: 18)),
+          appBar: AppBar(title: Text('Frequently Asked Questions', style: textTheme.displaySmall?.copyWith(fontSize: 20, color: Colors.white)),
             systemOverlayStyle: SystemUiOverlayStyle(
               statusBarColor: theme.surfaceTint,
               statusBarIconBrightness: Brightness.light,),

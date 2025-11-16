@@ -97,12 +97,12 @@ class _InviteState extends State<Invite> {
         if (Navigator.canPop(context)) {
           Navigator.pop(context);
         } else {
-          Navigator.pushAndRemoveUntil(context, MaterialPageRoute(builder: (_) => const Home(onPage: 1)), (route) => false,);
+          Helper.navigateAndRemove(context, const Home(onPage: 1));
         }
         return false;
       },
       child: Scaffold(
-        appBar: AppBar(title: const Text("Invite & Earn")),
+        appBar: AppBar(title: Text("Invite & Earn", style: textTheme.displaySmall?.copyWith(fontSize: 22, color: Colors.white),)),
         body: RefreshIndicator(
           onRefresh: () async {
             await _loadData();

@@ -119,7 +119,7 @@ class _LevelState extends State<Level> with SingleTickerProviderStateMixin {
                 return Stack(
                   children: [
                     Scaffold(
-                      appBar: AppBar(title: Text('Level'),
+                      appBar: AppBar(title: Text('Level', style: textTheme.displaySmall?.copyWith(fontSize: 23, color: Colors.white)),
                         systemOverlayStyle: SystemUiOverlayStyle(
                           statusBarColor: theme.surfaceTint,
                           statusBarIconBrightness: Brightness.light,),

@@ -56,7 +56,7 @@ class LeaderboardReward with ChangeNotifier {
   Future<bool> claimReward(BuildContext context) async {
     Navigator.pop(context);
     await Future.delayed(const Duration(milliseconds: 100));
-    Navigator.push(context, MaterialPageRoute(builder: (context) => const LeaderboardScreen()));
+    Helper.navigatePush(context, const LeaderboardScreen());
     try {
       final token = await Helper.getAuthToken();
       final response = await http.post(

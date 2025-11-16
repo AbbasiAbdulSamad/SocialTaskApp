@@ -174,7 +174,7 @@ class _CampaignDetailsState extends State<CampaignDetails> {
                           bodyTxt:'Are you sure you want to delete this campaign? cannot be undone.',
                           confirm: 'Delete', onConfirm: () async{
                         await CampaignsAction.deleteCompletedCampaign(context, widget.campaignId);
-                        Navigator.pushAndRemoveUntil(context, MaterialPageRoute(builder: (context)=>const Home(onPage: 2)), (route)=> false);
+                        Helper.navigateAndRemove(context, const Home(onPage: 2));
                       } );
                     },
                   );
@@ -192,10 +192,10 @@ class _CampaignDetailsState extends State<CampaignDetails> {
                 if (internetProvider.isConnected) {
                   if(widget.status=="Processing"){
                     CampaignsAction.pauseCampaign(context, widget.campaignId);
-                    Navigator.pushAndRemoveUntil(context, MaterialPageRoute(builder: (context)=>const Home(onPage: 2)), (route)=> false);
+                    Helper.navigateAndRemove(context, const Home(onPage: 2));
                   }else{
                     CampaignsAction.resumeCampaign(context, widget.campaignId);
-                    Navigator.pushAndRemoveUntil(context, MaterialPageRoute(builder: (context)=>const Home(onPage: 2)), (route)=> false);
+                    Helper.navigateAndRemove(context, const Home(onPage: 2));
                   }
                 } else {AlertMessage.snackMsg(context: context, message: 'No internet connection. Please connect to the network.', time: 3);}
               },},

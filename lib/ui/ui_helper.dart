@@ -1,4 +1,5 @@
 import 'dart:convert';
+import 'package:app/server_model/functions_helper.dart';
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:dropdown_button2/dropdown_button2.dart';
 import 'package:flutter/material.dart';
@@ -222,7 +223,7 @@ class Ui{
           onChanged(newValue);
           if (newValue != null) {
             final selectedOption = options.firstWhere((option) => option['name'] == newValue);
-            Navigator.push(context, MaterialPageRoute(builder: (context) => selectedOption['page']),);
+            Helper.navigatePush(context, selectedOption['page']);
           }
         },
     );

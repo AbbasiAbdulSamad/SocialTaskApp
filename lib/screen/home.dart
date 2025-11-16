@@ -135,7 +135,7 @@ class _HomeState extends State<Home> {
           statusBarIconBrightness: Brightness.light,),
 
         title: Text(_pageLabel[_currentIndex]['title'],
-          style: const TextStyle(fontSize: 22, color: Colors.white),),
+          style: textTheme.displaySmall?.copyWith(fontSize: 23, color: Colors.white),),
         actions: [
           Padding(
             padding: const EdgeInsets.only(right: 10),
@@ -190,17 +190,22 @@ class _HomeState extends State<Home> {
                     onTap: (){Provider.of<AllCampaignsProvider>(context, listen: false).clearSelectionMode();},
                     child: Row(spacing: 3,
                       children: [
-                        Icon(Icons.select_all, color: theme.onPrimaryContainer),
+                        Icon(Icons.select_all, size: 20, color: theme.onPrimaryContainer),
                         Text("Unselect", style: Theme.of(context).textTheme.displaySmall?.
                         copyWith(fontSize: 18, color: theme.onPrimaryContainer),),
                       ],
                     ),
                   ),
                  const Expanded(child: SizedBox()),
-                  SizedBox(width: 125,
+                  SizedBox(width: 142,
                     child: DropdownButton<String>(
-                      hint: Text("Hide Selected", style: Theme.of(context).textTheme.displaySmall?.
-                      copyWith(fontSize: 18, color: theme.onPrimaryContainer),),
+                      hint: Row(spacing: 3,
+                        children: [
+                          Icon(Icons.visibility_off, size: 19, color: theme.onPrimaryContainer),
+                          Text("Hide Selected", style: Theme.of(context).textTheme.displaySmall?.
+                          copyWith(fontSize: 17, color: theme.onPrimaryContainer),),
+                        ],
+                      ),
                       isExpanded: true,
                       underline:const  SizedBox(),
                       items: ["1 day", "3 day", "5 day", "7 day"].map((option) {
@@ -276,12 +281,6 @@ class _HomeState extends State<Home> {
                       textTheme.labelMedium?.copyWith(fontSize: 20, color: theme.onPrimaryContainer)
                       ,),
                     const Expanded(child: SizedBox()),
-                    if(provider.hasHiddenTasks)Tooltip(
-                        message: "Show Hidden Tasks",
-                        child: IconButton(onPressed: () async{
-                          await provider.resetHiddenTasks();
-                          AlertMessage.snackMsg(context: context, message: "Hidden Tasks Shown", time: 4);
-                        }, icon: Icon(Icons.restart_alt, size: 27, color: theme.onPrimaryFixed),)),
 
                     InkWell(
                       onTap: (){
@@ -388,8 +387,26 @@ class _HomeState extends State<Home> {
                         ),
                       ),
                     ),
-
                     const SizedBox(width: 10,),
+
+                    if(provider.hasHiddenTasks)Tooltip(
+                        message: "Show Hidden Tasks",
+                        child: IconButton(
+                          padding: EdgeInsets.zero,
+                          onPressed: () async{
+                          showDialog(context: context,
+                            builder: (BuildContext context) {
+                              // pop class import from pop_box.dart
+                              return pop.backAlert(context: context,icon: Icons.task_alt_sharp, title: 'Hidden Tasks Show',
+                                  bodyTxt:'Are you sure you want to make all hidden tasks visible again?',
+                                  confirm: 'Yes Show', onConfirm: () async{
+                                    await provider.resetHiddenTasks();
+                                    Navigator.pop(context);
+                                    AlertMessage.snackMsg(context: context, message: "Hidden Tasks Shown", time: 3);
+                                  } );
+                            },
+                          );
+                        }, icon: Icon(Icons.restart_alt, size: 27, color: theme.onPrimaryFixed),)),
                     Tooltip(message: "Notifications",
                       child: Stack(
                         children: [

@@ -6,8 +6,12 @@ import 'package:app/server_model/page_load_fetchData.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_overlay_window/flutter_overlay_window.dart';
 import 'package:http/http.dart' as http;
+import 'package:provider/provider.dart';
 import 'package:url_launcher/url_launcher.dart';
+import '../../../server_model/provider/fetch_taskts.dart';
+import '../../../ui/button.dart';
 import '../../../ui/flash_message.dart';
+import '../../../ui/pop_alert.dart';
 
 class TikTokTaskHandler {
   static bool _taskLaunched = false;
@@ -240,10 +244,14 @@ class TikTokTaskHandler {
           AlertMessage.successMsg(contextPop, "Task Completed", "You earned +$_reward tickets!");
           FetchDataService.fetchData(contextPop, forceRefresh: true);
         } else {
-          AlertMessage.errorMsg(contextPop, "Maybe your network issue,\nTikTok didn't added ${_selectedOption=="Likes"?"Like":_selectedOption=="Comments"?"Comment":_selectedOption=="Favorites"?"Favorite":"Follow"}",
-            "You didn't ${_selectedOption=="Likes"?"Like":_selectedOption=="Comments"?"Comment":_selectedOption=="Favorites"?"Favorite":"Follow"} the ${_selectedOption=="Followers"?"Account":"Video"}\n",
-            time: 8
-          );
+
+          await showPopup(contextPop);
+
+          // AlertMessage.errorMsg(contextPop, "Maybe your network issue,\nTikTok didn't added ${_selectedOption=="Likes"?"Like":_selectedOption=="Comments"?"Comment":_selectedOption=="Favorites"?"Favorite":"Follow"}",
+          //   "You didn't ${_selectedOption=="Likes"?"Like":_selectedOption=="Comments"?"Comment":_selectedOption=="Favorites"?"Favorite":"Follow"} the ${_selectedOption=="Followers"?"Account":"Video"}\n",
+          //   time: 8
+          // );
+
         }
 
       } catch (e) {
@@ -251,6 +259,78 @@ class TikTokTaskHandler {
         AlertMessage.errorMsg(contextPop, "Verifying Failed", "Something went wrong while verifying.");
       }
     }
+  }
+
+
+  static Future<void> showPopup(BuildContext contextPop) async{
+    final theme = Theme.of(contextPop).colorScheme;
+    final textStyle = Theme.of(contextPop).textTheme;
+    return showDialog(
+      context: contextPop,
+      barrierDismissible: false,
+      builder: (_) => AlertDialog(
+        shape: RoundedRectangleBorder(
+          side: BorderSide(color: theme.primaryContainer, width: 0.5),
+          borderRadius: BorderRadius.circular(7),),
+        title: Row(spacing: 5,
+          children: [
+            Icon(Icons.task_alt, size: 28, color: theme.secondaryFixedDim),
+            Text("Task Not Completed",
+              style: Theme.of(contextPop).textTheme.displaySmall?.copyWith(fontSize: 22),),
+          ],
+        ),
+        content: Text("\nYou didn't ${_selectedOption=="Likes"?"Like":_selectedOption=="Comments"?"Comment":_selectedOption=="Favorites"?"Favorite":"Follow"} the ${_selectedOption=="Followers"?"Account":"Video"}"
+            "\n\nTikTok did not detect your ${_selectedOption=="Likes"?"Like":_selectedOption=="Comments"?"Comment":_selectedOption=="Favorites"?"Favorite":"Follow"}.\n"
+            "Do you want to try again?", style: Theme.of(contextPop).textTheme.displaySmall?.copyWith(wordSpacing: 0.6, height: 1.3, fontSize: 15)),
+        actions: [
+          SizedBox(height: 36,
+            child: MyButton(txt: 'Report', borderRadius: 40, shadowOn: true,
+                bgColor: Colors.transparent, txtSize: 12, shadowColor: theme.primaryFixed,
+                txtColor: theme.onPrimaryContainer,
+                onClick: () {
+             final CampProvider = Provider.of<AllCampaignsProvider>(contextPop, listen: false);
+             CampProvider.enterSelectionMode(_campaignId.toString());
+             CampProvider.hideSelectedTasks("7 day");
+             Navigator.pop(contextPop);
+             AlertMessage.snackMsg(context: contextPop, message: "Task Hide & Reported");
+                }),
+          ),
+
+          SizedBox(height: 36,
+            child: MyButton(txt: 'Cancel', borderRadius: 40, pading: const EdgeInsets.only(left: 20, right: 20), shadowOn: true,
+                bgColor: Colors.transparent, txtSize: 12, shadowColor: theme.primaryFixed,
+                txtColor: theme.onPrimaryContainer,
+                onClick: () {Navigator.of(contextPop).pop(false);}),
+          ),
+          SizedBox(height: 36,
+            child: MyButton(txt: "Try again", borderRadius: 40, pading: const EdgeInsets.only(left: 20, right: 20), shadowOn: true,
+                bgColor: theme.primaryFixedDim, borderLineOn: true, borderLineSize: 1, borderColor: theme.onPrimaryContainer, txtSize: 12, txtColor: theme.onPrimaryContainer,
+                onClick: () async{
+                  Navigator.pop(contextPop);
+
+                  // Relaunch TikTok Again
+                  await FlutterOverlayWindow.showOverlay(
+                    width: WindowSize.matchParent,
+                    height: 600,
+                    alignment: OverlayAlignment.topLeft,
+                    flag: OverlayFlag.defaultFlag,
+                    enableDrag: false,
+                    overlayTitle: "Return Social Task",
+                    visibility: NotificationVisibility.visibilityPublic,
+                  );
+
+                  await FlutterOverlayWindow.shareData(_selectedOption!);
+
+                  await launchUrl(
+                  Uri.parse(_lastTikTokUrl!),
+                  mode: LaunchMode.externalApplication,
+                  );
+                  _taskLaunched = true;
+                } ),
+          ),
+        ],
+           ),
+     );
   }
 
 
