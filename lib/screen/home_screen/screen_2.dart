@@ -413,9 +413,10 @@ class _Screen2State extends State<Screen2> with WidgetsBindingObserver{
                           ),
                         ]),
                     ),
-                    if (!userIsPremium)
-                      Container(
-                        margin: EdgeInsets.only(top: 10), child: UnityAdsManager.bannerAd(),),
+
+                    // if (!userIsPremium)
+                    //   Container(
+                    //     margin: EdgeInsets.only(top: 10), child: UnityAdsManager.bannerAd(),),
 
                   ]),
               ),

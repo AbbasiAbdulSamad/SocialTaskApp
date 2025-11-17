@@ -60,15 +60,16 @@ dev_dependencies:
 flutter_icons:
   android: true
   ios: true
-  image_path: assets/images/socialtask.png
+  adaptive_icon_background: "#08456C"
+  adaptive_icon_foreground: assets/images/socialtask.png
 
 flutter_native_splash:
-  color: "#004664"
-  image: assets/images/socialtask.png
+  color: "#014665"
   android: true
   ios: true
   android_gravity: center
   ios_content_mode: scaleAspectFit
+  branding: assets/images/socialtask.png
 
 # For information on the generic Dart part of this file, see the
 # following page: https://dart.dev/tools/pub/pubspec

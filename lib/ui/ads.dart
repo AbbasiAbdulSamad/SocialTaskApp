@@ -11,7 +11,6 @@ import 'flash_message.dart';
 class UnityAdsManager {
   // --- Your Unity Game IDs ---
   static const String _androidGameId = "5980273";
-  static const String _bannerId = "Banner_Android";
   static const String _rewardedId = "Rewarded_Android";
   static const String _interstitialId = "Interstitial_Android";
 
@@ -113,22 +112,6 @@ class UnityAdsManager {
         _interstitialLoaded = false;
         loadInterstitialAd();
       },
-    );
-  }
-
-  /// 🔹 Banner Widget (Reusable)
-  static Widget bannerAd({
-    Alignment alignment = Alignment.bottomCenter,
-  }) {
-    return Align(
-      alignment: alignment,
-      child: UnityBannerAd(
-        placementId: _bannerId,
-        onLoad: (placementId) => print('✅ Banner Loaded: $placementId'),
-        onClick: (placementId) => print('🖱️ Banner Clicked: $placementId'),
-        onFailed: (placementId, error, message) =>
-            print('❌ Banner Failed: $error $message'),
-      ),
     );
   }
 }

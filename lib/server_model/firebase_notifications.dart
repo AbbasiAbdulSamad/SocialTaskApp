@@ -16,7 +16,7 @@ const AndroidNotificationChannel channel = AndroidNotificationChannel(
 Future<void> setupFirebaseMessagingListeners() async {
   // Initialize local notification
   const AndroidInitializationSettings androidSettings =
-  AndroidInitializationSettings('@mipmap/ic_launcher');
+  AndroidInitializationSettings('@drawable/ic_stat_notify');
   final InitializationSettings initSettings =
   InitializationSettings(android: androidSettings);
 
@@ -55,7 +55,7 @@ Future<void> setupFirebaseMessagingListeners() async {
             channelDescription: channel.description,
             importance: Importance.high,
             priority: Priority.high,
-            icon: '@mipmap/ic_launcher',
+            icon: '@drawable/ic_stat_notify',
           ),
         ),
         payload: route,

@@ -178,15 +178,20 @@ class _AuthenticationState extends State<Authentication> {
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
           // Welcome Text Container
+              Padding(
+                padding: const EdgeInsets.only(left: 15, right: 15),
+                child: Center(child: Image.asset('assets/images/login_cover.webp', width: 400,),),
+              ),
+              const SizedBox(height: 30,),
               Center(
-                  child: const Text('Welcome to Social Task', style: TextStyle(decoration: TextDecoration.none,
-                    fontFamily: 'WelcomeFont', color: Colors.white, fontSize: 30, shadows: [
-                      Shadow(offset: Offset(2.0, 2.0), color: Colors.black, blurRadius: 2.0,),
-                      Shadow(offset: Offset(-2.0, -2.0), color: Colors.black, blurRadius: 2.0,),
-                    ],),
-                  )),
-          SizedBox(height: 150,),
-
+                child: const Text('Welcome to Social Task', style: TextStyle(decoration: TextDecoration.none,
+                  fontFamily: 'WelcomeFont', color: Colors.white, fontSize: 30, shadows: [
+                    Shadow(offset: Offset(2.0, 2.0), color: Colors.black, blurRadius: 2.0,),
+                    Shadow(offset: Offset(-2.0, -2.0), color: Colors.black, blurRadius: 2.0,),
+                  ],),
+                ),
+              ),
+              const SizedBox(height: 60,),
           // White Box Container
               Container(
                 decoration: BoxDecoration(

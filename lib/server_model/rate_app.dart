@@ -6,9 +6,9 @@ class AppRating{
     RateMyApp rateMyApp = RateMyApp(
       preferencesPrefix: "rateMyApp_",
       minDays: 1,
-      minLaunches: 5,
-      remindDays: 15,
-      remindLaunches: 15,
+      minLaunches: 2,
+      remindDays: 7,
+      remindLaunches: 7,
       googlePlayIdentifier: "com.socialtask.app",
       appStoreIdentifier: "4974844175063206450"
     );

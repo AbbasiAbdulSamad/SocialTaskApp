@@ -4,30 +4,24 @@
     <style name="LaunchTheme" parent="@android:style/Theme.Light.NoTitleBar">
         <!-- Splash screen background -->
         <item name="android:windowBackground">@drawable/launch_background</item>
-
         <!-- Prevent forced dark mode inversion -->
-        <item name="android:forceDarkAllowed">false</item>
-
         <!-- Let content extend behind system bars -->
-        <item name="android:windowFullscreen">true</item>
-        <item name="android:windowDrawsSystemBarBackgrounds">true</item>
         <item name="android:statusBarColor">@android:color/transparent</item>
         <item name="android:navigationBarColor">@android:color/transparent</item>
-
         <!-- Allow layout inside notches / cutouts -->
+        <item name="android:forceDarkAllowed">false</item>
+        <item name="android:windowFullscreen">false</item>
+        <item name="android:windowDrawsSystemBarBackgrounds">false</item>
         <item name="android:windowLayoutInDisplayCutoutMode">shortEdges</item>
     </style>
-
     <!-- 🌙 Normal theme once Flutter UI takes over -->
     <style name="NormalTheme" parent="@android:style/Theme.Light.NoTitleBar">
         <!-- Base background behind Flutter UI -->
         <item name="android:windowBackground">?android:colorBackground</item>
-
         <!-- Match transparent bars for modern look -->
         <item name="android:windowDrawsSystemBarBackgrounds">true</item>
         <item name="android:statusBarColor">@android:color/transparent</item>
         <item name="android:navigationBarColor">@android:color/transparent</item>
-
         <!-- Cutout (notch) support -->
         <item name="android:windowLayoutInDisplayCutoutMode">shortEdges</item>
     </style>

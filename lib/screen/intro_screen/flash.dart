@@ -162,9 +162,9 @@ class _FlashState extends State<Flash> {
           body: Container(
             decoration: BoxDecoration(
               gradient: LinearGradient(
-                colors: [theme.secondaryContainer, theme.secondary],
-                begin: Alignment.topCenter,
-                end: Alignment.bottomCenter,
+                colors: [Color(0xff324891), Color(0xff014665)],
+                begin: Alignment.topRight,
+                end: Alignment.bottomLeft,
               ),
             ),
             child: Center(

@@ -7,6 +7,7 @@ import '../../server_model/internet_provider.dart';
 import '../../server_model/page_load_fetchData.dart';
 import '../../server_model/provider/fetch_taskts.dart';
 import '../../server_model/provider/users_provider.dart';
+import '../../server_model/rate_app.dart';
 import '../../ui/bg_box.dart';
 import '../../ui/flash_message.dart';
 import '../../ui/pop_alert.dart';
