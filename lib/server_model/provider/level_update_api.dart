@@ -4,7 +4,6 @@ import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 import 'package:provider/provider.dart';
-import '../../config/api_config.dart';
 import '../../config/config.dart';
 import '../../pages/sidebar_pages/level.dart';
 import '../LocalNotificationManager.dart';

@@ -40,19 +40,20 @@ class _FlashState extends State<Flash> {
 
   Future<void> _initializeApp() async {
     // 1️⃣ Start a 6-sec timer — show "Unstable network" if delay occurs
-    Timer(const Duration(seconds: 6), () {
+    Timer(const Duration(seconds: 7), () {
       if (mounted && !_navigationDone) {
         AlertMessage.snackMsg(context: context, message: "Unstable network connection");
       }
     });
 
+    _checkRemoteConfig();
+    VersionChecker().checkAppVersion(context);
+    UnityAdsManager.initialize();
+
     // 2️⃣ Parallel background initialization
     await Future.wait([
       _checkInstallReferrer(),
-      _checkRemoteConfig(),
       _requestNotificationPermission(),
-      VersionChecker().checkAppVersion(context),
-      Future(() => UnityAdsManager.initialize()),
     ]);
 
     // 3️⃣ Firebase setup (non-blocking)
@@ -60,7 +61,7 @@ class _FlashState extends State<Flash> {
     Helper.listenForTokenRefresh();
 
     // 4️⃣ Navigate after 2 seconds
-    Future.delayed(const Duration(seconds: 2), () async {
+    Future.delayed(const Duration(milliseconds: 500), () async {
       await _handleNavigation(context);
       _navigationDone = true;
     });
@@ -71,10 +72,10 @@ class _FlashState extends State<Flash> {
       final prefs = await SharedPreferences.getInstance();
       final lastFetchTime = prefs.getInt("remote_config_last_fetch") ?? 0;
       final now = DateTime.now().millisecondsSinceEpoch;
-      const threeDays = 3 * 24 * 60 * 60 * 1000;
+      const fiveDays = 5 * 24 * 60 * 60 * 1000;
 
-      if (now - lastFetchTime < threeDays) {
-        debugPrint("🕐 Skipping Remote Config fetch (cached <3 days)");
+      if (now - lastFetchTime < fiveDays) {
+        debugPrint("🕐 Skipping Remote Config fetch (cached <5 days)");
         return;
       }
 

@@ -65,15 +65,14 @@ class _OnBoardingState extends State<OnBoarding> {
       
                 // Page in Show Content throw Array List
                 return Column(children:[
-                  const SizedBox(height: 10,),
-                  Image.asset('assets/images/'+_introData[index]['image'], width: 250, height: 450,),
+                  Image.asset('assets/images/'+_introData[index]['image'], width: double.infinity, height: 510,),
                   const SizedBox(height: 20,),
                   Text(_introData[index]['title'], style: Theme.of(context).textTheme.displaySmall?.copyWith(color: Colors.black, fontSize: 22,),),
                   const SizedBox(height: 5,),
                 ],);
               },
             ),
-      
+
             // All Pages of bottom padding size
             Padding(
               padding: const EdgeInsets.only(bottom: 80),

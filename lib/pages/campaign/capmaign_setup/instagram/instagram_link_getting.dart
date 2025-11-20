@@ -376,17 +376,23 @@ class _instagram_LinkGettingState extends State<instagram_LinkGetting> {
                                       mainAxisSpacing: 15,
                                       childAspectRatio: 13 / 15,
                                     ),
-                                    itemCount: uniqueCampaigns.length, // ✅ Sirf unique campaigns
+                                    itemCount: uniqueCampaigns.length,
                                     itemBuilder: (context, index) {
                                       final campaign = uniqueCampaigns[index];
 
                                       return InkWell(
                                         onTap: () async {
-                                          setState((){
-                                            _loading = true;
-                                            _videoLink = campaign['videoUrl'];
-                                          });
-                                          await _analyzeInstagramLink(_videoLink!);
+                                          if(campaign['videoUrl'].contains("/ree/") || campaign['videoUrl'].contains("/p/") ||
+                                              campaign['videoUrl'].contains("/post/")){
+                                            setState((){
+                                              _loading = true;
+                                              _videoLink = campaign['videoUrl'];
+                                            });
+                                            await _analyzeInstagramLink(_videoLink!);
+                                          }else{
+                                            AlertMessage.errorMsg(context, "Enter the again link in the input field.", "Link error!");
+                                            return;
+                                          }
                                         },
                                         child: Card(
                                           elevation: 3,

@@ -2,7 +2,6 @@ import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 import 'package:firebase_auth/firebase_auth.dart';
-import '../../config/api_config.dart';
 import '../../config/config.dart';
 import '../../screen/home.dart';
 import '../../ui/flash_message.dart';
@@ -50,9 +49,7 @@ class TaskProvider with ChangeNotifier {
 
       if (response.statusCode == 200) {
         AlertMessage.snackMsg(context: context, message: 'You earned +$rewardCoins tickets!', time: 2);
-
-        Navigator.pushAndRemoveUntil(context,
-          MaterialPageRoute(builder: (_) => Home(onPage: onPage)), (route) => false,);
+        Helper.navigateAndRemove(context, Home(onPage: onPage));
 
       } else {
         // ✅ API Error message extract karo

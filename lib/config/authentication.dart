@@ -14,7 +14,6 @@ import '../server_model/LocalNotificationManager.dart';
 import '../server_model/signout.dart';
 import '../ui/button.dart';
 import '../ui/flash_message.dart';
-import 'api_config.dart';
 import 'config.dart';
 
 class Authentication extends StatefulWidget {
@@ -180,7 +179,7 @@ class _AuthenticationState extends State<Authentication> {
           // Welcome Text Container
               Padding(
                 padding: const EdgeInsets.only(left: 15, right: 15),
-                child: Center(child: Image.asset('assets/images/login_cover.webp', width: 400,),),
+                child: Opacity(opacity: 0.9, child: Center(child: Image.asset('assets/images/login_cover.webp', width: 400,),)),
               ),
               const SizedBox(height: 30,),
               Center(

@@ -1,62 +1,55 @@
-import '../server_model/remote_config_service.dart';
-
-class AppConfig {
-  static String get baseUrl => RemoteConfigService().baseUrl;
-}
-
 class ApiPoints {
-  // User Register and Login
-  static String get authentication => '${AppConfig.baseUrl}/register-or-authenticate';
+  // 🔥 Base URL (local or production)
+  // static const String baseUrl = "http://10.234.106.48:3000";
+  static const String baseUrl = "https://socialtask-server.fly.dev";
 
-  // users Data
-  // static String get usersData => '${AppConfig.baseUrl}/users';
-  static String get currentUserData => '${AppConfig.baseUrl}/current-user';
-  static String get referralsList => '${AppConfig.baseUrl}/api/user/referrals';
+  // ---------------- USER AUTH ----------------
+  static String get authentication => "$baseUrl/register-or-authenticate";
 
-  // Level Data API
-  static String get levelUpDateAPI => '${AppConfig.baseUrl}/updateUserLevel';
-  static String get levelRewardAPI => '${AppConfig.baseUrl}/claim-reward';
+  // ---------------- USER DATA ----------------
+  static String get currentUserData => "$baseUrl/current-user";
+  static String get referralsList => "$baseUrl/api/user/referrals";
 
-  // Campaigns API Data
-  static String get campaignsPost => '${AppConfig.baseUrl}/api/campaigns/post';
-  static String get campaignsGet => '${AppConfig.baseUrl}/api/campaigns/currentGet';
-  static String get campaignFiltered => '${AppConfig.baseUrl}/api/campaigns/filtered-campaigns';
-  static String get campaignsViewers => '${AppConfig.baseUrl}/api/campaigns/viewers';
-  static String get campaignsPauseResume => '${AppConfig.baseUrl}/api/campaigns';
-  static String get campaignsCompletedDelete => '${AppConfig.baseUrl}/api/campaigns/completed';
-  // static String get campaignsAll => '${AppConfig.baseUrl}/api/campaigns/all';
+  // ---------------- LEVEL SYSTEM -------------
+  static String get levelUpDateAPI => "$baseUrl/updateUserLevel";
+  static String get levelRewardAPI => "$baseUrl/claim-reward";
 
-  // Tasks API
-  static String get taskComplete => '${AppConfig.baseUrl}/api/task/complete-task';
+  // ---------------- CAMPAIGNS ----------------
+  static String get campaignsPost => "$baseUrl/api/campaigns/post";
+  static String get campaignsGet => "$baseUrl/api/campaigns/currentGet";
+  static String get campaignFiltered => "$baseUrl/api/campaigns/filtered-campaigns";
+  static String get campaignsViewers => "$baseUrl/api/campaigns/viewers";
+  static String get campaignsPauseResume => "$baseUrl/api/campaigns";
+  static String get campaignsCompletedDelete => "$baseUrl/api/campaigns/completed";
 
-  // Users Active
-  static String get activeUsers => '${AppConfig.baseUrl}/api/activeUsers/trackActiveUsers';
+  // ---------------- TASKS --------------------
+  static String get taskComplete => "$baseUrl/api/task/complete-task";
 
-  // Leaderboard API
-  static String get leaderboardAPI => '${AppConfig.baseUrl}/api/leaderboard/all';
-  static String get leaderboardCheckReward => '${AppConfig.baseUrl}/api/leaderboard/reward-popup';
-  static String get leaderboardRewardClaim => '${AppConfig.baseUrl}/api/leaderboard/claim-reward';
+  // ---------------- ACTIVE USERS -------------
+  static String get activeUsers => "$baseUrl/api/activeUsers/trackActiveUsers";
 
-  // Daily Reward API
-  static String get dailyRewardAPI => '${AppConfig.baseUrl}/api/dailyreward/claim';
+  // ---------------- LEADERBOARD --------------
+  static String get leaderboardAPI => "$baseUrl/api/leaderboard/all";
+  static String get leaderboardCheckReward => "$baseUrl/api/leaderboard/reward-popup";
+  static String get leaderboardRewardClaim => "$baseUrl/api/leaderboard/claim-reward";
 
-  // Ad Reward API
-  static String get adReward => '${AppConfig.baseUrl}/api/adsReward/verify-reward';
+  // ---------------- DAILY REWARD -------------
+  static String get dailyRewardAPI => "$baseUrl/api/dailyreward/claim";
 
-  // Support Admin
-  static String get supportSendMsg => '${AppConfig.baseUrl}/api/support';
+  // ---------------- ADS REWARD ---------------
+  static String get adReward => "$baseUrl/api/adsReward/verify-reward";
 
-  // Premium Subscription
-  static String get premiumSubAPi => '${AppConfig.baseUrl}/api/premium/subscribe';
+  // ---------------- SUPPORT ADMIN ------------
+  static String get supportSendMsg => "$baseUrl/api/support";
 
-  // Buy Tickets
-  static String get buyTickets => '${AppConfig.baseUrl}/api/purchase/buy-tickets';
+  // ---------------- PREMIUM SUBSCRIPTION -----
+  static String get premiumSubAPi => "$baseUrl/api/premium/subscribe";
 
-  // Social Data
-  static String get socialInstagramData => '${AppConfig.baseUrl}/api/instagram';
-  static String get tiktokTaskCheck => '${AppConfig.baseUrl}/api/tiktok/tiktok-check-task';
-  static String get tiktokTaskVerify => '${AppConfig.baseUrl}/api/tiktok/tiktok-verify-task';
+  // ---------------- BUY TICKETS --------------
+  static String get buyTickets => "$baseUrl/api/purchase/buy-tickets";
 
-  // App Version Checking
-  // static String get appVersionUpdate => '${AppConfig.baseUrl}/api/app-version';
+  // ---------------- SOCIAL DATA --------------
+  static String get socialInstagramData => "$baseUrl/api/instagram";
+  static String get tiktokTaskCheck => "$baseUrl/api/tiktok/tiktok-check-task";
+  static String get tiktokTaskVerify => "$baseUrl/api/tiktok/tiktok-verify-task";
 }

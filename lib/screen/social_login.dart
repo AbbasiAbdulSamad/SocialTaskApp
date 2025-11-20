@@ -5,6 +5,8 @@ import 'package:app/ui/flash_message.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_inappwebview/flutter_inappwebview.dart';
 
+import '../server_model/functions_helper.dart';
+
 class SocialLogins extends StatefulWidget {
   final String? loginSocial;
 
@@ -79,9 +81,7 @@ class _SocialLoginsState extends State<SocialLogins> {
                       debugPrint("✅ YouTube login detected & saved");
       
                       AlertMessage.snackMsg(context: context, message: "YouTube Account Login Successfully!");
-                      Navigator.pushAndRemoveUntil(
-                        context, MaterialPageRoute(builder: (_) => Home(onPage: 1)), (route) => false,
-                      );
+                      Helper.navigateAndRemove(context, const Home(onPage: 1));
       
                     } else {
                       Future.delayed(Duration(seconds: 3), () {
@@ -108,9 +108,7 @@ class _SocialLoginsState extends State<SocialLogins> {
                       debugPrint("✅ Instagram/Facebook login detected & saved");
       
                       AlertMessage.snackMsg(context: context, message: "Instagram Account Login Successfully!");
-                      Navigator.pushAndRemoveUntil(
-                        context, MaterialPageRoute(builder: (_) => Home(onPage: 1)), (route) => false,
-                      );
+                      Helper.navigateAndRemove(context, const Home(onPage: 1));
                     } else {
                       Future.delayed(Duration(seconds: 3), () {
                         AlertMessage.snackMsg(context: context, message: "Login Instagram Account", time: 5);
