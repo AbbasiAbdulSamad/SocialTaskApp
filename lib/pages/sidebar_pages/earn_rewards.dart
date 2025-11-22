@@ -15,7 +15,10 @@ import '../../ui/flash_message.dart';
 import '../../ui/pop_reward.dart';
 import '../../ui/ui_helper.dart';
 class EarnTickets extends StatelessWidget {
-  const EarnTickets({super.key});
+  BuildContext context;
+   EarnTickets({super.key, required this.context}){
+     Provider.of<RewardProvider>(context, listen: false).setLoading(false);
+  }
 
   void showRewardPopup(BuildContext context) {
     final internetProvider = Provider.of<InternetProvider>(context, listen: false);

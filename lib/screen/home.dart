@@ -517,8 +517,8 @@ class _HomeState extends State<Home> {
         final Map<String, Widget> screenMap = {
           'LeaderboardScreen':const LeaderboardScreen(),
           'Campaigns':const Home(onPage: 2),
-          'DailyReward':const EarnTickets(),
-          'Ads':const EarnTickets(),
+          'DailyReward': EarnTickets(context: context),
+          'Ads': EarnTickets(context: context,),
           'Level':const Level(),
           'BuyTickets':const BuyTickets(),
           'PremiumAccount':const PremiumAccount(),

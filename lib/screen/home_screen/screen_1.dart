@@ -6,7 +6,7 @@ class screen1 extends StatelessWidget{
   const screen1({super.key});
   @override
   Widget build(BuildContext context) {
-    return ShimmerLoader.buildShimmerLoading();
+    return ShimmerLoader.leaderboardShimmerLoading(context);
   }
 }
 

@@ -6,28 +6,30 @@ class LightThemesSetup {
     brightness: Brightness.light,
     primarySwatch: Colors.blue,
    // All Colors Setup
-    colorScheme: const ColorScheme.light(
-      primary: Color(0xFFA6C4EA), // 10% light use button
-      onPrimary: Color(0xff5dacd6), // 50% light use button
-      secondaryContainer: Color(0xff004664), // orgnal theme defult color
-      onSecondary:Color(0xff3a6597), // orginal dark, bottom bar color
-      secondary: Color(0xff577DAB), // orgnal light,
-      surfaceTint: Color(0xff2e5178),// Status Bar Colors
-      shadow: Color(0xFFBCBCBC), // shadow
-      background: Color(0xFFE7E7EA), // background
+    colorScheme: ColorScheme.light(
+      primary: const Color(0xFFA6C4EA), // 10% light use button
+      onPrimary: const Color(0xff5dacd6), // 50% light use button
+      secondaryContainer: const Color(0xff004664), // orgnal theme defult color
+      onSecondary:const Color(0xff3a6597), // orginal dark, bottom bar color
+      secondary: const Color(0xff577DAB), // orgnal light,
+      surfaceTint: const Color(0xff2e5178),// Status Bar Colors
+      shadow: const Color(0xFFBCBCBC), // shadow
+      background: const Color(0xFFE7E7EA), // background
       primaryFixed: Colors.white, // white
       primaryFixedDim: Colors.white70, // white 70% trastion
       onPrimaryContainer: Colors.black, // black text color black
       primaryContainer: Colors.black54, // black 70% trastion
-      onPrimaryFixed: Color(0xff505050), // Haf black
-      scrim: Color(0xff63afff), // dark buttons
-      surfaceDim: Color(0xff95c8fb), // buttons
-      tertiary: Color(0xff393939), // shadow 2
-      tertiaryContainer: Color(0xffbc9805), // yellow
-      secondaryFixed: Color(0xff004664), // App Bar Color
+      onPrimaryFixed: const Color(0xff505050), // Haf black
+      scrim: const Color(0xff63afff), // dark buttons
+      surfaceDim: const Color(0xff95c8fb), // buttons
+      tertiary: const Color(0xff393939), // shadow 2
+      tertiaryContainer: const Color(0xffbc9805), // yellow
+      secondaryFixed: const Color(0xff004664), // App Bar Color
       secondaryFixedDim: Colors.red, // red
-      errorContainer: Color(0xFF006506), // success green
-      error: Color(0xFF8B0E16), // error red
+      errorContainer: const Color(0xFF006506), // success green
+      error: const Color(0xFF8B0E16), // error red
+      surfaceContainer: Colors.grey[300],
+      surfaceBright: Colors.grey[100],
     ),
 
     // AppBar Theme

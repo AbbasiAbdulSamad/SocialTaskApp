@@ -71,15 +71,15 @@ Future<void> main() async {
   runApp(
     MultiProvider(
       providers: [
+        ChangeNotifierProvider(create: (_) => InternetProvider()),
+        ChangeNotifierProvider(create: (_) => UserProvider()),
         ChangeNotifierProvider(create: (_) => RewardProvider(), lazy: true),
         ChangeNotifierProvider(create: (_) => LeaderboardProvider(), lazy: true),
         ChangeNotifierProvider(create: (_) => LevelUpProvider(), lazy: true),
         ChangeNotifierProvider(create: (_) => LeaderboardReward(), lazy: true),
-        ChangeNotifierProvider(create: (_) => InternetProvider()),
         ChangeNotifierProvider(create: (_) => TaskProvider(), lazy: true),
         ChangeNotifierProvider(create: (_) => AllCampaignsProvider(), lazy: true),
         ChangeNotifierProvider(create: (_) => CampaignProvider(), lazy: true),
-        ChangeNotifierProvider(create: (_) => UserProvider()),
         ChangeNotifierProvider(create: (_) => LevelDataProvider(), lazy: true),
       ],
       child: const MyApp(),
@@ -96,7 +96,7 @@ class MyApp extends StatelessWidget {
       navigatorKey: navigatorKey,
       routes: {
         'Campaigns': (context) => const Home(onPage: 2),
-        'DailyReward': (context) => const EarnTickets(),
+        'DailyReward': (context) => EarnTickets(context: context,),
         'LeaderboardScreen': (context) => const LeaderboardScreen(),
         'PremiumAccount': (context) => const PremiumAccount(),
         'BuyTickets': (context) => const BuyTickets(),

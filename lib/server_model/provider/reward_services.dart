@@ -18,7 +18,7 @@ class RewardProvider with ChangeNotifier {
   int _reward = 20;
   int get reward => _reward;
 
-  void _setLoading(bool value) {
+  void setLoading(bool value) {
     _isLoading = value;
     notifyListeners();
   }
@@ -41,15 +41,15 @@ class RewardProvider with ChangeNotifier {
       Navigator.pop(context);
 
       // ✅ Step 2: Show loading
-      _setLoading(true);
+      setLoading(true);
 
       final token = await Helper.getAuthToken();
       if (token == null) {
         await Future.delayed(const Duration(milliseconds: 200)); // Wait for UI rebuild
-        if (context.mounted) {
-          AlertMessage.errorMsg(context, "User not found", "Error!");
-        }
-        _setLoading(false);
+        if (!context.mounted) return;
+        AlertMessage.errorMsg(context, "User not found", "Error!");
+
+        setLoading(false);
         return;
       }
 
@@ -65,10 +65,11 @@ class RewardProvider with ChangeNotifier {
       await Future.delayed(const Duration(milliseconds: 300));
 
       if (response.statusCode == 200) {
-        _setLoading(false);
+        setLoading(false);
         if (context.mounted) {
           UnityAdsManager.showInterstitialAd(context, _reward);
           // Reward Claim Success Message
+          if (!context.mounted) return;
           AlertMessage.successMsg(context, "Daily Reward +$reward Added Successfully 🎉", "Successfully Claimed", time: 5);
         }
         await LocalNotificationManager.saveNotification(
@@ -77,20 +78,18 @@ class RewardProvider with ChangeNotifier {
             screenId: "DailyReward"
         );
       } else {
-        _setLoading(false);
-        if (context.mounted) {
+        setLoading(false);
+        if (!context.mounted) return;
           AlertMessage.errorMsg(
             context,
             data['message'] ?? "Unknown error",
             "Already Claimed",
           );
-        }
       }
     } catch (e) {
-      _setLoading(false);
-      if (context.mounted) {
+      setLoading(false);
+      if (!context.mounted) return;
         AlertMessage.errorMsg(context, "Error: $e", "Error!");
-      }
     }
   }
 
@@ -98,13 +97,14 @@ class RewardProvider with ChangeNotifier {
   /// 🎬 Claim Ad Reward (After full video watched)
   Future<void> claimAdsReward(BuildContext context) async {
     try {
-      _setLoading(true);
+      setLoading(true);
       // 🔹 Firebase token le lo (auth proof)
       final token = await Helper.getAuthToken();
 
       if (token == null) {
+        if (!context.mounted) return;
         AlertMessage.errorMsg(context, "User not fount", "Error!");
-        _setLoading(false);
+        setLoading(false);
         return;
       }
 
@@ -118,6 +118,7 @@ class RewardProvider with ChangeNotifier {
       final data = jsonDecode(response.body);
 
       if (response.statusCode == 200 && data['success'] == true) {
+        if (!context.mounted) return;
         AlertMessage.successMsg(context, data['message'], "+20 Tickets");
         await LocalNotificationManager.saveNotification(
             title: 'Ad Bonus Earned 🎁',
@@ -126,13 +127,15 @@ class RewardProvider with ChangeNotifier {
         );
 
       } else {
+        if (!context.mounted) return;
         AlertMessage.errorMsg(
             context, data['message'] ?? "Something went wrong", "Error!");
       }
     } catch (e) {
+      if (!context.mounted) return;
       AlertMessage.errorMsg(context, "Error: $e", "Error!");
     } finally {
-      _setLoading(false);
+      setLoading(false);
     }
   }
 }

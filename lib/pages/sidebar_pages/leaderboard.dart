@@ -7,6 +7,7 @@ import '../../server_model/functions_helper.dart';
 import '../../server_model/provider/leaderboard_provider.dart';
 import '../../server_model/provider/leaderboard_reward.dart';
 import '../../server_model/provider/users_provider.dart';
+import '../../ui/shimmer_loading.dart';
 import '../../ui/ui_helper.dart';
 
 class LeaderboardScreen extends StatefulWidget {
@@ -217,7 +218,12 @@ class _LeaderboardScreenState extends State<LeaderboardScreen> {
                                 ],),
                               ),
                               (isLoading || userProvider.isCurrentUserLoading)
-                                  ? Container(alignment: Alignment.center, margin: EdgeInsets.only(top: 100), child: Ui.loading(context)):
+                                  ? Expanded(child:
+                              Padding(
+                                  padding: const EdgeInsets.only(top: 7),
+                                  child: ShimmerLoader.leaderboardShimmerLoading(context)),
+                                  ):
+
                                 (leaderboardProvider.leaderboard.isEmpty)?
                                 Column(
                                   children: [

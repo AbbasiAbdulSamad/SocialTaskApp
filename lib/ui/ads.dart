@@ -21,7 +21,7 @@ class UnityAdsManager {
   static Future<void> initialize() async {
     UnityAds.init(
       gameId: _androidGameId,
-      testMode: true,
+      testMode: false,
       onComplete: () {
         debugPrint("✅ Unity Ads Initialized");
         loadRewardedAd();

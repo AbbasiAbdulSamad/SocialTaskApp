@@ -3,6 +3,7 @@ import 'dart:math';
 import 'package:app/server_model/functions_helper.dart';
 import 'package:app/server_model/provider/users_provider.dart';
 import 'package:app/ui/ads.dart';
+import 'package:app/ui/shimmer_loading.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_overlay_window/flutter_overlay_window.dart';
 import 'package:provider/provider.dart';
@@ -181,13 +182,13 @@ class _Screen2State extends State<Screen2> with WidgetsBindingObserver{
                     ()=> FetchDataService.fetchData(context, forceRefresh: true));
           }
           if (snapshot.connectionState == ConnectionState.waiting) {
-            return Ui.loading(context);
+            return ShimmerLoader.oneTaskShimmerLoading(context);
           }
 
           return Consumer<AllCampaignsProvider>(
               builder: (context, allCampaignsProvider, child) {
                 if (allCampaignsProvider.isLoading) {
-                  return  Center(child: CircularProgressIndicator(color: theme.onPrimaryContainer,),);
+                  return  Center(child: Ui.loading(context),);
                 } else if (allCampaignsProvider.errorMessage.isNotEmpty) {
                   return Ui.buildNoInternetUI(theme, textTheme, true, allCampaignsProvider.errorMessage.toString(),
                       'Unstable network connection. Request timed out. Please check your internet connection.', Icons.portable_wifi_off_rounded,

@@ -124,7 +124,7 @@ class _Screen3State extends State<Screen3> with WidgetsBindingObserver{
                     ()=> FetchDataService.fetchData(context, forceRefresh: true));
           }
           if (snapshot.connectionState == ConnectionState.waiting) {
-            return ShimmerLoader.buildShimmerLoading();
+            return ShimmerLoader.homeTasksShimmerLoading(context);
           }
 
           return Consumer<AllCampaignsProvider>(
