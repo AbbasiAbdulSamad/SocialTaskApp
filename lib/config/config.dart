@@ -1,6 +1,6 @@
 class ApiPoints {
   // 🔥 Base URL (local or production)
-  static const String baseUrl = "http://10.234.106.48:3000";
+  static const String baseUrl = "http://10.109.62.48:3000";
   // static const String baseUrl = "https://socialtask-server.fly.dev";
 
   // ---------------- USER AUTH ----------------

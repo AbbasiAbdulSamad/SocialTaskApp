@@ -284,7 +284,7 @@ class _Screen3State extends State<Screen3> with WidgetsBindingObserver{
                                           children: [
                                             Image.asset("assets/ico/${(campaign["social"]=="YouTube") ?"youtube_icon.webp":
                                             (campaign["social"]=="TikTok")?"tiktok_icon.webp":
-                                            "instagram_icon.webp"}",width: 20,),
+                                            "insta_icon.webp"}",width: 20,),
                                             Icon(Icons.arrow_forward_ios, size: 16, color: _theme.onPrimaryContainer,),
 
                                             Icon(campaign["social"] == "YouTube"

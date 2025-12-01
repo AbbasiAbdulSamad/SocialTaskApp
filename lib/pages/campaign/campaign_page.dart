@@ -196,7 +196,36 @@ class _CampaignPageState extends State<CampaignPage> {
                                         },},
                                       ],
                                     ):
+                                    campaign['status']=="Unavailable"?
+                                    getDefaultDotMenu(context,
+                                      [
+                                        // Details Button
+                                        {"label": "Details", "icon": Icons.visibility, "value": "details", "onTap": (){
+                                          if (internetProvider.isConnected) {
+                                            Helper.navigatePush(context, CampaignDetails(videoUrl: campaign['videoUrl'], videoTitle: campaign['title'],
+                                                progress: progress, campaignImg: campaign['campaignImg'], selectedOption: campaign['selectedOption'], quantity: campaign['quantity'], viewers: campaign['viewers'].length, status: campaign['status'],
+                                                social: campaign['social'], watchTime: campaign['watchTime'], created: campaign['createdAt'], category: campaign['catagory'], completedAt: campaign['completedAt'],
+                                                campaignCost: campaign['campaignCost'], campaignId: campaign['_id']));
+                                          } else {
+                                            AlertMessage.snackMsg(context: context, message: 'No internet connection. Please connect to the network.', time: 3);
+                                          }
+                                        },},
+                                        // Delete Button
+                                        {"label": "Delete", "icon": Icons.delete, "value": "delete", "onTap": (){
 
+                                          if (internetProvider.isConnected) {
+                                            showDialog(context: context,
+                                              builder: (BuildContext context) {
+                                                // pop class import from pop_box.dart
+                                                return pop.backAlert(context: context,icon: Icons.delete, title: 'Confirm Delete',
+                                                    bodyTxt:'Are you sure you want to delete this campaign? cannot be undone.',
+                                                    confirm: 'Delete', onConfirm: (){CampaignsAction.deleteCompletedCampaign(context, campaign['_id']);} );
+                                              },
+                                            );
+                                          } else {AlertMessage.snackMsg(context: context, message: 'No internet connection. Please connect to the network.', time: 3);}
+                                        },},
+                                      ],
+                                    ):
                         // Processing / Paused Campaigns Menu Actions
                                     getDefaultDotMenu(context,
                                       [
@@ -244,7 +273,7 @@ class _CampaignPageState extends State<CampaignPage> {
                                       Row(spacing: 3, children: [
                                         (campaign['social']=="YouTube")?Image.asset('assets/ico/youtube_icon.webp', width: 17,):
                                         (campaign['social']=="TikTok")?Image.asset('assets/ico/tiktok_icon.webp', width: 17,)
-                                        :Image.asset('assets/ico/instagram_icon.webp', width: 17,),
+                                        :Image.asset('assets/ico/insta_icon.webp', width: 17,),
                                         Text("${campaign['selectedOption']}", maxLines: 1, overflow: TextOverflow.ellipsis, style: textTheme.displaySmall?.copyWith(fontSize: 12),),
                                         Text('${campaign['quantity']} / ${campaign['viewers'] != null ? campaign['viewers'].length : 0}', style: textTheme.displaySmall?.copyWith(fontSize: 12, fontWeight: FontWeight.w800),),
                                         (campaign['status']=="Completed")?Icon(Icons.check_circle_rounded, color: Colors.green, size: 15,):const SizedBox(),

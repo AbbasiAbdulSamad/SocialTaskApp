@@ -78,7 +78,7 @@ class Sidebar extends StatelessWidget{
             Ui.sidebarLabel(Icons.payments_outlined, 'Earn Rewards', (){Helper.navigatePush(context, EarnTickets(context: context,));}),
             Ui.line(),
             SizedBox(height: 25,),
-            Ui.sidebarLabel(Icons.add_shopping_cart, 'Buy Tickets', (){Helper.navigatePush(context, const BuyTickets()); }),
+            Ui.sidebarLabel(Icons.add_shopping_cart, 'Tickets', (){Helper.navigatePush(context, const BuyTickets()); }),
             Ui.lightLine(),
             Ui.sidebarLabel(Icons.workspace_premium, 'Premium Account', (){Helper.navigatePush(context, const PremiumAccount()); }),
             Ui.line(),

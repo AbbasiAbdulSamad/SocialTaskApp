@@ -230,36 +230,36 @@ class _HomeState extends State<Home> {
               Row(
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: [
-                    Tooltip(
-                      message: "Social Logins",
-                      child: IconButton(onPressed: (){
-                        Ui.Add_campaigns_pop(context, "Login Your Social Accounts",
-                            Container(
-                              width: double.infinity,
-                              height: 250,
-                              color: theme.primaryFixed,
-                              child: Column(spacing: 15,
-                                mainAxisAlignment: MainAxisAlignment.center,
-                                children: [
-                                  MyButton(txt: 'YouTube Login', img: 'youtube_icon.webp', bgColor: theme.secondary,
-                                      borderLineOn: true, borderColor: theme.onPrimaryContainer, borderLineSize: 0.5, borderRadius: 20,
-                                      txtColor: Colors.white, txtSize: 15, icoSize: 30, pading: EdgeInsets.symmetric(horizontal: 30),
-                                      onClick: (){
-                                    Helper.navigatePush(context, const  SocialLogins(loginSocial: "YouTube"));
-                                      }),
-
-                                  MyButton(txt: 'Instagram Login', img: 'instagram_icon.webp', bgColor: theme.secondary,
-                                      borderLineOn: true, borderColor: theme.onPrimaryContainer, borderLineSize: 0.5, borderRadius: 20,
-                                      txtColor: Colors.white, txtSize: 15, icoSize: 30, pading: EdgeInsets.symmetric(horizontal: 30),
-                                      onClick: (){
-                                        Helper.navigatePush(context, const  SocialLogins(loginSocial: "Instagram"));
-                                      }),
-
-                                ],),
-                            ));
-
-                      }, icon: Icon(Icons.login, size: 25, color: theme.onPrimaryContainer,)),
-                    ),
+                    // Tooltip(
+                    //   message: "Social Logins",
+                    //   child: IconButton(onPressed: (){
+                    //     Ui.Add_campaigns_pop(context, "Login Your Social Accounts",
+                    //         Container(
+                    //           width: double.infinity,
+                    //           height: 250,
+                    //           color: theme.primaryFixed,
+                    //           child: Column(spacing: 15,
+                    //             mainAxisAlignment: MainAxisAlignment.center,
+                    //             children: [
+                    //               MyButton(txt: 'YouTube Login', img: 'youtube_icon.webp', bgColor: theme.secondary,
+                    //                   borderLineOn: true, borderColor: theme.onPrimaryContainer, borderLineSize: 0.5, borderRadius: 20,
+                    //                   txtColor: Colors.white, txtSize: 15, icoSize: 30, pading: EdgeInsets.symmetric(horizontal: 30),
+                    //                   onClick: (){
+                    //                 Helper.navigatePush(context, const  SocialLogins(loginSocial: "YouTube"));
+                    //                   }),
+                    //
+                    //               MyButton(txt: 'Instagram Login', img: 'insta_icon.webp', bgColor: theme.secondary,
+                    //                   borderLineOn: true, borderColor: theme.onPrimaryContainer, borderLineSize: 0.5, borderRadius: 20,
+                    //                   txtColor: Colors.white, txtSize: 15, icoSize: 30, pading: EdgeInsets.symmetric(horizontal: 30),
+                    //                   onClick: (){
+                    //                     Helper.navigatePush(context, const  SocialLogins(loginSocial: "Instagram"));
+                    //                   }),
+                    //
+                    //             ],),
+                    //         ));
+                    //
+                    //   }, icon: Icon(Icons.login, size: 25, color: theme.onPrimaryContainer,)),
+                    // ),
 
 
                     Transform.scale(

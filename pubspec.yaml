@@ -1,6 +1,6 @@
 name: app
 description: "Social Task"
-version: 1.4.7+17
+version: 1.4.8+18
 
 environment:
   sdk: ^3.7.2
@@ -65,11 +65,12 @@ flutter_icons:
 
 flutter_native_splash:
   color: "#014665"
+  image: assets/images/socialtask.png
   android: true
   ios: true
   android_gravity: center
-  ios_content_mode: scaleAspectFit
-  branding: assets/images/socialtask.png
+  ios_content_mode: center
+
 
 # For information on the generic Dart part of this file, see the
 # following page: https://dart.dev/tools/pub/pubspec

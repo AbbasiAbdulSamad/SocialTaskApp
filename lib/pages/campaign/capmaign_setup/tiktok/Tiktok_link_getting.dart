@@ -244,8 +244,18 @@ class _Tiktok_LinkGettingState extends State<Tiktok_LinkGetting> {
 
                                       return InkWell(
                                         onTap: () async {
-                                          setState(() => _loading = true);
-                                         await _analyzeTikTokLink(campaign['videoUrl']!);
+                                          if (!RegExp(r'\bvideo\b').hasMatch(campaign['videoUrl']!)) {
+                                            AlertMessage.errorMsg(context,
+                                              "Enter the link again in the input field.",
+                                              "Link error!",);
+                                          } else {
+                                            setState(() {
+                                              _loading = true;
+                                              _videoLink = campaign['videoUrl'];
+                                            });
+                                            await _analyzeTikTokLink(_videoLink!);
+                                          }
+
                                         },
                                         child: Card(
                                           elevation: 3,

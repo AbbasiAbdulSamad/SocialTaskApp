@@ -182,7 +182,28 @@ class _CampaignDetailsState extends State<CampaignDetails> {
               },},
             ],
           ):
-
+          widget.status=="Unavailable"?
+          // Completed Campaigns Menu Actions
+          getDefaultDotMenu(context,
+            [
+              // Delete Button
+              {"label": "Delete", "icon": Icons.delete, "value": "delete", "onTap": (){
+                if (internetProvider.isConnected) {
+                  showDialog(context: context,
+                    builder: (BuildContext context) {
+                      // pop class import from pop_box.dart
+                      return pop.backAlert(context: context,icon: Icons.delete, title: 'Confirm Delete',
+                          bodyTxt:'Are you sure you want to delete this campaign? cannot be undone.',
+                          confirm: 'Delete', onConfirm: () async{
+                            await CampaignsAction.deleteCompletedCampaign(context, widget.campaignId);
+                            Helper.navigateAndRemove(context, const Home(onPage: 2));
+                          } );
+                    },
+                  );
+                } else {AlertMessage.snackMsg(context: context, message: 'No internet connection. Please connect to the network.', time: 3);}
+              },},
+            ],
+          ):
           // Processing / Paused Campaigns Menu Actions
           getDefaultDotMenu(context,
             [ // Paused/Active Button
@@ -282,7 +303,7 @@ class _CampaignDetailsState extends State<CampaignDetails> {
                       children: [
                         Image.asset('assets/ico/${(widget.social=="YouTube")?"youtube_icon.webp"
                             : (widget.social=="TikTok")?"tiktok_icon.webp"
-                            :"instagram_icon.webp"}', width: 20,),
+                            :"insta_icon.webp"}', width: 20,),
                         Text("${widget.social}", maxLines: 1, overflow: TextOverflow.ellipsis, style: textTheme.displaySmall?.copyWith(fontSize: 14),),
                       ],
                     ),

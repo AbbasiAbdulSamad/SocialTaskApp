@@ -382,7 +382,7 @@ class _instagram_LinkGettingState extends State<instagram_LinkGetting> {
 
                                       return InkWell(
                                         onTap: () async {
-                                          if(campaign['videoUrl'].contains("/ree/") || campaign['videoUrl'].contains("/p/") ||
+                                          if(campaign['videoUrl'].contains("/reel/") || campaign['videoUrl'].contains("/p/") ||
                                               campaign['videoUrl'].contains("/post/")){
                                             setState((){
                                               _loading = true;
@@ -480,7 +480,7 @@ class _instagram_LinkGettingState extends State<instagram_LinkGetting> {
                     allRaduis: 5,
                     // bottom bar include ui_helper.dart
                     child: Ui.bottomBar(context, 'Accepted Link: Only Instagram Reels or Image posts are supported',
-                      'ico/instagram_icon.webp', 'Open Insta', 'https://www.instagram.com',),
+                      'ico/insta_icon.webp', 'Open Insta', 'https://www.instagram.com',),
                   ),
                 ],),
 

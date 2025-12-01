@@ -215,7 +215,7 @@ class TikTokTaskHandler {
                 children: [
                   const CircularProgressIndicator(color: Colors.white),
                   const SizedBox(width: 30),
-                  Text('Verifying Task...',
+                  Text('Verifying ${_selectedOption=="Likes"?"Like":_selectedOption=="Comments"?"Comment":_selectedOption=="Favorites"?"Favorite":"Follow"}...',
                       style: textStyle.displaySmall?.copyWith(
                           fontSize: 18, color: Colors.white)),
                 ],
@@ -244,13 +244,7 @@ class TikTokTaskHandler {
           AlertMessage.successMsg(contextPop, "Task Completed", "You earned +$_reward tickets!");
           FetchDataService.fetchData(contextPop, forceRefresh: true);
         } else {
-
           await showPopup(contextPop);
-
-          // AlertMessage.errorMsg(contextPop, "Maybe your network issue,\nTikTok didn't added ${_selectedOption=="Likes"?"Like":_selectedOption=="Comments"?"Comment":_selectedOption=="Favorites"?"Favorite":"Follow"}",
-          //   "You didn't ${_selectedOption=="Likes"?"Like":_selectedOption=="Comments"?"Comment":_selectedOption=="Favorites"?"Favorite":"Follow"} the ${_selectedOption=="Followers"?"Account":"Video"}\n",
-          //   time: 8
-          // );
 
         }
 

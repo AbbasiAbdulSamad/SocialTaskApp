@@ -239,7 +239,7 @@ class _Screen2State extends State<Screen2> with WidgetsBindingObserver{
                                 ? 'youtube_icon.webp'
                                 : campaign['social'] == "TikTok"
                                 ? 'tiktok_icon.webp'
-                                : 'instagram_icon.webp'}', width: 30,),
+                                : 'insta_icon.webp'}', width: 30,),
 
                             const SizedBox(height: 10,),
                             Text('${campaign['title']?? 'Unknow'}', maxLines: 1, overflow: TextOverflow.ellipsis,
@@ -272,7 +272,7 @@ class _Screen2State extends State<Screen2> with WidgetsBindingObserver{
                               Center(
                                 child: Image.asset('assets/ico/${campaign['social'] == "YouTube"?'youtube_icon.webp':
                                 campaign['social'] == "TikTok" ? "tiktok_icon.webp"
-                                    : 'instagram_icon.webp'}', width: 40,),
+                                    : 'insta_icon.webp'}', width: 40,),
                               ),
                             ],
                           ),
