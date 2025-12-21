@@ -355,13 +355,13 @@ class _CampaignDetailsState extends State<CampaignDetails> {
 
                         Row(mainAxisAlignment: MainAxisAlignment.spaceBetween,
                           children: [
-                            Container(width: 65, alignment: Alignment.center,
+                            Container(alignment: Alignment.center,
                               decoration: BoxDecoration(
                                   color: (widget.status=="Completed")? Colors.green.shade500: (widget.status=="Processing") ? Colors.yellow.shade200 : Colors.red.shade400,
                                   borderRadius: BorderRadius.circular(3)
                               ),
                               padding: const EdgeInsets.symmetric(horizontal: 7, vertical: 2),
-                              child: Text(widget.status, style: textTheme.displaySmall?.copyWith(fontSize: 11, color:(widget.status=="Paused")? Colors.white:Colors.black),),
+                              child: Text("${widget.status} ${widget.status=="Unavailable"?"Video":""}", style: textTheme.displaySmall?.copyWith(fontSize: 11, color:(widget.status=="Paused" || widget.status=="Unavailable")? Colors.white:Colors.black),),
                             ),
                             Text(completeCampaign, style: textTheme.displaySmall,),
                           ],),

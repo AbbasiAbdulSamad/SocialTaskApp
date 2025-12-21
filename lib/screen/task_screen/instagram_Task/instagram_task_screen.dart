@@ -332,68 +332,61 @@ class _Instagram_Task_ScreenState extends State<Instagram_Task_Screen> {
                   if (progress < 1.0)
                     LinearProgressIndicator(value: progress, color: Colors.red, minHeight: 6),
                   Expanded(
-                    child: Stack(
-                      children: [
-                        InAppWebView(
-                          initialUrlRequest: URLRequest(url: WebUri(widget.taskUrl)),
-                          initialSettings: InAppWebViewSettings(
-                            javaScriptEnabled: true,
-                            supportMultipleWindows: true,
-                              useHybridComposition: true,
-                              userAgent: "Mozilla/5.0 (Linux; Android 14; Pixel 8 Build/UP1A.240930.001; wv) AppleWebKit/537.36 (KHTML, like Gecko) Version/4.0 Chrome/130.0.6560.90 Mobile Safari/537.36",
-                          ),
-                          onWebViewCreated: (controller) {
-                            _controller = controller;
-                          },
-                          onLoadStart: (controller, url) {
-                            setState(() {
-                              _isLoading = true;
-                            });
-                          },
-                          onProgressChanged: (controller, progressValue) {
-                            setState(() {
-                              progress = progressValue / 100;
-                            });
-                          },
-                          onLoadStop: (controller, url) async {
-                            if (!_loginChecked) {
-                              _checkLoginStatus();
-                              setState(() {
-                                _isLoading = false;
-                                _loginChecked = true;});
-                            }else{
-                              taskListening();
-                            }
-                          },
-                        ),
-
-                        if (_showReturnButton)
-                          Positioned(bottom: 0, left: 0, right: 0,
-                            child: Container(
-                              width: double.infinity,
-                              padding: const EdgeInsets.symmetric(horizontal: 0, vertical: 10),
-                              color: theme.background,
-                              child: Column(
-                                children: [
-                                  SizedBox(height: 30, width: 180,
-                                    child: MyButton(txt: 'Complete Task', ico: Icons.check_circle_rounded, txtSize: 15, icoSize: 17, borderLineOn: true, borderRadius: 8, bgColor: theme.onPrimary,
-                                      onClick:(){
-                                        _taskChecking(context);
-                                      },
-                                    ),
-                                  ),
-                                  const SizedBox(height: 12,),
-                                  Text('Please complete this task and collect ${widget.reward} Tickets', style: textStyle.displaySmall?.
-                                  copyWith(fontSize: 15, color: theme.onPrimaryContainer),),
-                                  const SizedBox(height: 12,),
-                                ],
-                              ),
-                            ),
-                          ),
-                      ],
+                    child: InAppWebView(
+                      initialUrlRequest: URLRequest(url: WebUri(widget.taskUrl)),
+                      initialSettings: InAppWebViewSettings(
+                        javaScriptEnabled: true,
+                        supportMultipleWindows: true,
+                          useHybridComposition: true,
+                          userAgent: "Mozilla/5.0 (Linux; Android 14; Pixel 8 Build/UP1A.240930.001; wv) AppleWebKit/537.36 (KHTML, like Gecko) Version/4.0 Chrome/130.0.6560.90 Mobile Safari/537.36",
+                      ),
+                      onWebViewCreated: (controller) {
+                        _controller = controller;
+                      },
+                      onLoadStart: (controller, url) {
+                        setState(() {
+                          _isLoading = true;
+                        });
+                      },
+                      onProgressChanged: (controller, progressValue) {
+                        setState(() {
+                          progress = progressValue / 100;
+                        });
+                      },
+                      onLoadStop: (controller, url) async {
+                        if (!_loginChecked) {
+                          _checkLoginStatus();
+                          setState(() {
+                            _isLoading = false;
+                            _loginChecked = true;});
+                        }else{
+                          taskListening();
+                        }
+                      },
                     ),
                   ),
 
+                  if (_showReturnButton)
+                    Container(
+                      width: double.infinity,
+                      padding: const EdgeInsets.symmetric(horizontal: 0, vertical: 10),
+                      color: theme.background,
+                      child: Column(
+                        children: [
+                          SizedBox(height: 30, width: 180,
+                            child: MyButton(txt: 'Complete Task', ico: Icons.check_circle_rounded, txtSize: 15, icoSize: 17, borderLineOn: true, borderRadius: 8, bgColor: theme.onPrimary,
+                              onClick:(){
+                                _taskChecking(context);
+                              },
+                            ),
+                          ),
+                          const SizedBox(height: 12,),
+                          Text('Please complete this task and collect ${widget.reward} Tickets', style: textStyle.displaySmall?.
+                          copyWith(fontSize: 15, color: theme.onPrimaryContainer),),
+                          const SizedBox(height: 12,),
+                        ],
+                      ),
+                    ),
                 ],
               ),
             ),

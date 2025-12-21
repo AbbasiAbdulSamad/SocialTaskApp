@@ -1,6 +1,7 @@
 import 'dart:convert';
 import 'dart:async';
 import 'package:app/config/config.dart';
+import 'package:app/screen/home.dart';
 import 'package:app/server_model/functions_helper.dart';
 import 'package:app/server_model/page_load_fetchData.dart';
 import 'package:flutter/material.dart';
@@ -138,7 +139,7 @@ class TikTokTaskHandler {
                 const CircularProgressIndicator(color: Colors.white),
                 const SizedBox(width: 30),
                 Text('Task Checking...', style: textStyle.displaySmall?.copyWith(
-                        fontSize: 18, color: Colors.white)),
+                    fontSize: 18, color: Colors.white)),
               ],
             ),
           ),
@@ -188,7 +189,7 @@ class TikTokTaskHandler {
   }
 
   // ✅ Handle resume lifecycle with cancellation safety
-  static void handleLifecycle(AppLifecycleState state, BuildContext contextPop) async {
+  static void handleLifecycle(AppLifecycleState state, BuildContext contextPop, int screenFrom) async {
     if (state == AppLifecycleState.resumed && _taskLaunched) {
       _taskLaunched = false;
       _isCancelled = false;
@@ -215,7 +216,7 @@ class TikTokTaskHandler {
                 children: [
                   const CircularProgressIndicator(color: Colors.white),
                   const SizedBox(width: 30),
-                  Text('Verifying ${_selectedOption=="Likes"?"Like":_selectedOption=="Comments"?"Comment":_selectedOption=="Favorites"?"Favorite":"Follow"}...',
+                  Text('Verifying Task...',
                       style: textStyle.displaySmall?.copyWith(
                           fontSize: 18, color: Colors.white)),
                 ],
@@ -241,8 +242,10 @@ class TikTokTaskHandler {
         if (Navigator.canPop(contextPop)) Navigator.pop(contextPop);
 
         if (completed) {
+          Helper.navigateAndRemove(contextPop, Home(onPage: screenFrom));
+
           AlertMessage.successMsg(contextPop, "Task Completed", "You earned +$_reward tickets!");
-          FetchDataService.fetchData(contextPop, forceRefresh: true);
+          // FetchDataService.fetchData(contextPop, forceRefresh: true);
         } else {
           await showPopup(contextPop);
 
@@ -278,14 +281,14 @@ class TikTokTaskHandler {
             "\n\nTikTok did not detect your ${_selectedOption=="Likes"?"Like":_selectedOption=="Comments"?"Comment":_selectedOption=="Favorites"?"Favorite":"Follow"}.\n"
             "Do you want to try again?\n", style: Theme.of(contextPop).textTheme.displaySmall?.copyWith(wordSpacing: 0.6, height: 1.3, fontSize: 15,color: Colors.white)),
         actions: [
-        SizedBox(height: 36,
-            child: TextButton(onPressed: (){
-              final CampProvider = Provider.of<AllCampaignsProvider>(contextPop, listen: false);
-              CampProvider.enterSelectionMode(_campaignId.toString());
-              CampProvider.hideSelectedTasks("7 day");
-              Navigator.pop(contextPop);
-              AlertMessage.snackMsg(context: contextPop, message: "Task canceled and hidden");
-            }, child: Text("Close & Hide", style: textStyle.displaySmall?.copyWith(color: Color(0xFFA6C4EA)),))),
+          SizedBox(height: 36,
+              child: TextButton(onPressed: (){
+                final CampProvider = Provider.of<AllCampaignsProvider>(contextPop, listen: false);
+                CampProvider.enterSelectionMode(_campaignId.toString());
+                CampProvider.hideSelectedTasks("7 day");
+                Navigator.pop(contextPop);
+                AlertMessage.snackMsg(context: contextPop, message: "Task canceled and hidden");
+              }, child: Text("Close & Hide", style: textStyle.displaySmall?.copyWith(color: Color(0xFFA6C4EA)),))),
 
           SizedBox(height: 38,
             child: MyButton(txt: "Try again", borderRadius: 40, pading: const EdgeInsets.only(left: 25, right: 25), shadowOn: true,
@@ -307,15 +310,15 @@ class TikTokTaskHandler {
                   await FlutterOverlayWindow.shareData(_selectedOption!);
 
                   await launchUrl(
-                  Uri.parse(_lastTikTokUrl!),
-                  mode: LaunchMode.externalApplication,
+                    Uri.parse(_lastTikTokUrl!),
+                    mode: LaunchMode.externalApplication,
                   );
                   _taskLaunched = true;
                 } ),
           ),
         ],
-           ),
-     );
+      ),
+    );
   }
 
 

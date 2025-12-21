@@ -48,7 +48,7 @@ class _Screen2State extends State<Screen2> with WidgetsBindingObserver{
   }
   @override
   void didChangeAppLifecycleState(AppLifecycleState state) {
-    TikTokTaskHandler.handleLifecycle(state, context);
+    TikTokTaskHandler.handleLifecycle(state, context, 0);
   }
 
 

@@ -31,7 +31,7 @@ class Tiktok_followers extends StatelessWidget {
   // 🔹 Quantity Calculation Function
   void updateTotal(BuildContext context) {
     final int subscriberValue = int.tryParse(quantitySubscribers.text) ?? 0;
-    final int subscriber = subscriberValue * 8;
+    final int subscriber = subscriberValue * 10;
     int totalCoins = subscriber;
 
     // ✅ Apply 80% Discount if Premium

@@ -46,7 +46,7 @@ class _Screen3State extends State<Screen3> with WidgetsBindingObserver{
   @override
   void didChangeAppLifecycleState(AppLifecycleState state) {
     super.didChangeAppLifecycleState(state);
-    TikTokTaskHandler.handleLifecycle(state, context);
+    TikTokTaskHandler.handleLifecycle(state, context, 1);
 
     // 🔹 Jab app close / background me jaye:
     if (state == AppLifecycleState.detached) {
