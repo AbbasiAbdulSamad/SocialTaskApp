@@ -24,7 +24,7 @@ class RemoteConfigService {
 
       /// 👉 Only version default, NO API URL
       await _remoteConfig.setDefaults({
-        'minimum_app_version': '1.4.8',
+        'minimum_app_version': '1.5.0',
       });
 
       await _remoteConfig.fetchAndActivate();
@@ -34,7 +34,7 @@ class RemoteConfigService {
 
       /// fallback defaults
       await _remoteConfig.setDefaults({
-        'minimum_app_version': '1.4.8',
+        'minimum_app_version': '1.5.0',
       });
     }
   }
@@ -42,7 +42,7 @@ class RemoteConfigService {
   /// 👉 Only Version Getter
   String get minimumRequiredVersion {
     final version = _remoteConfig.getString('minimum_app_version');
-    return version.isNotEmpty ? version : '1.4.8';
+    return version.isNotEmpty ? version : '1.5.0';
   }
 
   /// 🚀 Version Update Check

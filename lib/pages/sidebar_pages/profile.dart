@@ -1,5 +1,6 @@
 import 'package:app/pages/sidebar_pages/buy_tickets.dart';
 import 'package:app/pages/sidebar_pages/level.dart';
+import 'package:app/server_model/functions_helper.dart';
 import 'package:app/ui/bg_box.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
@@ -185,15 +186,14 @@ class _MyAccountState extends State<MyAccount> {
                     child: Column(
                       children: [
                         Ui.DisableInput(context,
-                          "Email", Icons.email, defaultValue: "$email",),
+                          "Email", Icons.email, defaultValue: email,),
 
                         const SizedBox(height: 15,),
                         Row(spacing: 15,
                           children: [
                           Expanded(
                             child: InkWell(
-                              onTap: ()=> Navigator.push(context, MaterialPageRoute(builder: (context)=>
-                                 const BuyTickets())),
+                              onTap: ()=> Helper.navigatePush(context, const BuyTickets()),
                               child: BgBox(
                                 padding:const EdgeInsets.symmetric(vertical: 20, horizontal: 20),
                                   allRaduis: 10,
@@ -212,8 +212,7 @@ class _MyAccountState extends State<MyAccount> {
 
                           Expanded(
                             child: InkWell(
-                              onTap: ()=> Navigator.push(context, MaterialPageRoute(builder: (context)=>
-                                const Level())),
+                              onTap: ()=> Helper.navigatePush(context, const Level()),
                               child: BgBox(
                                   padding:const EdgeInsets.symmetric(vertical: 16, horizontal: 20),
                                   allRaduis: 10,

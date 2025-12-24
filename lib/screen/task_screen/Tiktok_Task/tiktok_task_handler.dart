@@ -88,6 +88,7 @@ class TikTokTaskHandler {
 
       if (response.statusCode == 200) {
         final Map<String, dynamic> data = jsonDecode(response.body);
+        debugPrint("Data Result: ${data.toString()}");
         return data['completed'] ?? false;
       } else {
         debugPrint('HTTP Error: ${response.statusCode}, ${response.body}');
