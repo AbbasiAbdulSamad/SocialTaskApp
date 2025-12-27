@@ -3,11 +3,13 @@ import 'package:app/server_model/functions_helper.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_overlay_window/flutter_overlay_window.dart';
 import 'package:provider/provider.dart';
+import 'package:rate_my_app/rate_my_app.dart';
 import '../../server_model/internet_provider.dart';
 import '../../server_model/page_load_fetchData.dart';
 import '../../server_model/provider/fetch_taskts.dart';
 import '../../server_model/provider/users_provider.dart';
 import '../../server_model/rate_app.dart';
+import '../../server_model/review_mode.dart';
 import '../../ui/bg_box.dart';
 import '../../ui/flash_message.dart';
 import '../../ui/pop_alert.dart';
@@ -102,6 +104,7 @@ class _Screen3State extends State<Screen3> with WidgetsBindingObserver{
 
   @override
   Widget build(BuildContext context) {
+    bool isReview = AppReviewMode.isEnabled();
     ColorScheme _theme = Theme.of(context).colorScheme;
     TextTheme _textTheme = Theme.of(context).textTheme;
     final userAutoLimit = Provider.of<UserProvider>(context, listen: false).currentUser?.autoLimit ?? 0;
@@ -238,124 +241,136 @@ class _Screen3State extends State<Screen3> with WidgetsBindingObserver{
                         }
                         },
                       child: Container(
-                            margin: const EdgeInsets.symmetric(horizontal: 15, vertical: 7),
-                            decoration: BoxDecoration(
-                                color: allCampaignsProvider.selectedTaskIds.contains(campaign['_id'].toString())
-                                    ? Colors.blue.withOpacity(0.2)
-                                    :_theme.background,
-                                borderRadius: BorderRadius.circular(7),
-                                border: Border.all(color: _theme.onPrimaryFixed, width: 0.2),
-                                boxShadow: <BoxShadow>[BoxShadow(color: _theme.shadow, offset: Offset(0, 4), blurRadius: 3, spreadRadius: 2)]
+                        margin: const EdgeInsets.symmetric(horizontal: 15, vertical: 5),
+                        decoration: BoxDecoration(
+                          color: allCampaignsProvider.selectedTaskIds
+                              .contains(campaign['_id'].toString())
+                              ? Colors.blue.withOpacity(0.2)
+                              : _theme.background,
+                          borderRadius: BorderRadius.circular(7),
+                          border: Border.all(color: _theme.onPrimaryFixed, width: 0.2),
+                          boxShadow: [
+                            BoxShadow(
+                              color: _theme.shadow,
+                              offset: const Offset(0, 4),
+                              blurRadius: 3,
+                              spreadRadius: 2,
                             ),
-                            child: Padding(
-                            padding: const EdgeInsets.all(8.0),
-                            child: Row(spacing: 10,
-                              children: [
-                                (campaign['campaignImg'] != '')
-                                    ? (campaign['selectedOption'] == 'Subscribers')
-                                    ? Container(
-                                  margin: const EdgeInsets.symmetric(vertical: 0, horizontal: 10),
-                                  width: 60,
-                                  decoration: BoxDecoration(
-                                    shape: BoxShape.circle,
-                                    border: Border.all(color: _theme.onPrimaryContainer, width: 1.0),
-                                  ),
-                                  child: ClipOval(
-                                      child: Ui.networkImage(context, "${campaign['campaignImg']}", 'assets/ico/image_loading.png', 60, 60)
+                          ],
+                        ),
+                        child: IntrinsicHeight( // ⭐ KEY FIX
+                          child: Row(
+                            children: [
+
+                              // ---------- IMAGE ----------
+                              Padding(
+                                padding: const EdgeInsets.all(8),
+                                child: (campaign['campaignImg'] != '')
+                                    ? ClipRRect(
+                                  borderRadius: BorderRadius.circular(5),
+                                  child: Ui.networkImage(
+                                    context,
+                                    "${campaign['campaignImg']}",
+                                    'assets/ico/image_loading.png',
+                                    80,
+                                    55,
                                   ),
                                 )
-                                    : ClipRRect(
-                                    borderRadius: BorderRadius.circular(5),
-                                    child: Ui.networkImage(context, "${campaign['campaignImg']}", 'assets/ico/image_loading.png', 80, 55)
-                                )
-                                    : Image.asset('assets/ico/image_loading.png',
-                                    width: 75, height: 50, color: _theme.onPrimaryContainer),
+                                    : Image.asset(
+                                  'assets/ico/image_loading.png',
+                                  width: 75,
+                                  height: 50,
+                                  color: _theme.onPrimaryContainer,
+                                ),
+                              ),
 
-
-                                Expanded(
-                                  child: Column(spacing:5,
+                              // ---------- MAIN CONTENT ----------
+                              Expanded(
+                                child: Padding(
+                                  padding: const EdgeInsets.symmetric(vertical: 8),
+                                  child: Column(
                                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                                    crossAxisAlignment: CrossAxisAlignment.start, // Left align everything
+                                    crossAxisAlignment: CrossAxisAlignment.start,
                                     children: [
-                                      Padding(
-                                        padding: const EdgeInsets.only(bottom: 5),
-                                        child: Row(spacing: 3,
-                                          mainAxisAlignment: MainAxisAlignment.start,
-                                          children: [
-                                            Image.asset("assets/ico/${(campaign["social"]=="YouTube") ?"youtube_icon.webp":
-                                            (campaign["social"]=="TikTok")?"tiktok_icon.webp":
-                                            "insta_icon.webp"}",width: 20,),
-                                            Icon(Icons.arrow_forward_ios, size: 16, color: _theme.onPrimaryContainer,),
+                                      Row(spacing: 3,
+                                        mainAxisAlignment: MainAxisAlignment.start,
+                                        children: [
+                                          (isReview)? Text((campaign["social"]=="YouTube") ?"YT":
+                                          (campaign["social"]=="TikTok")?"TT":
+                                          "Insta", style: TextStyle(fontWeight: FontWeight.w800),)
 
-                                            Icon(campaign["social"] == "YouTube"
+                                              :Image.asset("assets/ico/${(campaign["social"]=="YouTube") ?"youtube_icon.webp":
+                                          (campaign["social"]=="TikTok")?"tiktok_icon.webp":
+                                          "insta_icon.webp"}",width: 20,),
+                                          Icon(Icons.arrow_forward_ios, size: 16, color: _theme.onPrimaryContainer,),
+
+                                          Icon(campaign["social"] == "YouTube"
+                                              ? (campaign['selectedOption'] == "Likes"
+                                              ? Icons.thumb_up
+                                              : campaign['selectedOption'] == "WatchTime"
+                                              ? Icons.video_collection
+                                              : campaign['selectedOption'] == "Comments"
+                                              ? Icons.comment
+                                              : Icons.subscriptions)
+
+                                              : campaign["social"] == "TikTok" || campaign["social"] == "Instagram"
+                                              ? (campaign['selectedOption'] == "Likes"
+                                              ? Icons.favorite
+                                              : campaign['selectedOption'] == "Favorites"
+                                              ? Icons.bookmark
+                                              : campaign['selectedOption'] == "Comments"
+                                              ? Icons.chat_bubble_outline
+                                              : Icons.person_add_alt_1)
+                                              : Icons.help_outline, size: 15,
+
+                                            color: campaign["social"] == "YouTube"
                                                 ? (campaign['selectedOption'] == "Likes"
-                                                ? Icons.thumb_up
-                                                : campaign['selectedOption'] == "WatchTime"
-                                                ? Icons.video_collection
-                                                : campaign['selectedOption'] == "Comments"
-                                                ? Icons.comment
-                                                : Icons.subscriptions)
+                                                ? Colors.blueAccent
+                                                : campaign['selectedOption'] == "Subscribers"
+                                                ? Colors.red
+                                                : _theme.onPrimaryContainer)
 
                                                 : campaign["social"] == "TikTok" || campaign["social"] == "Instagram"
                                                 ? (campaign['selectedOption'] == "Likes"
-                                                ? Icons.favorite
+                                                ? Colors.pinkAccent
                                                 : campaign['selectedOption'] == "Favorites"
-                                                ? Icons.bookmark
+                                                ? Colors.deepOrange
                                                 : campaign['selectedOption'] == "Comments"
-                                                ? Icons.chat_bubble_outline
-                                                : Icons.person_add_alt_1)
-                                                : Icons.help_outline, size: 15,
-
-                                              color: campaign["social"] == "YouTube"
-                                                  ? (campaign['selectedOption'] == "Likes"
-                                                  ? Colors.blueAccent
-                                                  : campaign['selectedOption'] == "Subscribers"
-                                                  ? Colors.red
-                                                  : _theme.onPrimaryContainer)
-
-                                                  : campaign["social"] == "TikTok" || campaign["social"] == "Instagram"
-                                                  ? (campaign['selectedOption'] == "Likes"
-                                                  ? Colors.pinkAccent
-                                                  : campaign['selectedOption'] == "Favorites"
-                                                  ? Colors.deepOrange
-                                                  : campaign['selectedOption'] == "Comments"
-                                                  ? Colors.purple
-                                                  : _theme.onPrimaryContainer)
-                                                  : _theme.onPrimaryContainer,),
-
-                                            Text(
-                                              campaign["social"] == "YouTube"
-                                                  ? campaign['selectedOption'] == "Likes"
-                                                  ? 'Like Video'
-                                                  : campaign['selectedOption'] == "WatchTime"
-                                                  ? 'Watch Video'
-                                                  : campaign['selectedOption'] == "Comments"
-                                                  ? 'Comment'
-                                                  : 'Subscribe'
-                                                  : campaign["social"] == "TikTok" || campaign["social"] == "Instagram"
-                                                  ? campaign['selectedOption'] == "Likes"
-                                                  ? 'Like'
-                                                  : campaign['selectedOption'] == "Comments"
-                                                  ? 'Comment'
-                                                  : campaign['selectedOption'] == "Favorites"
-                                                  ? 'Favorite'
-                                                  : 'Follow'
-                                                  : '',
-                                              maxLines: 1,
-                                              overflow: TextOverflow.ellipsis,
-                                              style: _textTheme.displaySmall?.copyWith(
-                                                fontSize: 14,
-                                                fontWeight: FontWeight.bold,
-                                                color: _theme.onPrimaryContainer,
-                                              ),
+                                                ? Colors.purple
+                                                : _theme.onPrimaryContainer)
+                                                : _theme.onPrimaryContainer,),
+                                          (isReview)?SizedBox():
+                                          Text(
+                                            campaign["social"] == "YouTube"
+                                                ? campaign['selectedOption'] == "Likes"
+                                                ? 'Like Video'
+                                                : campaign['selectedOption'] == "WatchTime"
+                                                ? 'Watch Video'
+                                                : campaign['selectedOption'] == "Comments"
+                                                ? 'Comment'
+                                                : 'Subscribe'
+                                                : campaign["social"] == "TikTok" || campaign["social"] == "Instagram"
+                                                ? campaign['selectedOption'] == "Likes"
+                                                ? 'Like'
+                                                : campaign['selectedOption'] == "Comments"
+                                                ? 'Comment'
+                                                : campaign['selectedOption'] == "Favorites"
+                                                ? 'Favorite'
+                                                : 'Follow'
+                                                : '',
+                                            maxLines: 1,
+                                            overflow: TextOverflow.ellipsis,
+                                            style: _textTheme.displaySmall?.copyWith(
+                                              fontSize: 14,
+                                              fontWeight: FontWeight.bold,
+                                              color: _theme.onPrimaryContainer,
                                             ),
-
-
-                                          ],
-                                        ),
+                                          ),
+                                        ],
                                       ),
 
                                       Ui.lightLine(),
+
                                       Row(spacing: 2,
                                         mainAxisAlignment: MainAxisAlignment.spaceBetween,
                                         children: [
@@ -363,36 +378,68 @@ class _Screen3State extends State<Screen3> with WidgetsBindingObserver{
                                             margin: EdgeInsets.only(left: 5),
                                             child: Text('${campaign['catagory']?? 'Unknow'}', maxLines: 1, overflow: TextOverflow.ellipsis,
                                                 style: _textTheme.displaySmall?.
-                                                copyWith(fontSize: 14, height: 0, color: _theme.onPrimaryContainer,)),
+                                                copyWith(fontSize: 15, height: 0, color: _theme.onPrimaryContainer,)),
                                           ),
 
                                           (campaign['social']=="YouTube")?
                                           Row(
                                             children: [
-                                              const Icon(Icons.access_time_filled, size: 16,),
+                                              const Icon(Icons.access_time, size: 15,),
                                               Text('${campaign['watchTime']}',  maxLines: 1, overflow: TextOverflow.ellipsis, style: _textTheme.displaySmall?.
-                                              copyWith(fontSize: 16,  height: 0, fontWeight: FontWeight.bold, color: _theme.onPrimaryContainer,)),
+                                              copyWith(fontSize: 16,  height: 0, color: _theme.onPrimaryContainer,)),
                                               const SizedBox(width: 2,),
-                                              Text('Sec', style: TextStyle(fontSize: 10),),
+                                              Text('Sec', style: TextStyle(fontSize: 12),),
                                             ],):const SizedBox()
                                         ],
                                       ),
+
                                     ],
                                   ),
                                 ),
+                              ),
 
-                                Container(
-                                  margin: const EdgeInsets.symmetric(vertical: 0, horizontal: 5),
-                                  child: Column(
-                                    children: [
-                                      Text('${campaign['CostPer']}', style: _textTheme.displaySmall?.copyWith(fontSize: 22, fontWeight: FontWeight.bold),),
-                                      Text('Tickets', style: _textTheme.displaySmall,),
-                                    ],
-                                  ),)
+                              // ---------- TICKETS (FULL HEIGHT, NO OVERFLOW) ----------
+                              Container(
+                                padding: EdgeInsets.only(left: 15, right: 5),
+                                decoration: BoxDecoration(
+                                  color: _theme.background,
+                                  border: Border(left: BorderSide(width: 0.5, color: _theme.onPrimaryFixed),
+                                  top: BorderSide(width: 0.5, color: _theme.onPrimaryFixed), bottom: BorderSide(width: 0.5, color: _theme.onPrimaryFixed)),
+                                  borderRadius: BorderRadius.only(
+                                      topRight: Radius.circular(10),
+                                      bottomRight: Radius.circular(10),
 
-                              ],),
-                          ) // End Container
+                                      topLeft: Radius.circular(100),
+                                      bottomLeft: Radius.circular(100)
+                                  ),
+                                ),
+                                child: Column(
+                                  mainAxisAlignment: MainAxisAlignment.center,
+                                  children: [
+                                    Text(
+                                      '${campaign['CostPer']}',
+                                      style: TextStyle(
+                                        fontSize: 22,
+                                        fontWeight: FontWeight.bold,
+                                        color: _theme.onPrimaryContainer,
+                                      ),
+                                    ),
+                                     Row( spacing: 2,
+                                       children: [
+                                         Image.asset('assets/ico/1xTickets.webp', width: 12,),
+                                         Text('Tickets',
+                                          style: TextStyle(color: _theme.onPrimaryContainer, fontSize: 10),
+                                                                             ),
+                                       ],
+                                     ),
+                                  ],
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
                       ),
+
                     );
                   },
                 ),

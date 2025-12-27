@@ -2,6 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:url_launcher/url_launcher.dart';
 import 'package:youtube_player_flutter/youtube_player_flutter.dart';
+import '../../pages/sidebar_pages/buy_tickets.dart';
+import '../../server_model/functions_helper.dart';
 import '../../server_model/provider/campaign_api.dart';
 import '../../server_model/provider/users_provider.dart';
 import '../flash_message.dart';
@@ -261,10 +263,18 @@ class TiktokLayout extends StatelessWidget {
                           ],),
                       ),),
                     const SizedBox(height: 10),
+                    if(Provider.of<CampaignProvider>(context, listen: false).campaignNotEnough)
+                      Container(margin: const EdgeInsets.symmetric(horizontal: 30, vertical: 20),
+                        width: double.infinity,
+                        child: MyButton(txt: 'Buy Tickets', img: '2xTickets.webp', imgSize: 28, fontfamily: '3rdRoboto', bgColor: theme.surfaceDim,
+                          shadowOn: true, borderLineOn: true, borderRadius: 10, txtSize: 17,
+                          txtColor: theme.onPrimaryContainer, onClick: ()=> Helper.navigatePush(context, const BuyTickets()),
+                        ),
+                      ),
 
                     // Button Create Campaign
                     (campaignProvider.isLoading)? const Text('Campaign Creating...')
-                    : Container(margin: const EdgeInsets.symmetric(horizontal: 20, vertical: 0),
+                    : Container(margin: const EdgeInsets.symmetric(horizontal: 30, vertical: 0),
                       width: double.infinity,
                       child: MyButton(
                         txt: 'Create Campaign', fontfamily: '3rdRoboto', bgColor: theme.surfaceDim,

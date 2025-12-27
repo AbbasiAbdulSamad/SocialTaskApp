@@ -19,6 +19,7 @@ import '../server_model/LocalNotificationManager.dart';
 import '../server_model/internet_provider.dart';
 import '../server_model/provider/fetch_taskts.dart';
 import '../server_model/provider/users_provider.dart';
+import '../server_model/review_mode.dart';
 import '../ui/ads.dart';
 import '../ui/button.dart';
 import '../ui/pop_alert.dart';
@@ -106,6 +107,7 @@ class _HomeState extends State<Home> {
   }
   @override
   Widget build(BuildContext context) {
+    bool isReview = AppReviewMode.isEnabled();
     ColorScheme theme = Theme.of(context).colorScheme;
     TextTheme textTheme = Theme.of(context).textTheme;
 
@@ -140,7 +142,9 @@ class _HomeState extends State<Home> {
           Padding(
             padding: const EdgeInsets.only(right: 10),
             child: TextButton(
-              onPressed: () {Helper.navigatePush(context, const BuyTickets());},
+              onPressed: () {
+                if(isReview==false){Helper.navigatePush(context, const BuyTickets());}
+                },
               child: Row(spacing: 5,
                 children: [
                   Text("${userProvider.currentUser?.coin ?? 0}",
@@ -230,39 +234,39 @@ class _HomeState extends State<Home> {
               Row(
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: [
-                    // Tooltip(
-                    //   message: "Social Logins",
-                    //   child: IconButton(onPressed: (){
-                    //     Ui.Add_campaigns_pop(context, "Login Your Social Accounts",
-                    //         Container(
-                    //           width: double.infinity,
-                    //           height: 250,
-                    //           color: theme.primaryFixed,
-                    //           child: Column(spacing: 15,
-                    //             mainAxisAlignment: MainAxisAlignment.center,
-                    //             children: [
-                    //               MyButton(txt: 'YouTube Login', img: 'youtube_icon.webp', bgColor: theme.secondary,
-                    //                   borderLineOn: true, borderColor: theme.onPrimaryContainer, borderLineSize: 0.5, borderRadius: 20,
-                    //                   txtColor: Colors.white, txtSize: 15, icoSize: 30, pading: EdgeInsets.symmetric(horizontal: 30),
-                    //                   onClick: (){
-                    //                 Helper.navigatePush(context, const  SocialLogins(loginSocial: "YouTube"));
-                    //                   }),
-                    //
-                    //               MyButton(txt: 'Instagram Login', img: 'insta_icon.webp', bgColor: theme.secondary,
-                    //                   borderLineOn: true, borderColor: theme.onPrimaryContainer, borderLineSize: 0.5, borderRadius: 20,
-                    //                   txtColor: Colors.white, txtSize: 15, icoSize: 30, pading: EdgeInsets.symmetric(horizontal: 30),
-                    //                   onClick: (){
-                    //                     Helper.navigatePush(context, const  SocialLogins(loginSocial: "Instagram"));
-                    //                   }),
-                    //
-                    //             ],),
-                    //         ));
-                    //
-                    //   }, icon: Icon(Icons.login, size: 25, color: theme.onPrimaryContainer,)),
-                    // ),
+                    if(isReview==false) Tooltip(
+                      message: "Social Logins",
+                      child: IconButton(onPressed: (){
+                        Ui.Add_campaigns_pop(context, "Login Your Social Accounts",
+                            Container(
+                              width: double.infinity,
+                              height: 250,
+                              color: theme.primaryFixed,
+                              child: Column(spacing: 15,
+                                mainAxisAlignment: MainAxisAlignment.center,
+                                children: [
+                                  MyButton(txt: 'YouTube Login', img: 'youtube_icon.webp', bgColor: theme.secondary,
+                                      borderLineOn: true, borderColor: theme.onPrimaryContainer, borderLineSize: 0.5, borderRadius: 20,
+                                      txtColor: Colors.white, txtSize: 15, icoSize: 30, pading: EdgeInsets.symmetric(horizontal: 30),
+                                      onClick: (){
+                                    Helper.navigatePush(context, const  SocialLogins(loginSocial: "YouTube"));
+                                      }),
+
+                                  MyButton(txt: 'Instagram Login', img: 'insta_icon.webp', bgColor: theme.secondary,
+                                      borderLineOn: true, borderColor: theme.onPrimaryContainer, borderLineSize: 0.5, borderRadius: 20,
+                                      txtColor: Colors.white, txtSize: 15, icoSize: 30, pading: EdgeInsets.symmetric(horizontal: 30),
+                                      onClick: (){
+                                        Helper.navigatePush(context, const  SocialLogins(loginSocial: "Instagram"));
+                                      }),
+
+                                ],),
+                            ));
+
+                      }, icon: Icon(Icons.login, size: 25, color: theme.onPrimaryContainer,)),
+                    ),
 
 
-                    Transform.scale(
+                    if(isReview==false) Transform.scale(
                       scale: 0.8,
                       child: Switch(
                         value: Provider.of<UserProvider>(context).autoTask,
@@ -276,7 +280,7 @@ class _HomeState extends State<Home> {
                         },
                       ),
                     ),
-                    Text(Provider.of<UserProvider>(context).autoTask==true? "$userAutoLimit": "Auto",
+                    if(isReview==false)Text(Provider.of<UserProvider>(context).autoTask==true? "$userAutoLimit": "Auto",
                       style:Provider.of<UserProvider>(context).autoTask==true?TextStyle(fontSize: 23):
                       textTheme.labelMedium?.copyWith(fontSize: 20, color: theme.onPrimaryContainer)
                       ,),
@@ -324,16 +328,16 @@ class _HomeState extends State<Home> {
                                                 selectedItems: selectedSocial, setState: setState,
                                               ),
 
-                                              const SizedBox(height: 20,),
-                                              Ui.buildMultiSelectDropdown(context,
-                                                title: "Categories", items: categoryList,
-                                                selectedItems: selectedCategories, setState: setState,),
-
                                               const SizedBox(height: 20),
                                               Ui.buildMultiSelectDropdown(context,
                                                 title: "Task Type", items: optionList,
                                                 selectedItems: selectedOptions, setState: setState,
                                               ),
+
+                                              const SizedBox(height: 20,),
+                                              Ui.buildMultiSelectDropdown(context,
+                                                title: "Categories", items: categoryList,
+                                                selectedItems: selectedCategories, setState: setState,),
 
                                             ],
                                           ),

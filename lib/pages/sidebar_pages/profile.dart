@@ -11,6 +11,7 @@ import 'package:provider/provider.dart';
 import '../../server_model/page_load_fetchData.dart';
 import '../../server_model/provider/leaderboard_provider.dart';
 import '../../server_model/provider/users_provider.dart';
+import '../../server_model/review_mode.dart';
 import '../../ui/ui_helper.dart';
 class MyAccount extends StatefulWidget {
   const MyAccount({super.key});
@@ -86,6 +87,7 @@ class _MyAccountState extends State<MyAccount> {
 
   @override
   Widget build(BuildContext context) {
+    bool isReview = AppReviewMode.isEnabled();
     final User? user = auth.currentUser;
     final theme = Theme.of(context).colorScheme;
     final textTheme = Theme.of(context).textTheme;
@@ -193,7 +195,10 @@ class _MyAccountState extends State<MyAccount> {
                           children: [
                           Expanded(
                             child: InkWell(
-                              onTap: ()=> Helper.navigatePush(context, const BuyTickets()),
+                              onTap: (){
+                                if(isReview==false){
+                                  Helper.navigatePush(context, const BuyTickets());
+                                }},
                               child: BgBox(
                                 padding:const EdgeInsets.symmetric(vertical: 20, horizontal: 20),
                                   allRaduis: 10,

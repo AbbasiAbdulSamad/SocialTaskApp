@@ -1,3 +1,5 @@
+import 'package:app/pages/sidebar_pages/buy_tickets.dart';
+import 'package:app/server_model/functions_helper.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:youtube_player_flutter/youtube_player_flutter.dart';
@@ -209,6 +211,7 @@ class ytLayout extends StatelessWidget {
                                 // show Error message alert import from alert_messsage.dart
                                 AlertMessage.errorMsg(context, message, 'Invalid !');}
 
+
                               // Quantity input validation checking
                               if (value == null || value.isEmpty) {
                                 showError("Enter the Quantity of $ytService.");
@@ -286,17 +289,26 @@ class ytLayout extends StatelessWidget {
                       ),),
                     const SizedBox(height: 10),
 
+                    if(Provider.of<CampaignProvider>(context, listen: false).campaignNotEnough)
+                      Container(margin: const EdgeInsets.symmetric(horizontal: 30, vertical: 20),
+                        width: double.infinity,
+                        child: MyButton(txt: 'Buy Tickets', img: '2xTickets.webp', imgSize: 28, fontfamily: '3rdRoboto', bgColor: theme.surfaceDim,
+                          shadowOn: true, borderLineOn: true, borderRadius: 10, txtSize: 17,
+                          txtColor: theme.onPrimaryContainer, onClick: ()=> Helper.navigatePush(context, const BuyTickets()),
+                        ),
+                      ),
+
                     // Button Create Campaign
                     (campaignProvider.isLoading)? const Text('Campaign Creating...')
-                    : Container(margin: const EdgeInsets.symmetric(horizontal: 20, vertical: 0),
+                    : Container(margin: const EdgeInsets.symmetric(horizontal: 30, vertical: 0),
                       width: double.infinity,
-                      child: MyButton(
-                        txt: 'Create Campaign', fontfamily: '3rdRoboto', bgColor: theme.surfaceDim,
+                      child: MyButton(txt: 'Create Campaign', fontfamily: '3rdRoboto', bgColor: theme.surfaceDim,
                         shadowOn: true, borderLineOn: true, borderRadius: 10, txtSize: 17,
                         txtColor: theme.onPrimaryContainer, onClick: buttonAction,
                       ),
                     ),
                     const SizedBox(height: 20,),
+
 
                     // Last Keep in mind text
                     Container(

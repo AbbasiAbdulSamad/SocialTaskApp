@@ -125,7 +125,7 @@ class EarnTickets extends StatelessWidget {
                     // Childs
                           earnReward(context, Icons.facebook, 'Facebook Page', '5+', (){ launchUrl(Uri.parse('https://web.facebook.com/SocialTaskApp'));}, Colors.blueAccent),
                           Ui.lightLine(),
-                          earnReward(context, Icons.play_arrow, 'Subscribe Channel', '5+', (){ launchUrl(Uri.parse('https://www.youtube.com/@SocialTaskApp'));}, Colors.red),
+                          earnReward(context, Icons.play_arrow, 'Subscribe Channel', '5+', (){ launchUrl(Uri.parse('https://www.youtube.com/@Social_Task'));}, Colors.red),
                           Ui.lightLine(),
                           earnReward(context, Icons.tiktok, 'Follow TikTok', '5+', (){ launchUrl(Uri.parse('https://www.tiktok.com/@socialtaskapp'));}, theme.onPrimaryFixed),
                           Ui.lightLine(),

@@ -70,6 +70,15 @@ class _FlashState extends State<Flash> {
   Future<void> _checkRemoteConfig() async {
     try {
       final prefs = await SharedPreferences.getInstance();
+      final storedReviewMode = prefs.getBool("review_mode");
+
+      // Agar false already stored → skip Remote Config
+      if (storedReviewMode == false) {
+        debugPrint("🚫 Remote Config fetch skipped (review_mode=false locked)");
+        return;
+      }
+
+      // Check last fetch timestamp
       final lastFetchTime = prefs.getInt("remote_config_last_fetch") ?? 0;
       final now = DateTime.now().millisecondsSinceEpoch;
       const fiveDays = 5 * 24 * 60 * 60 * 1000;
@@ -85,13 +94,26 @@ class _FlashState extends State<Flash> {
         minimumFetchInterval: Duration.zero,
       ));
 
+      // Fetch and activate
       await remoteConfig.fetchAndActivate();
       await prefs.setInt("remote_config_last_fetch", now);
+
+      // Handle review_mode
+      bool remoteReviewMode = remoteConfig.getBool('review_mode');
+
+      // Store review_mode if true OR if not previously stored
+      if (storedReviewMode != false) {
+        await prefs.setBool('review_mode', remoteReviewMode);
+        debugPrint("✅ review_mode set to $remoteReviewMode");
+      }
+
       debugPrint("✅ Remote Config fetched & activated");
+
     } catch (e) {
       debugPrint("⚠️ Remote Config error: $e");
     }
   }
+
 
   Future<void> _requestNotificationPermission() async {
     final status = await Permission.notification.status;
@@ -173,24 +195,19 @@ class _FlashState extends State<Flash> {
                   ? Column(
                 mainAxisSize: MainAxisSize.min,
                 children: [
-                  Image.asset('assets/images/socialtask.png',
-                      width: 120, height: 120),
+                  Image.asset('assets/images/socialtask.png', width: 100, height: 100),
                 ],
               )
                   : Column(
                 mainAxisAlignment: MainAxisAlignment.spaceEvenly,
                 children: [
-                  Image.asset('assets/images/socialtask.png',
-                      width: 120, height: 120),
+                  Image.asset('assets/images/socialtask.png', width: 100, height: 100),
                   Column(
                     children: const [
                       Icon(Icons.wifi_off,
                           color: Colors.white, size: 60),
                       SizedBox(height: 12),
-                      Text(
-                        "No Internet Connection",
-                        style:
-                        TextStyle(color: Colors.white, fontSize: 18),
+                      Text("No Internet Connection", style: TextStyle(color: Colors.white, fontSize: 18),
                       ),
                     ],
                   ),

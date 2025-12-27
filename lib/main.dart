@@ -12,6 +12,7 @@ import 'package:app/server_model/local_notifications.dart';
 import 'package:app/server_model/provider/leaderboard_provider.dart';
 import 'package:app/server_model/provider/leaderboard_reward.dart';
 import 'package:app/server_model/provider/reward_services.dart';
+import 'package:app/server_model/review_mode.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:flutter/material.dart';
@@ -63,6 +64,10 @@ Future<void> main() async {
     systemStatusBarContrastEnforced: false,
     systemNavigationBarContrastEnforced: false,
   ));
+
+
+  // App Review Mode
+  await AppReviewMode.init();
 
   // ⚡️ Initialize services in background
   _initializeServices();

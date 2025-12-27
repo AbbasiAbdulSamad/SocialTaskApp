@@ -10,6 +10,7 @@ import 'package:provider/provider.dart';
 import '../../server_model/page_load_fetchData.dart';
 import '../../server_model/provider/fetch_taskts.dart';
 import '../../server_model/internet_provider.dart';
+import '../../server_model/review_mode.dart';
 import '../../ui/bg_box.dart';
 import '../../ui/button.dart';
 import '../../ui/flash_message.dart';
@@ -156,6 +157,7 @@ class _Screen2State extends State<Screen2> with WidgetsBindingObserver{
 
   @override
   Widget build(BuildContext context) {
+    bool isReview = AppReviewMode.isEnabled();
     ColorScheme theme = Theme.of(context).colorScheme;
     TextTheme textTheme = Theme.of(context).textTheme;
     final userAutoLimit = Provider.of<UserProvider>(context, listen: false).currentUser?.autoLimit ?? 0;
@@ -235,6 +237,7 @@ class _Screen2State extends State<Screen2> with WidgetsBindingObserver{
                                 child: Ui.networkImage(context, "${campaign['campaignImg']}", 'assets/ico/image_loading.png', 120, 120)
                               ),
                             ),
+                            (isReview)?SizedBox():
                             Image.asset('assets/ico/${campaign['social'] == "YouTube"
                                 ? 'youtube_icon.webp'
                                 : campaign['social'] == "TikTok"
@@ -270,7 +273,7 @@ class _Screen2State extends State<Screen2> with WidgetsBindingObserver{
                                 ),
 
                               Center(
-                                child: Image.asset('assets/ico/${campaign['social'] == "YouTube"?'youtube_icon.webp':
+                                child:(isReview)?SizedBox(): Image.asset('assets/ico/${campaign['social'] == "YouTube"?'youtube_icon.webp':
                                 campaign['social'] == "TikTok" ? "tiktok_icon.webp"
                                     : 'insta_icon.webp'}', width: 40,),
                               ),
@@ -301,13 +304,13 @@ class _Screen2State extends State<Screen2> with WidgetsBindingObserver{
                             children: [
                               Text('${campaign['watchTime']}', style: textTheme.bodySmall?.copyWith(fontSize: 30, fontWeight: FontWeight.bold),),
                               Text('Seconds', style: textTheme.bodySmall?.copyWith(height: 2.2, fontWeight: FontWeight.bold)),
-                            ],):Text('${campaign['selectedOption'] == "Likes"
+                            ],):Text(campaign['selectedOption'] == "Likes"
                               ? 'Like'
                               : campaign['selectedOption'] == "Favorites"
                               ? 'Favorite'
                               : campaign['selectedOption'] == "Comments"
                               ? 'Comment'
-                              : 'Follow'}', style: textTheme.bodySmall?.copyWith(fontSize: 20, fontWeight: FontWeight.bold),),
+                              : 'Follow', style: textTheme.bodySmall?.copyWith(fontSize: 20, fontWeight: FontWeight.bold),),
                         ],),),
 
                     // Buttons
@@ -346,7 +349,7 @@ class _Screen2State extends State<Screen2> with WidgetsBindingObserver{
                             child: Container(
                               margin: EdgeInsets.symmetric(vertical: 0, horizontal: 10),
                               child: MyButton(
-                                  txt: campaign['social'] == "YouTube"
+                                  txt: (isReview)? "":campaign['social'] == "YouTube"
                                       ? (campaign['selectedOption'] == "Likes"
                                       ? 'Like'
                                       : campaign['selectedOption'] == "WatchTime"
@@ -368,7 +371,7 @@ class _Screen2State extends State<Screen2> with WidgetsBindingObserver{
                                   shadowColor: theme.primaryFixed,
                                   bgColor: theme.onPrimary,
                                   txtSize: 16,
-                                  icoSize: 17,
+                                  icoSize: 18,
                                   borderRadius: 10,
                                   ico: campaign['social'] == "YouTube"
                                       ? (campaign['selectedOption'] == "Likes"

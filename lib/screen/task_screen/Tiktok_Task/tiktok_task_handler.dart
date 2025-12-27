@@ -253,7 +253,7 @@ class TikTokTaskHandler {
         }
 
       } catch (e) {
-        if (Navigator.canPop(contextPop)) Navigator.pop(contextPop);
+        if (Navigator.canPop( contextPop)) Navigator.pop(contextPop);
         AlertMessage.errorMsg(contextPop, "Verifying Failed", "Something went wrong while verifying.");
       }
     }

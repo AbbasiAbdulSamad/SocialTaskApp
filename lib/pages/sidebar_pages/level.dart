@@ -9,6 +9,7 @@ import '../../server_model/page_load_fetchData.dart';
 import '../../server_model/provider/leaderboard_reward.dart';
 import '../../server_model/provider/level_update_api.dart';
 import '../../server_model/provider/users_provider.dart';
+import '../../server_model/review_mode.dart';
 import '../../ui/flash_message.dart';
 import '../../ui/timeLine_ui.dart';
 import '../../ui/ui_helper.dart';
@@ -71,6 +72,7 @@ class _LevelState extends State<Level> with SingleTickerProviderStateMixin {
 
   @override
   Widget build(BuildContext context) {
+    bool isReview = AppReviewMode.isEnabled();
     ColorScheme theme = Theme.of(context).colorScheme;
     final textTheme = Theme.of(context).textTheme;
     final titleText = textTheme.labelMedium;
@@ -127,9 +129,7 @@ class _LevelState extends State<Level> with SingleTickerProviderStateMixin {
                           Padding(
                             padding: const EdgeInsets.only(right: 10),
                             child: TextButton(
-                              onPressed: () {
-                                Navigator.push(context, MaterialPageRoute(builder: (context)=>const BuyTickets()));
-                              },
+                              onPressed: () { if(isReview==false){ Helper.navigatePush(context, const Level()); }},
                               child: Row(spacing: 5,
                                 children: [
                                   Text("${userProvider.currentUser?.coin ?? 0}",

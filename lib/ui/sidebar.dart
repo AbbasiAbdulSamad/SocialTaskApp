@@ -4,6 +4,7 @@ import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:url_launcher/url_launcher.dart';
+import '../server_model/review_mode.dart';
 import 'ads.dart';
 import '../pages/sidebar_pages/FAQ_page.dart';
 import '../pages/sidebar_pages/buy_tickets.dart';
@@ -28,6 +29,9 @@ class Sidebar extends StatelessWidget{
     final userProvider = Provider.of<UserProvider>(context);
     ColorScheme theme = Theme.of(context).colorScheme;
     User? user = _auth.currentUser;
+
+    bool isReview = AppReviewMode.isEnabled();
+
     return SafeArea(
       child: Drawer(
         child: ListView(
@@ -78,8 +82,11 @@ class Sidebar extends StatelessWidget{
             Ui.sidebarLabel(Icons.payments_outlined, 'Earn Rewards', (){Helper.navigatePush(context, EarnTickets(context: context,));}),
             Ui.line(),
             SizedBox(height: 25,),
-            Ui.sidebarLabel(Icons.add_shopping_cart, 'Tickets', (){Helper.navigatePush(context, const BuyTickets()); }),
-            Ui.lightLine(),
+
+            // App Review Mode----------------
+            isReview?SizedBox(): Ui.sidebarLabel(Icons.add_shopping_cart, 'Buy Tickets', (){Helper.navigatePush(context, const BuyTickets()); }),
+            isReview?SizedBox(): Ui.lightLine(),
+            //--------------------------------
             Ui.sidebarLabel(Icons.workspace_premium, 'Premium Account', (){Helper.navigatePush(context, const PremiumAccount()); }),
             Ui.line(),
             SizedBox(height: 25,),

@@ -361,7 +361,7 @@ class _CampaignDetailsState extends State<CampaignDetails> {
                                   borderRadius: BorderRadius.circular(3)
                               ),
                               padding: const EdgeInsets.symmetric(horizontal: 7, vertical: 2),
-                              child: Text("${widget.status} ${widget.status=="Unavailable"?"Video":""}", style: textTheme.displaySmall?.copyWith(fontSize: 11, color:(widget.status=="Paused" || widget.status=="Unavailable")? Colors.white:Colors.black),),
+                              child: Text("${widget.status} ${widget.status=="Unavailable"?"Link":""}", style: textTheme.displaySmall?.copyWith(fontSize: 11, color:(widget.status=="Paused" || widget.status=="Unavailable")? Colors.white:Colors.black),),
                             ),
                             Text(completeCampaign, style: textTheme.displaySmall,),
                           ],),

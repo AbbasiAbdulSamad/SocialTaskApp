@@ -12,6 +12,7 @@ class CampaignProvider with ChangeNotifier {
   List<Map<String, dynamic>> _campaigns = [];
   bool _isLoading = false;
   String _errorMessage = "";
+  bool campaignNotEnough = false;
 
   List<Map<String, dynamic>> get campaigns => _campaigns;
   bool get isLoading => _isLoading;
@@ -130,6 +131,8 @@ class CampaignProvider with ChangeNotifier {
         // ✅ Show actual error message
         AlertMessage.errorMsg(context, errorMessage, 'Not enough');
         debugPrint('Not enough');
+        campaignNotEnough = true;
+        notifyListeners();
       }
     } catch (e) {
       debugPrint("❌ Exception: $e");
