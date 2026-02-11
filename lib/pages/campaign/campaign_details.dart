@@ -182,7 +182,7 @@ class _CampaignDetailsState extends State<CampaignDetails> {
               },},
             ],
           ):
-          widget.status=="Unavailable"?
+          widget.status=="Unavailable" || widget.status==""?
           // Completed Campaigns Menu Actions
           getDefaultDotMenu(context,
             [
@@ -246,17 +246,21 @@ class _CampaignDetailsState extends State<CampaignDetails> {
                     ],
                   ):InkWell(
                     onTap: ()=> launchUrl(Uri.parse(widget.videoUrl)),
+                    onLongPress: ()async{
+                      await Clipboard.setData(ClipboardData(text: widget.videoUrl,),);
+                      AlertMessage.snackMsg(context: context, message: 'Link copied to clipboard',);
+                    },
                     child:
                     (widget.social=="Instagram" && widget.selectedOption=="Followers")?
                         Column(children: [
                           Container(
-                            width: 160,
+                            width: 152,
                             decoration: BoxDecoration(
                               shape: BoxShape.circle,
                               border: Border.all(color: theme.onPrimaryContainer, width: 1.0),
                             ),
                             child: ClipOval(
-                                child: Ui.networkImage(context, widget.campaignImg, 'assets/ico/image_loading.png', 160, 158),
+                                child: Ui.networkImage(context, widget.campaignImg, 'assets/ico/image_loading.png', 150, 150),
                             ),
                           ),
                       Padding(
@@ -269,16 +273,20 @@ class _CampaignDetailsState extends State<CampaignDetails> {
                         ],)
                     :Stack(
                       children: [
-                        Ui.networkImage(context, widget.campaignImg, 'assets/ico/image_loading.png', double.infinity, 400),
+                        Ui.networkImage(context, widget.campaignImg, 'assets/ico/image_loading.png', double.infinity, widget.social=="Website"? 200 :400),
                         Positioned(
-                          left: 0, right: 0, bottom: 10,
+                          left: 0, right: 0, bottom: 3,
                           child: Padding(
                             padding: EdgeInsets.symmetric(horizontal: 5),
                             child: Column(
                               children: [
-                                Padding(
-                                  padding: EdgeInsets.symmetric(horizontal: 10, vertical: 10),
-                                  child: Text(widget.videoTitle, maxLines: 4, overflow: TextOverflow.ellipsis,
+                                Container(
+                                  alignment: Alignment.center
+                                  ,
+                                  padding:const EdgeInsets.symmetric(horizontal: 10, vertical: 10),
+                                  color: Colors.black45,
+                                  width: double.infinity,
+                                  child: Text(widget.videoTitle, maxLines: 2, overflow: TextOverflow.ellipsis,
                                     style: textTheme.displaySmall?.copyWith(
                                       fontSize: 16, color: Colors.white,),
                                   ),
@@ -303,6 +311,7 @@ class _CampaignDetailsState extends State<CampaignDetails> {
                       children: [
                         Image.asset('assets/ico/${(widget.social=="YouTube")?"youtube_icon.webp"
                             : (widget.social=="TikTok")?"tiktok_icon.webp"
+                            : (widget.social=="Website")?"web.webp"
                             :"insta_icon.webp"}', width: 20,),
                         Text("${widget.social}", maxLines: 1, overflow: TextOverflow.ellipsis, style: textTheme.displaySmall?.copyWith(fontSize: 14),),
                       ],
@@ -315,7 +324,7 @@ class _CampaignDetailsState extends State<CampaignDetails> {
                       ],
                     ),
 
-                      (widget.social=="YouTube")?
+                      (widget.social=="YouTube"||widget.social=="Website")?
                     Row(spacing: 5,
                       children: [
                         Icon(Icons.arrow_forward_ios, size: 12,),

@@ -31,6 +31,7 @@ class _MyAccountState extends State<MyAccount> {
   late int yt = 0;
   late int insta = 0;
   late int tiktok = 0;
+  late int website = 0;
   late String country = "loading...";
   late String email = "loading...";
   late int totalTasks = 0;
@@ -49,9 +50,10 @@ class _MyAccountState extends State<MyAccount> {
       yt = user.youtubeTasks;
       insta = user.instagramTasks;
       tiktok = user.tiktokTasks;
+      website = user.websiteTasks;
       country = user.country;
       email = FirebaseAuth.instance.currentUser?.email ?? user.email;
-      totalTasks = insta + tiktok + yt;
+      totalTasks = insta + tiktok + yt + website;
 
       if (user.isPremium) {
         campaignLimit = 100;
@@ -267,16 +269,27 @@ class _MyAccountState extends State<MyAccount> {
                                   Text("Instagram", style: textTheme.displaySmall?.copyWith(fontSize: 14))
                                 ],),
 
-                                  const SizedBox(
-                                    width: 0.5,
-                                    height: 50,
-                                    child: DecoratedBox(decoration: BoxDecoration(color: Color(0xff505050),),),),
-
-                                Column(children: [
-                                  Text('$tiktok', style: textTheme.displaySmall?.copyWith(fontSize: 25)),
-                                  Text("TikTok", style: textTheme.displaySmall?.copyWith(fontSize: 14))
-                                ],)
                               ],),
+
+                                Ui.lightLine(),
+                                Row(
+                                  mainAxisAlignment: MainAxisAlignment.spaceAround,
+                                  children: [
+                                    Column(children: [
+                                      Text('$tiktok', style: textTheme.displaySmall?.copyWith(fontSize: 25)),
+                                      Text("TikTok", style: textTheme.displaySmall?.copyWith(fontSize: 14))
+                                    ],),
+                                    const SizedBox(
+                                      width: 0.5,
+                                      height: 50,
+                                      child: DecoratedBox(decoration: BoxDecoration(color: Color(0xff505050),),),),
+
+                                    Column(children: [
+                                      Text('$website', style: textTheme.displaySmall?.copyWith(fontSize: 25)),
+                                      Text("Website", style: textTheme.displaySmall?.copyWith(fontSize: 14))
+                                    ],),
+
+                                  ],),
                         ],)),
 
                         BgBox(

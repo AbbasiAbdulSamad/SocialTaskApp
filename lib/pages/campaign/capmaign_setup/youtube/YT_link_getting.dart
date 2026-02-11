@@ -213,7 +213,7 @@ class _YT_LinkGettingState extends State<YT_LinkGetting> {
       ) ?? false;},
     child: Scaffold(backgroundColor: theme.primaryFixed,
       resizeToAvoidBottomInset: false,
-      appBar: AppBar(title: Text('YouTube $_onPage'),
+      appBar: AppBar(title: Text('YouTube $_onPage', style: const TextStyle(fontSize: 18)),
         systemOverlayStyle: SystemUiOverlayStyle(
           statusBarColor: theme.surfaceTint,
           statusBarIconBrightness: Brightness.light,),
@@ -285,12 +285,12 @@ class _YT_LinkGettingState extends State<YT_LinkGetting> {
                           child: Column(
                             children: [
                               Expanded(
-                                child: campaigns.isEmpty
+                                child: uniqueCampaigns.isEmpty
                                     ? const Row(mainAxisAlignment: MainAxisAlignment.center,
                                       spacing: 8,
                                       children: [
                                         Icon(Icons.video_library_sharp, size: 18,),
-                                        Text("No Recent Video History",),
+                                        Text("No YouTube Video History",),
                                       ],
                                     ): Padding(
                                   padding: const EdgeInsets.all(10),
@@ -368,7 +368,7 @@ class _YT_LinkGettingState extends State<YT_LinkGetting> {
                                                   child: Text(
                                                     campaign['title'],
                                                     style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 10),
-                                                    overflow: TextOverflow.ellipsis,
+                                                    overflow: TextOverflow.ellipsis, maxLines: 2,
                                                   ),
                                                 ),
                                               ],

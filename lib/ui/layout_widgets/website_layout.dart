@@ -1,84 +1,96 @@
-import 'package:app/pages/sidebar_pages/buy_tickets.dart';
-import 'package:app/server_model/functions_helper.dart';
+import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
-import 'package:youtube_player_flutter/youtube_player_flutter.dart';
+import 'package:url_launcher/url_launcher.dart';
+import '../../pages/sidebar_pages/buy_tickets.dart';
+import '../../server_model/functions_helper.dart';
 import '../../server_model/provider/campaign_api.dart';
 import '../../server_model/provider/users_provider.dart';
 import '../flash_message.dart';
 import '../bg_box.dart';
 import '../button.dart';
 import '../ui_helper.dart';
-class ytLayout extends StatelessWidget {
-  final YoutubePlayerController youtubeController;
-  final String channelProfileImage;
-  final String videoTitle;
-  final String channelTitle;
+
+class WebsiteLayout extends StatelessWidget {
+  final String webIcon;
+  final String webTitle;
+  final String taskUrl;
+
   final GlobalKey formKey;
-  final ValueNotifier<int?> selectedTime;
   final ValueNotifier<String?> selectedCategory;
+  final ValueNotifier<String?> selectedCountry;
   final TextEditingController quantitySubscribers;
   final VoidCallback buttonAction;
+  final ValueNotifier<int?> selectedTime;
   final ValueNotifier<int> totalNotifier;
   final ValueNotifier<int> discountNotifier;
   final VoidCallback updateTotal;
   final String ytService;
   final IconData ytServiceIcon;
 
-  ytLayout({super.key, required this.youtubeController, required this.channelProfileImage, required this.videoTitle, required this.channelTitle,
-    required this.formKey, required this.selectedTime, required this.selectedCategory, required this.quantitySubscribers, required this.buttonAction,
-    required this.totalNotifier, required this.discountNotifier, required this.updateTotal, required this.ytService, required this.ytServiceIcon})
+  WebsiteLayout({super.key, required this.webIcon, required this.webTitle, required this.taskUrl, required this.formKey, required this.selectedTime, required this.selectedCategory,
+    required this.selectedCountry, required this.quantitySubscribers,
+    required this.buttonAction, required this.totalNotifier, required this.discountNotifier, required this.updateTotal, required this.ytService, required this.ytServiceIcon})
   { // initState auto start Value Listener
     quantitySubscribers.addListener(updateTotal);
     selectedTime.addListener(updateTotal);
     selectedCategory.addListener(updateTotal);
+    selectedCountry.addListener(updateTotal);
   }
 
   @override
   Widget build(BuildContext context) {
     final userProvider = Provider.of<UserProvider>(context, listen: false);
-    Future.microtask(() {
+    Future.delayed(Duration(milliseconds: 600), () {
       userProvider.fetchCurrentUser();
     });
+
     ColorScheme theme = Theme.of(context).colorScheme;
     TextTheme textTheme = Theme.of(context).textTheme;
     return Consumer<CampaignProvider>(
       builder: (context, campaignProvider, child) {
         return Stack(
           children: [ Column(children: [
-            // youtube video display
-            YoutubePlayerBuilder(
-              player: YoutubePlayer(controller: youtubeController),
-              builder: (context, player) => player,),
-
-            // Title and Profile Box
-            BgBox(
-              margin: const EdgeInsets.symmetric(vertical: 13, horizontal: 15),
-              padding: const EdgeInsets.symmetric(vertical: 10, horizontal: 10),
-              allRaduis: 7,
-              child: Row(children: [
-                Container(width: 55,
-                  decoration: BoxDecoration(shape: BoxShape.circle,
-                    border: Border.all(color: theme.onPrimaryContainer, width: 2.0,),),
-                  child: ClipOval(
-                    child: Image.network(channelProfileImage, fit: BoxFit.cover,),
+            Column(
+              children: [
+                const SizedBox(height: 30),
+                InkWell(
+                  onTap: () async{
+                    await launchUrl(
+                    Uri.parse(taskUrl),
+                    mode: LaunchMode.externalApplication,
+                    );
+                  },
+                  child: BgBox(
+                    margin: const EdgeInsets.symmetric(vertical: 0, horizontal: 15),
+                    padding: const EdgeInsets.symmetric(vertical:8, horizontal: 10),
+                    allRaduis: 5,
+                    wth: double.infinity,
+                    child: Row(children: [
+                      SizedBox(width: 85,
+                        child: ClipRRect(
+                          borderRadius: BorderRadius.circular(8),
+                          child: Ui.networkImage(context, webIcon, 'assets/ico/web.webp', 75, 75)
+                        ),
+                      ),
+                      const SizedBox(width: 10),
+                      Expanded(
+                        child: Column(spacing: 10,
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text(webTitle, maxLines: 2, overflow: TextOverflow.ellipsis, style: Theme.of(context).textTheme.displaySmall?.copyWith(fontSize: 16, fontWeight: FontWeight.bold),),
+                            Text(taskUrl, maxLines: 1, overflow: TextOverflow.ellipsis, style: TextStyle(color: theme.errorContainer, fontSize: 14, fontWeight: FontWeight.bold),),
+                          ],
+                        ),
+                      ),
+                    ]),
                   ),
                 ),
-                const SizedBox(width: 8),
-                Expanded(
-                  child: Column(crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text(videoTitle, maxLines: 1, overflow: TextOverflow.ellipsis,
-                        style: textTheme.displaySmall?.copyWith(
-                          fontSize: 16, fontWeight: FontWeight.bold, color: theme.onPrimaryContainer,),
-                      ),
-                      const SizedBox(height: 6),
-                      Text(channelTitle, style: TextStyle(fontSize: 14, fontWeight: FontWeight.bold, color: theme.secondary,),),
-                    ],),
-                ),
-              ]),
+              ],
             ),
-            const SizedBox(height: 10,),
+            // Title and Profile Box
+
+            const SizedBox(height: 25,),
             Form(key: formKey,
                 child: Column(mainAxisSize: MainAxisSize.min,
                   children: [
@@ -91,18 +103,18 @@ class ytLayout extends StatelessWidget {
                       child: Row(mainAxisAlignment: MainAxisAlignment.spaceBetween,
                         spacing: 5,
                         children: [
-                          const Icon(Icons.library_add_check_outlined),
-                          const Expanded(child: Text('Video Category',style: TextStyle(fontWeight: FontWeight.bold), overflow: TextOverflow.ellipsis, maxLines: 1,)),
-                          SizedBox(width: 155,
+                          const Icon(CupertinoIcons.app_badge_fill),
+                          const Expanded(child: Text('Web Category',style: TextStyle(fontWeight: FontWeight.bold), overflow: TextOverflow.ellipsis, maxLines: 1,)),
+                          SizedBox(width: 150,
 
                             // Select Options
                             child: ValueListenableBuilder<String?>(
                               valueListenable: selectedCategory,
                               builder: (context, value, child) {
                                 return DropdownButtonFormField<String>(
-                                  hint: const Text('Choice Option'),
-                                  value: value, // Default selected value (int)
                                   isExpanded: true,
+                                  hint: Text('Select Category', style: textTheme.displaySmall?.copyWith(color: Colors.grey),),
+                                  value: value, // Default selected value (int)
                                   decoration: const InputDecoration(
                                     focusedBorder: OutlineInputBorder(borderSide: BorderSide.none),
                                     border: OutlineInputBorder(borderSide: BorderSide.none),
@@ -136,10 +148,62 @@ class ytLayout extends StatelessWidget {
                         ],),
                     ),
 
+                    // Target Adiunce
+                    BgBox(
+                      margin: const EdgeInsets.symmetric(vertical: 15, horizontal: 15),
+                      padding: const EdgeInsets.symmetric(vertical: 0, horizontal: 10),
+                      allRaduis: 5,
+                      wth: double.infinity,
+                      child: Row(mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                        spacing: 5,
+                        children: [
+                          const Icon(CupertinoIcons.flag),
+                          const Expanded(child: Text('Target Country',style: TextStyle(fontWeight: FontWeight.bold), overflow: TextOverflow.ellipsis, maxLines: 1,)),
+                          SizedBox(width: 130,
+
+                            child: ValueListenableBuilder<String?>(
+                              valueListenable: selectedCountry,
+                              builder: (context, value, child) {
+                                return DropdownButtonFormField<String>(
+                                  isExpanded: true,
+                                  hint: Text('All Country', style: textTheme.displaySmall?.copyWith(color: Colors.grey),),
+                                  value: value,
+                                  decoration: const InputDecoration(
+                                    focusedBorder: OutlineInputBorder(borderSide: BorderSide.none),
+                                    border: OutlineInputBorder(borderSide: BorderSide.none),
+                                    contentPadding: EdgeInsets.symmetric(horizontal: 8, vertical: 0),
+                                  ),
+                                  items: [
+                                    DropdownMenuItem(
+                                      value: "All Country",
+                                      child: Text('All Country'),
+                                    ),
+
+                                    // ❌ Disabled option
+                                    DropdownMenuItem(
+                                      value: "Custom",
+                                      enabled: false, // 👈 disable selection
+                                      child: Text('Custom (coming soon)',
+                                        style: textTheme.displaySmall?.copyWith(color: Colors.grey, fontSize: 16),
+                                      ),
+                                    ),
+                                  ],
+
+                                  onChanged: (newValue) {
+                                    // disabled item kabhi yahan nahi aayega
+                                    selectedCountry.value = newValue;
+                                  },
+                                );
+
+                              },
+                            ),
+                          ),
+                        ],),
+                    ),
 
                     // Select Value Box
                     BgBox(
-                      margin: const EdgeInsets.symmetric(vertical: 12, horizontal: 15),
+                      margin: const EdgeInsets.symmetric(vertical: 0, horizontal: 15),
                       padding: const EdgeInsets.symmetric(vertical: 0, horizontal: 10),
                       allRaduis: 5,
                       wth: double.infinity,
@@ -147,22 +211,22 @@ class ytLayout extends StatelessWidget {
                         spacing: 5,
                         children: [
                           const Icon(Icons.timer),
-                          const Expanded(child: Text('Watch Time',style: TextStyle(fontWeight: FontWeight.bold), overflow: TextOverflow.ellipsis, maxLines: 1,)),
+                          const Expanded(child: Text('Stay Duration',style: TextStyle(fontWeight: FontWeight.bold), overflow: TextOverflow.ellipsis, maxLines: 1,)),
                           SizedBox(width: 108,
-
                             // Select Options
                             child: ValueListenableBuilder<int?>(
                               valueListenable: selectedTime,
                               builder: (context, value, child) {
                                 return DropdownButtonFormField<int>(
-                                  value: value, // Default selected value (int)
                                   isExpanded: true,
+                                  value: value, // Default selected value (int)
                                   decoration: const InputDecoration(
                                     focusedBorder: OutlineInputBorder(borderSide: BorderSide.none),
                                     border: OutlineInputBorder(borderSide: BorderSide.none),
                                     contentPadding: EdgeInsets.symmetric(horizontal: 8, vertical: 0),
                                   ),
                                   items: const [
+                                    DropdownMenuItem(value: 10, child: Text('10 sec')),
                                     DropdownMenuItem(value: 20, child: Text('20 sec')),
                                     DropdownMenuItem(value: 30, child: Text('30 sec')),
                                     DropdownMenuItem(value: 45, child: Text('45 sec')),
@@ -193,7 +257,7 @@ class ytLayout extends StatelessWidget {
 
                     // Quantity Value Input Getter
                     BgBox(
-                      margin: const EdgeInsets.symmetric(vertical: 0, horizontal: 15),
+                      margin: const EdgeInsets.symmetric(vertical: 15, horizontal: 15),
                       padding: const EdgeInsets.only(top: 0, bottom: 0, left: 15, right: 0),
                       allRaduis: 7,
                       wth: double.infinity,
@@ -213,11 +277,10 @@ class ytLayout extends StatelessWidget {
                                 // show Error message alert import from alert_messsage.dart
                                 AlertMessage.errorMsg(context, message, 'Invalid !');}
 
-
                               // Quantity input validation checking
                               if (value == null || value.isEmpty) {
                                 showError("Enter the Quantity of $ytService.");
-                                return'Subscribers' ;}
+                                return'Followers' ;}
                               final number = int.tryParse(value);
                               if (number == null || value.isEmpty) {
                                 showError("Enter a valid number");
@@ -225,9 +288,9 @@ class ytLayout extends StatelessWidget {
                               if (number < 10) {
                                 showError("Minimum number allowed is 10.");
                                 return'minimum 10';}
-                              if (number > 1000) {
+                              if (number > 10000) {
                                 showError("Maximum number allowed is 1000.");
-                                return'maximum 1000';}
+                                return'maximum 10000';}
                               return null;},
                             ),
                           ),
@@ -290,7 +353,6 @@ class ytLayout extends StatelessWidget {
                           ],),
                       ),),
                     const SizedBox(height: 10),
-
                     if(Provider.of<CampaignProvider>(context, listen: false).campaignNotEnough)
                       Container(margin: const EdgeInsets.symmetric(horizontal: 30, vertical: 20),
                         width: double.infinity,
@@ -302,15 +364,15 @@ class ytLayout extends StatelessWidget {
 
                     // Button Create Campaign
                     (campaignProvider.isLoading)? const Text('Campaign Creating...')
-                    : Container(margin: const EdgeInsets.symmetric(horizontal: 30, vertical: 0),
+                        : Container(margin: const EdgeInsets.symmetric(horizontal: 30, vertical: 0),
                       width: double.infinity,
-                      child: MyButton(txt: 'Create Campaign', fontfamily: '3rdRoboto', bgColor: theme.surfaceDim,
+                      child: MyButton(
+                        txt: 'Create Campaign', fontfamily: '3rdRoboto', bgColor: theme.surfaceDim,
                         shadowOn: true, borderLineOn: true, borderRadius: 10, txtSize: 17,
                         txtColor: theme.onPrimaryContainer, onClick: buttonAction,
                       ),
                     ),
                     const SizedBox(height: 20,),
-
 
                     // Last Keep in mind text
                     Container(
@@ -322,11 +384,10 @@ class ytLayout extends StatelessWidget {
                         Stack(children: [
                           Positioned(bottom: 2, left: 0, right: 0,
                             child: Container(height: 2, color: theme.error, ),),
-                          Text('keep in mind', style: textTheme.labelMedium?.copyWith(fontSize: 20, color: theme.error)),
+                          Text('Important', style: textTheme.labelMedium?.copyWith(fontSize: 20, color: theme.error)),
                         ],),
                         const SizedBox(height: 10,),
-                        Text('Do not create to many campaigns for one video, YT will not count many views from one IP in very short time.\n\n'
-                            'YouTube need 72 hours to update views from third party apps. so wait at least 72 hours to see the updated views in YT studio.',
+                        Text('Do not create too many campaigns for the same blog post or article.',
                           style: textTheme.displaySmall?.copyWith(fontSize: 14, fontWeight: FontWeight.w300, color: theme.primaryContainer),),
                       ],),)
 

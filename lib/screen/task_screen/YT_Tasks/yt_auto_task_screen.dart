@@ -89,6 +89,20 @@ class _YT_Auto_Task_ScreenState extends State<YT_Auto_Task_Screen> {
         return;
       }
 
+      // 🔥 VIDEO PLAY CHECK
+      bool isPlaying = await _isVideoPlaying();
+      if (!isPlaying) {
+        // video paused / buffering / ended
+        if (!_isPaused) {
+          setState(() => _isPaused = true);
+        }
+        return; // ❌ time decrement nahi hoga
+      }
+      // ▶️ Video playing
+      if (_isPaused) {
+        setState(() => _isPaused = false);
+      }
+
       if (_remainingTime > 0) {
         setState(() {_remainingTime--;});
 
@@ -107,6 +121,29 @@ class _YT_Auto_Task_ScreenState extends State<YT_Auto_Task_Screen> {
         timer.cancel();
       }
     });
+  }
+
+  Future<bool> _isVideoPlaying() async {
+    try {
+      String? result = await _controller?.evaluateJavascript(source: '''
+      (function () {
+        var video = document.querySelector('video');
+        if (!video) return "no_video";
+
+        if (!video.paused && !video.ended && video.readyState >= 3) {
+          return "playing";
+        } else {
+          return "paused";
+        }
+      })();
+    ''');
+
+      result = result?.replaceAll('"', '');
+      return result == "playing";
+    } catch (e) {
+      debugPrint("video check error: $e");
+      return false;
+    }
   }
 
   void loadNextTask() async {

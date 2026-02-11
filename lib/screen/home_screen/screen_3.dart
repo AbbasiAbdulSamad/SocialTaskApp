@@ -1,5 +1,7 @@
 import 'dart:async';
+import 'package:app/screen/task_screen/Web_Task/Web_task_handler.dart';
 import 'package:app/server_model/functions_helper.dart';
+import 'package:app/server_model/overlay_timer_provider.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_overlay_window/flutter_overlay_window.dart';
 import 'package:provider/provider.dart';
@@ -49,24 +51,18 @@ class _Screen3State extends State<Screen3> with WidgetsBindingObserver{
   void didChangeAppLifecycleState(AppLifecycleState state) {
     super.didChangeAppLifecycleState(state);
     TikTokTaskHandler.handleLifecycle(state, context, 1);
+    // 🔹 Website task handle
+    WebsiteTaskHandler.handleLifecycle(state, context);
 
-    // 🔹 Jab app close / background me jaye:
-    if (state == AppLifecycleState.detached) {
-      debugPrint("🧩 App closed or minimized → closing overlay");
+    // App close → overlay close
+    if (state == AppLifecycleState.detached || state == AppLifecycleState.resumed) {
       FlutterOverlayWindow.closeOverlay();
     }
   }
 
 
-  Future<void> _checkInternet() async {
-    final internetProvider = Provider.of<InternetProvider>(context, listen: false);
-    setState(() {
-      _internetCheck = internetProvider.isConnected;
-    });
-  }
-
-
-  Future<void> tiktokTaskOverlay(String selectOption, String tiktokUrl, String campaignId, int reward, ) async {
+  Future<void> tiktokTaskOverlay(String selectOption, String tiktokUrl, String campaignId, int reward,
+      bool tiktok, int seconds) async {
     bool? granted = await FlutterOverlayWindow.isPermissionGranted();
 
     // Draw Permission Popup Request
@@ -75,7 +71,7 @@ class _Screen3State extends State<Screen3> with WidgetsBindingObserver{
         builder: (BuildContext context) {
           // pop class import from pop_box.dart
           return pop.backAlert(context: context,icon: Icons.app_settings_alt_sharp, title: 'Draw permission',
-              bodyTxt:'We need Draw over other apps permission.\n\nUsing this feature you switch between SocialTask and TikTok app.',
+              bodyTxt:'We need Draw over other apps permission.\n\nUsing this feature you switch between SocialTask and ${tiktok==true?"TikTok":"Browser"} app.',
               confirm: 'Grant Permission', onConfirm: () async{
                 Navigator.pop(context);
                 await FlutterOverlayWindow.requestPermission();
@@ -86,14 +82,25 @@ class _Screen3State extends State<Screen3> with WidgetsBindingObserver{
     }
 
     if (granted == true) {
-      TikTokTaskHandler.startTikTokTask(
-        contextPop: context,
-        tiktokUrl: tiktokUrl,
-        taskType: selectOption,
-        campaignId: campaignId,
-        reward: reward,
-        screenFrom: 1,
-      );
+      if(tiktok==true){
+        TikTokTaskHandler.startTikTokTask(
+          contextPop: context,
+          tiktokUrl: tiktokUrl,
+          taskType: selectOption,
+          campaignId: campaignId,
+          reward: reward,
+          screenFrom: 1,
+        );
+      }else{
+        WebsiteTaskHandler.startWebsiteTask(
+          context: context,
+          url: tiktokUrl,
+          reward: reward,
+          screenFrom: 1,
+          seconds: seconds,
+          campaignId: campaignId,
+        );
+      }
     } else {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(content: Text('Please give the permission\nDraw permission not granted')),
@@ -104,10 +111,14 @@ class _Screen3State extends State<Screen3> with WidgetsBindingObserver{
 
   @override
   Widget build(BuildContext context) {
+
     bool isReview = AppReviewMode.isEnabled();
     ColorScheme _theme = Theme.of(context).colorScheme;
     TextTheme _textTheme = Theme.of(context).textTheme;
     final userAutoLimit = Provider.of<UserProvider>(context, listen: false).currentUser?.autoLimit ?? 0;
+
+    final isInternetConnected = context.watch<InternetProvider>().isConnected;
+
 
     // ✅ Internet Provider
     return WillPopScope(
@@ -117,11 +128,12 @@ class _Screen3State extends State<Screen3> with WidgetsBindingObserver{
             return false;
           }
           return true;
+          
       },
       child: FutureBuilder(
         future: _fetchDataFuture,
         builder: (context, snapshot) {
-          if (!_internetCheck){
+          if (!isInternetConnected){
             return Ui.buildNoInternetUI(_theme, _textTheme,false, 'No internet connection',
                 'Can\'t reach server. Please check your internet connection', Icons.wifi_off,
                     ()=> FetchDataService.fetchData(context, forceRefresh: true));
@@ -160,12 +172,11 @@ class _Screen3State extends State<Screen3> with WidgetsBindingObserver{
                         allCampaignsProvider.enterSelectionMode(campaign['_id'].toString());
                       },
                       onTap: () async {
-                        await _checkInternet();
 
                         if (allCampaignsProvider.isSelectionMode) {
                           allCampaignsProvider.toggleTaskSelection(campaign['_id'].toString());
                         } else {
-                          if (_internetCheck) {
+                          if (isInternetConnected) {
                             // Tiktok Task
                             if (campaign['social'] == "TikTok") {
                               // TikTok Check permission first, then show overlay
@@ -173,9 +184,23 @@ class _Screen3State extends State<Screen3> with WidgetsBindingObserver{
                                   campaign['selectedOption'],
                                   campaign['videoUrl'],
                                   campaign['_id'],
-                                  campaign['CostPer']);
+                                  campaign['CostPer'],
+                                  true,
+                                  0
+                              );
 
-                              // Instagram Task Navigate
+                              // Website Task Navigate
+                            } else if (campaign['social'] == "Website") {
+                              // Website Check permission first, then show overlay
+                              await tiktokTaskOverlay(
+                                  campaign['selectedOption'],
+                                  campaign['videoUrl'],
+                                  campaign['_id'],
+                                  campaign['CostPer'],
+                                  false,
+                                  campaign['watchTime']);
+
+
                             } else if (campaign['social'] == "Instagram") {
                               Helper.navigatePush(context,
                                 Instagram_Task_Screen(
@@ -258,31 +283,30 @@ class _Screen3State extends State<Screen3> with WidgetsBindingObserver{
                             ),
                           ],
                         ),
-                        child: IntrinsicHeight( // ⭐ KEY FIX
+                        child: IntrinsicHeight(
                           child: Row(
                             children: [
 
                               // ---------- IMAGE ----------
                               Padding(
-                                padding: const EdgeInsets.all(8),
+                                padding: const EdgeInsets.symmetric(vertical: 7, horizontal: 8),
                                 child: (campaign['campaignImg'] != '')
-                                    ? ClipRRect(
-                                  borderRadius: BorderRadius.circular(5),
-                                  child: Ui.networkImage(
-                                    context,
-                                    "${campaign['campaignImg']}",
-                                    'assets/ico/image_loading.png',
-                                    80,
-                                    55,
+                                    ? (campaign['selectedOption'] == 'Subscribers' || campaign['selectedOption'] == 'Followers')
+                                    ? SizedBox(
+                                  width: 65,
+                                  child: ClipOval(
+                                      child: Ui.networkImage(context, "${campaign['campaignImg']}", 'assets/ico/image_loading.png', 65, 63)
                                   ),
                                 )
-                                    : Image.asset(
-                                  'assets/ico/image_loading.png',
-                                  width: 75,
-                                  height: 50,
-                                  color: _theme.onPrimaryContainer,
-                                ),
+                                    : ClipRRect(
+                                    borderRadius: BorderRadius.circular(5),
+                                    child: Ui.networkImage(context, "${campaign['campaignImg']}", 'assets/ico/image_loading.png', 80, 55)
+                                ) : Image.asset('assets/ico/image_loading.png',
+                                    width: 75, height: 50, color: _theme.onPrimaryContainer)
                               ),
+
+                              if(campaign['selectedOption'] == 'Subscribers' || campaign['selectedOption'] == 'Followers')
+                                SizedBox(width: 15,),
 
                               // ---------- MAIN CONTENT ----------
                               Expanded(
@@ -301,16 +325,19 @@ class _Screen3State extends State<Screen3> with WidgetsBindingObserver{
 
                                               :Image.asset("assets/ico/${(campaign["social"]=="YouTube") ?"youtube_icon.webp":
                                           (campaign["social"]=="TikTok")?"tiktok_icon.webp":
+                                          (campaign["social"]=="Website")?"web.webp":
                                           "insta_icon.webp"}",width: 20,),
                                           Icon(Icons.arrow_forward_ios, size: 16, color: _theme.onPrimaryContainer,),
 
-                                          Icon(campaign["social"] == "YouTube"
+                                          Icon(campaign["social"] == "YouTube" || campaign["social"] == "Website"
                                               ? (campaign['selectedOption'] == "Likes"
                                               ? Icons.thumb_up
                                               : campaign['selectedOption'] == "WatchTime"
                                               ? Icons.video_collection
                                               : campaign['selectedOption'] == "Comments"
                                               ? Icons.comment
+                                              : campaign['selectedOption'] == "Visitors"
+                                              ? Icons.ads_click
                                               : Icons.subscriptions)
 
                                               : campaign["social"] == "TikTok" || campaign["social"] == "Instagram"
@@ -341,13 +368,15 @@ class _Screen3State extends State<Screen3> with WidgetsBindingObserver{
                                                 : _theme.onPrimaryContainer,),
                                           (isReview)?SizedBox():
                                           Text(
-                                            campaign["social"] == "YouTube"
+                                            campaign["social"] == "YouTube" || campaign["social"] == "Website"
                                                 ? campaign['selectedOption'] == "Likes"
                                                 ? 'Like Video'
                                                 : campaign['selectedOption'] == "WatchTime"
                                                 ? 'Watch Video'
                                                 : campaign['selectedOption'] == "Comments"
                                                 ? 'Comment'
+                                                : campaign['selectedOption'] == "Visitors"
+                                                ? 'Web Visit'
                                                 : 'Subscribe'
                                                 : campaign["social"] == "TikTok" || campaign["social"] == "Instagram"
                                                 ? campaign['selectedOption'] == "Likes"
@@ -381,7 +410,7 @@ class _Screen3State extends State<Screen3> with WidgetsBindingObserver{
                                                 copyWith(fontSize: 15, height: 0, color: _theme.onPrimaryContainer,)),
                                           ),
 
-                                          (campaign['social']=="YouTube")?
+                                          (campaign['social']=="YouTube"||campaign['social']=="Website")?
                                           Row(
                                             children: [
                                               const Icon(Icons.access_time, size: 15,),

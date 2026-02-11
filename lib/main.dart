@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'dart:convert';
 
 import 'package:app/pages/sidebar_pages/buy_tickets.dart';
@@ -9,6 +10,7 @@ import 'package:app/screen/home.dart';
 import 'package:app/screen/task_screen/Tiktok_Task/tiktok_App_overlay.dart';
 import 'package:app/server_model/LocalNotificationManager.dart';
 import 'package:app/server_model/local_notifications.dart';
+import 'package:app/server_model/overlay_timer_provider.dart';
 import 'package:app/server_model/provider/leaderboard_provider.dart';
 import 'package:app/server_model/provider/leaderboard_reward.dart';
 import 'package:app/server_model/provider/reward_services.dart';
@@ -76,6 +78,7 @@ Future<void> main() async {
   runApp(
     MultiProvider(
       providers: [
+        ChangeNotifierProvider(create: (_) => TaskTimerProvider()),
         ChangeNotifierProvider(create: (_) => InternetProvider()),
         ChangeNotifierProvider(create: (_) => UserProvider()),
         ChangeNotifierProvider(create: (_) => RewardProvider(), lazy: true),
@@ -169,30 +172,43 @@ Future<void> _initializeServices() async {
 
 }
 
-// overlay entry point for TikTok Tasks
+
+
 @pragma('vm:entry-point')
 void overlayMain() {
   WidgetsFlutterBinding.ensureInitialized();
-  // Step 1: show default (loading)
-  runApp(const MaterialApp(
-    debugShowCheckedModeBanner: false,
-    home: Material(
-      color: Colors.transparent,
-      child: TiktokAppOverlay(message: "Loading..."),
-    ),
-  ));
 
-  // Step 2: listen for messages
+  // 🔹 Message holder
+  final messageNotifier = ValueNotifier<String>("Loading...");
+
+  // 🔹 Timer Provider
+  final TaskTimerProvider timerProvider = TaskTimerProvider();
+
+  // 🔹 Listen for data sent from main app
   FlutterOverlayWindow.overlayListener.listen((data) {
-    String message = "";
-    // agar string mila
-    if (data is String && data.trim().isNotEmpty) {message = data;}
-    runApp(MaterialApp(
-      debugShowCheckedModeBanner: false,
-      home: Material(
-        color: Colors.transparent,
-        child: TiktokAppOverlay(message: message),
-      ),
-    ));
+    if (data is Map) {
+      if (data['message'] != null) {
+        messageNotifier.value = data['message'];
+      }
+      if (data['seconds'] != null) {
+        final seconds = data['seconds'];
+        timerProvider.start(seconds); // start timer with new value
+      }
+    }
   });
+
+  runApp(
+    MultiProvider(
+      providers: [
+        ChangeNotifierProvider<TaskTimerProvider>.value(value: timerProvider),
+      ],
+      child: MaterialApp(
+        debugShowCheckedModeBanner: false,
+        home: Material(
+          color: Colors.transparent,
+          child: AppOverlay(messageNotifier: messageNotifier),
+        ),
+      ),
+    ),
+  );
 }

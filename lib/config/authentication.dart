@@ -55,7 +55,6 @@ class _AuthenticationState extends State<Authentication> {
 
          // ✅ Get FCM token
          String? fcmToken = await FirebaseMessaging.instance.getToken();
-         debugPrint("📲 FCM Token: $fcmToken");
 
          String country = await getUserCountry();
          var prefs = await SharedPreferences.getInstance();
@@ -63,7 +62,6 @@ class _AuthenticationState extends State<Authentication> {
 
          // ✅ Read referral code from SharedPreferences
          String? referralCodeFromPrefs = prefs.getString('pending_referral_code');
-         debugPrint('📥 Referral from SharedPreferences: $referralCodeFromPrefs');
 
          // 🔹 Send Data to Backend with Referral Code
          final response = await http.post(

@@ -121,7 +121,7 @@ class _HomeState extends State<Home> {
     List<String> selectedCategories = List.from(provider.selectedCategories ?? []);
     List<String> selectedOptions = List.from(provider.selectedOptions ?? []);
 
-    final List<String> socialList = ["YouTube", "TikTok", "Instagram"];
+    final List<String> socialList = ["YouTube", "TikTok", "Instagram", "Website"];
     final List<String> optionList = ["Likes", "Subscribers",  "Followers", "Comments", "Favorites", "WatchTime"];
     final List<String> categoryList = [
       "Education", "Gaming", "Technology", "Entertainment", "Health",

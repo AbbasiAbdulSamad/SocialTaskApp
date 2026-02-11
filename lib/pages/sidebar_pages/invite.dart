@@ -166,30 +166,31 @@ class _InviteState extends State<Invite> {
                             SizedBox(width: 225, height: 40,
                               child: MyButton(txt: 'Copy Link', shadowOn: true, shadowColor: theme.shadow, bgColor: theme.surfaceDim, borderLineOn: true,
                                   borderColor: theme.secondary, borderLineSize: 1, borderRadius: 10, ico: Icons.link,icoSize: 18, txtSize: 15, txtColor: theme.onPrimaryContainer,
-                                  onClick: (){
-                                    userProvider.isCurrentUserLoading
-                                        ? Positioned.fill(child: Container(
-                                      color: Colors.black.withOpacity(0.6),
-                                      child:const Center(child: CircularProgressIndicator(color: Colors.white),),
-                                    ),)
-                                        : Clipboard.setData(
-                                      ClipboardData(text: "https://socialtask.xyz/join/${userProvider.currentUser!.referralCode}",),);
-                                   AlertMessage.snackMsg(context: context, message: 'Link copied to clipboard.');
-                                  }),
+                                  onClick: () async {
+                                    if (userProvider.isCurrentUserLoading || userProvider.isLoading) {
+                                      AlertMessage.snackMsg(context: context, message: 'Please wait, loading...',);
+                                      return;}
+
+                                    await Clipboard.setData(ClipboardData(text: "https://socialtask.xyz/join/${userProvider.currentUser!.referralCode}",),);
+                                    AlertMessage.snackMsg(context: context, message: 'Link copied to clipboard',);
+                                    },),
                             ),
                             SizedBox(width: 225, height: 40,
                               child: MyButton(txt: 'Share Link', shadowOn: true, shadowColor: theme.shadow, bgColor: theme.surfaceDim, borderLineOn: true,
                                   borderColor: theme.secondary, borderLineSize: 1, borderRadius: 10, ico: Icons.share, icoSize: 18, txtSize: 15, txtColor: theme.onPrimaryContainer,
-                                  onClick: (){
-                                    userProvider.isCurrentUserLoading
-                                        ?  Positioned.fill(child: Container(
-                                        color: Colors.black.withOpacity(0.6),
-                                        child: Center(child: const CircularProgressIndicator(color: Colors.white),),
-                                      ),)
-                                        : Share.share(
-                                        "🚀 Want to grow your social media and earn rewards?\n"
-                                            "Join Social Task — a unique platform for boosting your content organically.\n\n"
-                                            "Download link: 🔗\n"
+                                  onClick: () {
+                                    if (userProvider.isCurrentUserLoading) {
+                                      AlertMessage.snackMsg(context: context, message: 'Please wait, loading...',);
+                                      return;}
+
+                                    Share.share(
+                                        "🚀 Want to grow your social media and earn rewards?\n\n"
+                                            "Join Social Task — a unique platform that helps you grow your social profile for free.\n\n"
+                                            "✅ Instagram Followers, Likes\n"
+                                            "✅ TikTok Followers, Likes\n"
+                                            "✅ YouTube Subscribers, Views\n"
+                                            "✅ Website Visitors...\n\n"
+                                            "Download Now: 🔗\n"
                                             "https://socialtask.xyz/join/${userProvider.currentUser!.referralCode}"
                                     );
                                   }),

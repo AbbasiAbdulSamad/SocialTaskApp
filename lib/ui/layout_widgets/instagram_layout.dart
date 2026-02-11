@@ -174,6 +174,7 @@ class InstagramLayout extends StatelessWidget {
                                 return DropdownButtonFormField<String>(
                                   hint: const Text('Choice Option'),
                                   value: value, // Default selected value (int)
+                                  isExpanded: true,
                                   decoration: const InputDecoration(
                                     focusedBorder: OutlineInputBorder(borderSide: BorderSide.none),
                                     border: OutlineInputBorder(borderSide: BorderSide.none),

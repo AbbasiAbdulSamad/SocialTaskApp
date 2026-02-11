@@ -141,7 +141,7 @@ class _Tiktok_LinkGettingState extends State<Tiktok_LinkGetting> {
           ) ?? false;},
         child: Scaffold(backgroundColor: theme.primaryFixed,
           resizeToAvoidBottomInset: false,
-          appBar: AppBar(title: Text('TikTok $_onPage'),
+          appBar: AppBar(title: Text('TikTok $_onPage', style: const TextStyle(fontSize: 18)),
             systemOverlayStyle: SystemUiOverlayStyle(
               statusBarColor: theme.surfaceTint,
               statusBarIconBrightness: Brightness.light,),
@@ -222,12 +222,12 @@ class _Tiktok_LinkGettingState extends State<Tiktok_LinkGetting> {
                           child: Column(
                             children: [
                               Expanded(
-                                child: campaigns.isEmpty
+                                child: uniqueCampaigns.isEmpty
                                     ? const Row(mainAxisAlignment: MainAxisAlignment.center,
                                   spacing: 8,
                                   children: [
                                     Icon(Icons.video_library_sharp, size: 18,),
-                                    Text("No Recent Video History",),
+                                    Text("No Recent TikTok History",),
                                   ],
                                 ): Padding(
                                   padding: const EdgeInsets.all(10),
@@ -316,7 +316,7 @@ class _Tiktok_LinkGettingState extends State<Tiktok_LinkGetting> {
                                                   child: Text(
                                                     campaign['title'],
                                                     style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 10),
-                                                    overflow: TextOverflow.ellipsis,
+                                                    overflow: TextOverflow.ellipsis, maxLines: 2,
                                                   ),
                                                 ),
                                               ],

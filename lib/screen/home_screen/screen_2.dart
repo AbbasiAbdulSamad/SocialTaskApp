@@ -4,6 +4,7 @@ import 'package:app/server_model/functions_helper.dart';
 import 'package:app/server_model/provider/users_provider.dart';
 import 'package:app/ui/ads.dart';
 import 'package:app/ui/shimmer_loading.dart';
+import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_overlay_window/flutter_overlay_window.dart';
 import 'package:provider/provider.dart';
@@ -17,6 +18,7 @@ import '../../ui/flash_message.dart';
 import '../../ui/pop_alert.dart';
 import '../../ui/ui_helper.dart';
 import '../task_screen/Tiktok_Task/tiktok_task_handler.dart';
+import '../task_screen/Web_Task/Web_task_handler.dart';
 import '../task_screen/YT_Tasks/yt_auto_task_screen.dart';
 import '../task_screen/YT_Tasks/yt_task_screen.dart';
 import '../task_screen/instagram_Task/instagram_task_screen.dart';
@@ -47,9 +49,18 @@ class _Screen2State extends State<Screen2> with WidgetsBindingObserver{
     WidgetsBinding.instance.removeObserver(this);
     super.dispose();
   }
+
   @override
   void didChangeAppLifecycleState(AppLifecycleState state) {
-    TikTokTaskHandler.handleLifecycle(state, context, 0);
+    super.didChangeAppLifecycleState(state);
+    TikTokTaskHandler.handleLifecycle(state, context, 1);
+    // 🔹 Website task handle
+    WebsiteTaskHandler.handleLifecycle(state, context);
+
+    // App close → overlay close
+    if (state == AppLifecycleState.detached || state == AppLifecycleState.resumed) {
+      FlutterOverlayWindow.closeOverlay();
+    }
   }
 
 
@@ -89,7 +100,15 @@ class _Screen2State extends State<Screen2> with WidgetsBindingObserver{
               taskUrl,
               campaignId,
               reward);
-
+        }else if(social=="Website") {
+          WebsiteTaskHandler.startWebsiteTask(
+            context: context,
+            url: taskUrl,
+            reward: reward,
+            screenFrom: 0,
+            seconds: watchTime,
+            campaignId: campaignId,
+          );
         }else if(social=="Instagram"){
           Helper.navigatePush(context, Instagram_Task_Screen(
             taskUrl: taskUrl,
@@ -274,7 +293,7 @@ class _Screen2State extends State<Screen2> with WidgetsBindingObserver{
 
                               Center(
                                 child:(isReview)?SizedBox(): Image.asset('assets/ico/${campaign['social'] == "YouTube"?'youtube_icon.webp':
-                                campaign['social'] == "TikTok" ? "tiktok_icon.webp"
+                                campaign['social'] == "TikTok" ? "tiktok_icon.webp": campaign['social'] == "Website" ? "web.webp"
                                     : 'insta_icon.webp'}', width: 40,),
                               ),
                             ],
@@ -299,7 +318,8 @@ class _Screen2State extends State<Screen2> with WidgetsBindingObserver{
 
                           Container(width: 3, height: 35, color: theme.shadow,),
 
-                          (campaign['social']=="YouTube")?Row(spacing: 3,
+                          (campaign['social']=="YouTube"|| campaign['social']=="Website")?
+                          Row(spacing: 3,
                             crossAxisAlignment: CrossAxisAlignment.end,
                             children: [
                               Text('${campaign['watchTime']}', style: textTheme.bodySmall?.copyWith(fontSize: 30, fontWeight: FontWeight.bold),),
@@ -349,13 +369,15 @@ class _Screen2State extends State<Screen2> with WidgetsBindingObserver{
                             child: Container(
                               margin: EdgeInsets.symmetric(vertical: 0, horizontal: 10),
                               child: MyButton(
-                                  txt: (isReview)? "":campaign['social'] == "YouTube"
+                                  txt: (isReview)? "":campaign['social'] == "YouTube" || campaign['social'] == "Website"
                                       ? (campaign['selectedOption'] == "Likes"
                                       ? 'Like'
                                       : campaign['selectedOption'] == "WatchTime"
                                       ? 'Watch'
                                       : campaign['selectedOption'] == "Comments"
                                       ? 'Comment'
+                                      : campaign['selectedOption'] == "Visitors"
+                                      ? 'Web Visit'
                                       : 'Subscribe')
                                       : campaign['social'] == "TikTok" || campaign['social'] == "Instagram"
                                       ? (campaign['selectedOption'] == "Likes"
@@ -373,13 +395,15 @@ class _Screen2State extends State<Screen2> with WidgetsBindingObserver{
                                   txtSize: 16,
                                   icoSize: 18,
                                   borderRadius: 10,
-                                  ico: campaign['social'] == "YouTube"
+                                  ico: campaign['social'] == "YouTube" || campaign['social'] == "Website"
                                       ? (campaign['selectedOption'] == "Likes"
                                       ? Icons.thumb_up
                                       : campaign['selectedOption'] == "WatchTime"
                                       ? Icons.ondemand_video_outlined
                                       : campaign['selectedOption'] == "Comments"
                                       ? Icons.comment
+                                      : campaign['selectedOption'] == "Visitors"
+                                      ? CupertinoIcons.globe
                                       : Icons.subscriptions_rounded)
                                       : campaign['social'] == "TikTok"|| campaign['social'] == "Instagram"
                                       ? (campaign['selectedOption'] == "Likes"

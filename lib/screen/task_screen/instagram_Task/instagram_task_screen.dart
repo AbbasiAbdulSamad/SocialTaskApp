@@ -338,7 +338,11 @@ class _Instagram_Task_ScreenState extends State<Instagram_Task_Screen> {
                         javaScriptEnabled: true,
                         supportMultipleWindows: true,
                           useHybridComposition: true,
-                          userAgent: "Mozilla/5.0 (Linux; Android 14; Pixel 8 Build/UP1A.240930.001; wv) AppleWebKit/537.36 (KHTML, like Gecko) Version/4.0 Chrome/130.0.6560.90 Mobile Safari/537.36",
+                        useWideViewPort: false,
+                        supportZoom: false,
+                          userAgent: "Mozilla/5.0 (Linux; Android 10; Pixel 4 Build/QQ3A.200805.001; wv) "
+                              "AppleWebKit/537.36 (KHTML, like Gecko) "
+                              "Version/4.0 Chrome/114.0.0.0 Mobile Safari/537.36",
                       ),
                       onWebViewCreated: (controller) {
                         _controller = controller;

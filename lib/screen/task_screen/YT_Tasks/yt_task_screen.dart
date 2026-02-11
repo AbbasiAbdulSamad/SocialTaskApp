@@ -56,16 +56,32 @@ class _YT_Task_ScreenState extends State<YT_Task_Screen> {
   void _startTimer() {
     _timer?.cancel();
 
-    _timer = Timer.periodic(const Duration(seconds: 1), (timer) {
+    _timer = Timer.periodic(const Duration(seconds: 1), (timer) async {
       if (!mounted) return;
 
-      final internetProvider = Provider.of<InternetProvider>(context, listen: false);
+      final internetProvider =
+      Provider.of<InternetProvider>(context, listen: false);
+
+      // Internet check
       if (!internetProvider.isConnected) {
-        setState(() {
-          _isPaused = true;
-        });
-        timer.cancel();
+        _isPaused = true;
         return;
+      }
+
+      // 🔥 VIDEO PLAY CHECK
+      bool isPlaying = await _isVideoPlaying();
+
+      if (!isPlaying) {
+        // video paused / buffering / ended
+        if (!_isPaused) {
+          setState(() => _isPaused = true);
+        }
+        return; // ❌ time decrement nahi hoga
+      }
+
+      // ▶️ Video playing
+      if (_isPaused) {
+        setState(() => _isPaused = false);
       }
 
       if (_remainingTime > 0) {
@@ -96,6 +112,28 @@ class _YT_Task_ScreenState extends State<YT_Task_Screen> {
     });
   }
 
+  Future<bool> _isVideoPlaying() async {
+    try {
+      String? result = await _controller?.evaluateJavascript(source: '''
+      (function () {
+        var video = document.querySelector('video');
+        if (!video) return "no_video";
+
+        if (!video.paused && !video.ended && video.readyState >= 3) {
+          return "playing";
+        } else {
+          return "paused";
+        }
+      })();
+    ''');
+
+      result = result?.replaceAll('"', '');
+      return result == "playing";
+    } catch (e) {
+      debugPrint("video check error: $e");
+      return false;
+    }
+  }
 
   void _handleInternetChange() {
     final internetProvider = Provider.of<InternetProvider>(context, listen: false);
@@ -531,13 +569,18 @@ class _YT_Task_ScreenState extends State<YT_Task_Screen> {
                         InAppWebView(
                           initialUrlRequest: URLRequest(url: WebUri(widget.taskUrl)),
                           initialSettings: InAppWebViewSettings(
-                              mediaPlaybackRequiresUserGesture: false,
-                              allowsInlineMediaPlayback: true,
-                              allowsPictureInPictureMediaPlayback: true,
+                            mediaPlaybackRequiresUserGesture: false,
+                            allowsInlineMediaPlayback: true,
+                            allowsPictureInPictureMediaPlayback: true,
                             javaScriptEnabled: true,
                             supportMultipleWindows: true,
-                              useHybridComposition: true,
-                              userAgent: "Mozilla/5.0 (Linux; Android 14; Pixel 8 Build/UP1A.240930.001; wv) AppleWebKit/537.36 (KHTML, like Gecko) Version/4.0 Chrome/130.0.6560.90 Mobile Safari/537.36",
+                            useHybridComposition: true,
+                            useWideViewPort: false,
+                            supportZoom: false,
+                            userAgent:
+                            "Mozilla/5.0 (Linux; Android 10; Pixel 4 Build/QQ3A.200805.001; wv) "
+                                "AppleWebKit/537.36 (KHTML, like Gecko) "
+                                "Version/4.0 Chrome/114.0.0.0 Mobile Safari/537.36",
                           ),
                           onWebViewCreated: (controller) {
                             _controller = controller;
@@ -656,7 +699,7 @@ class _YT_Task_ScreenState extends State<YT_Task_Screen> {
           ),
 
           // Fullscreen loading overlay
-          if (_buttonLoading)
+          if (_buttonLoading || Provider.of<TaskProvider>(context, listen: false).isLoading)
             Positioned.fill(
               child: Container(
                 color: Colors.black.withOpacity(0.6),

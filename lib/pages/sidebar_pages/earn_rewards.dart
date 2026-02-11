@@ -1,5 +1,6 @@
 import 'package:app/pages/sidebar_pages/invite.dart';
 import 'package:app/screen/home.dart';
+import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_svg/svg.dart';
@@ -123,13 +124,15 @@ class EarnTickets extends StatelessWidget {
                          boxHeading(context, 'heart.svg', 'Follow Offical Social'),
                           Ui.line(),
                     // Childs
-                          earnReward(context, Icons.facebook, 'Facebook Page', '5+', (){ launchUrl(Uri.parse('https://web.facebook.com/SocialTaskApp'));}, Colors.blueAccent),
+                          earnReward(context, Icons.link_outlined, "LinkedIn", '+5', (){ launchUrl(Uri.parse('https://www.linkedin.com/in/asamada/'));}, Colors.blue, svg: 'assets/ico/linkedin.svg',),
                           Ui.lightLine(),
-                          earnReward(context, Icons.play_arrow, 'Subscribe Channel', '5+', (){ launchUrl(Uri.parse('https://www.youtube.com/@Social_Task'));}, Colors.red),
+                          earnReward(context, Icons.facebook, 'Facebook Page', '+5', (){ launchUrl(Uri.parse('https://web.facebook.com/SocialTaskApp'));}, Colors.blueAccent),
                           Ui.lightLine(),
-                          earnReward(context, Icons.tiktok, 'Follow TikTok', '5+', (){ launchUrl(Uri.parse('https://www.tiktok.com/@socialtaskapp'));}, theme.onPrimaryFixed),
+                          earnReward(context, Icons.play_arrow, 'Subscribe Channel', '+5', (){ launchUrl(Uri.parse('https://www.youtube.com/@Social_Task'));}, Colors.red),
                           Ui.lightLine(),
-                          earnReward(context, Icons.telegram, 'Join Telegram', '5+', (){ launchUrl(Uri.parse('https://t.me/SocialTaskApp'));}, Colors.lightBlue),
+                          earnReward(context, Icons.tiktok, 'Follow TikTok', '+5', (){ launchUrl(Uri.parse('https://www.tiktok.com/@socialtaskapp'));}, theme.onPrimaryFixed),
+                          Ui.lightLine(),
+                          earnReward(context, Icons.telegram, 'Join Telegram', '+5', (){ launchUrl(Uri.parse('https://t.me/SocialTaskApp'));}, Colors.lightBlue),
                         ],)
                     ),
                     const SizedBox(height: 100,)
@@ -160,7 +163,7 @@ class EarnTickets extends StatelessWidget {
   }
 
 // Childs Widgets
-  earnReward(BuildContext context,IconData icon, String text, String coin, VoidCallback onClick, Color iconColor){
+  earnReward(BuildContext context,IconData icon, String text, String coin, VoidCallback onClick, Color iconColor, {String svg=""}){
     ColorScheme theme = Theme.of(context).colorScheme;
     return InkWell(
       onTap: onClick,
@@ -170,7 +173,8 @@ class EarnTickets extends StatelessWidget {
               children: [
                 Row(spacing: 10,
                   children: [
-                    Icon(icon, size: 25, color: iconColor,),
+                    (svg=="")?Icon(icon, size: 25, color: iconColor,):
+                    SvgPicture.asset(svg, width: 30, height: 30,),
                     Text(text, style:Theme.of(context).textTheme.displaySmall?.copyWith(fontSize: 17, wordSpacing: 1, color: theme.onPrimaryFixed),),
                   ],
                 ),

@@ -133,7 +133,6 @@ class _FlashState extends State<Flash> {
         if (code != null && code.isNotEmpty) {
           final prefs = await SharedPreferences.getInstance();
           await prefs.setString("pending_referral_code", code);
-          debugPrint("🎯 Referral code saved: $code");
         }
       }
     } catch (e) {

@@ -8,7 +8,7 @@ class AppUser {
   final int youtubeTasks;
   final int tiktokTasks;
   final int instagramTasks;
-  final int webTasks;
+  final int websiteTasks;
   final int campaigns;
   final int campaignLimit;
   final int autoLimit;
@@ -30,7 +30,7 @@ class AppUser {
     required this.youtubeTasks,
     required this.tiktokTasks,
     required this.instagramTasks,
-    required this.webTasks,
+    required this.websiteTasks,
     required this.campaigns,
     required this.campaignLimit,
     required this.autoLimit,
@@ -58,7 +58,7 @@ class AppUser {
       youtubeTasks: tasks['youtubeTasks'] as int? ?? 0,
       tiktokTasks: tasks['tiktokTasks'] as int? ?? 0,
       instagramTasks: tasks['instagramTasks'] as int? ?? 0,
-      webTasks: tasks['webTasks'] as int? ?? 0,
+      websiteTasks: tasks['websiteTasks'] as int? ?? 0,
       campaigns: json['campaigns'] as int? ?? 0,
       campaignLimit: json['campaignLimit'] as int? ?? 10,
       autoLimit: json['autoLimit'] as int? ?? 25,
