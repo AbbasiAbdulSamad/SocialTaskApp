@@ -203,17 +203,28 @@ class _Screen2State extends State<Screen2> with WidgetsBindingObserver{
                     ()=> FetchDataService.fetchData(context, forceRefresh: true));
           }
           if (snapshot.connectionState == ConnectionState.waiting) {
-            return ShimmerLoader.oneTaskShimmerLoading(context);
+            return ShimmerLoader.homeTasksShimmerLoading(context);
+          }
+          if (snapshot.hasError) {
+            return Ui.buildNoInternetUI(theme, textTheme, true, "Error !",
+                'Request timed out.\nSomething went wrong.', Icons.error,
+                    ()=> FetchDataService.fetchData(context, forceRefresh: true));
           }
 
           return Consumer<AllCampaignsProvider>(
               builder: (context, allCampaignsProvider, child) {
                 if (allCampaignsProvider.isLoading) {
-                  return  Center(child: Ui.loading(context),);
+                  return  Ui.loading(context);
+                } else if (allCampaignsProvider.errorMessage == "User Error") {
+                  WidgetsBinding.instance.addPostFrameCallback((_) {
+                    Helper.logout();
+                  });
+                  return SizedBox();
                 } else if (allCampaignsProvider.errorMessage.isNotEmpty) {
                   return Ui.buildNoInternetUI(theme, textTheme, true, allCampaignsProvider.errorMessage.toString(),
                       'Unstable network connection. Request timed out. Please check your internet connection.', Icons.portable_wifi_off_rounded,
                           ()=> FetchDataService.fetchData(context, forceRefresh: true));
+                  return SizedBox();
                 } else if (allCampaignsProvider.allCampaigns.isEmpty) {
                   return Ui.buildNoInternetUI(theme, textTheme, false, 'No Tasks Found',
                       'Your tasks may be completed, please wait for new tasks and check back later.', Icons.content_paste_search_outlined,

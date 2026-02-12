@@ -196,7 +196,7 @@ class _CampaignPageState extends State<CampaignPage> {
                                         },},
                                       ],
                                     ):
-                                    campaign['status']=="Unavailable"?
+                                    (campaign['status']=="Unavailable"|| campaign['status']=="Blocked")?
                                     getDefaultDotMenu(context,
                                       [
                                         // Details Button
@@ -283,11 +283,11 @@ class _CampaignPageState extends State<CampaignPage> {
                                       Container(
                                         margin: EdgeInsets.only(right: 10),
                                         decoration: BoxDecoration(
-                                          color: (campaign['status']=="Completed")? Colors.green.shade500: (campaign['status']=="Processing") ? Colors.yellow.shade200 : Colors.red.shade400,
+                                          color:(campaign['status']=="Paused")?Colors.orangeAccent.shade200: (campaign['status']=="Completed")? Colors.green.shade500: (campaign['status']=="Processing") ? Colors.yellow.shade200 : Colors.red.shade400,
                                           borderRadius: BorderRadius.circular(3)
                                         ),
-                                        padding: const EdgeInsets.symmetric(horizontal: 7, vertical: 1),
-                                        child: Text("${campaign['status']}", style: textTheme.displaySmall?.copyWith(fontSize: 10, color: (campaign['status']=="Processing")? Colors.black: Colors.white, fontWeight: FontWeight.bold),),
+                                        padding: EdgeInsets.symmetric(horizontal: (campaign['status']=="Paused"||campaign['status']=="Blocked")?13 :7, vertical: 2),
+                                        child: Text("${campaign['status']}", style: textTheme.displaySmall?.copyWith(fontSize: 10, color: (campaign['status']=="Processing"|| campaign['status']=="Paused")? Colors.black: Colors.white, fontWeight: FontWeight.bold),),
                                       )
                                   ],),
                                 )

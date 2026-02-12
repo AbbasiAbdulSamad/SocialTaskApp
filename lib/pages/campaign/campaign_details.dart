@@ -182,7 +182,7 @@ class _CampaignDetailsState extends State<CampaignDetails> {
               },},
             ],
           ):
-          widget.status=="Unavailable" || widget.status==""?
+          widget.status=="Unavailable" || widget.status=="Blocked"?
           // Completed Campaigns Menu Actions
           getDefaultDotMenu(context,
             [
@@ -228,7 +228,7 @@ class _CampaignDetailsState extends State<CampaignDetails> {
         child: Column(
           children: [
             BgBox(
-              margin: const EdgeInsets.symmetric(vertical: 5, horizontal: 10),
+              margin: const EdgeInsets.symmetric(vertical: 10, horizontal: 10),
               padding: const EdgeInsets.symmetric(vertical: 20, horizontal: 20),
               child: Column(spacing: 13,
                 children: [
@@ -366,21 +366,55 @@ class _CampaignDetailsState extends State<CampaignDetails> {
                           children: [
                             Container(alignment: Alignment.center,
                               decoration: BoxDecoration(
-                                  color: (widget.status=="Completed")? Colors.green.shade500: (widget.status=="Processing") ? Colors.yellow.shade200 : Colors.red.shade400,
+                                  color:(widget.status=="Paused")?Colors.orangeAccent.shade200:(widget.status=="Completed")? Colors.green.shade500: (widget.status=="Processing") ? Colors.yellow.shade200 : Colors.red.shade400,
                                   borderRadius: BorderRadius.circular(3)
                               ),
-                              padding: const EdgeInsets.symmetric(horizontal: 7, vertical: 2),
-                              child: Text("${widget.status} ${widget.status=="Unavailable"?"Link":""}", style: textTheme.displaySmall?.copyWith(fontSize: 11, color:(widget.status=="Paused" || widget.status=="Unavailable")? Colors.white:Colors.black),),
+                              padding: EdgeInsets.symmetric(horizontal:(widget.status=="Paused"||widget.status=="Blocked")? 15: 7, vertical: 2),
+                              child: Text("${widget.status} ${widget.status=="Unavailable"?"Link":""}", style: textTheme.displaySmall?.copyWith(fontSize: 11, color:(widget.status=="Unavailable" || widget.status=="Blocked")? Colors.white:Colors.black),),
                             ),
                             Text(completeCampaign, style: textTheme.displaySmall,),
                           ],),
                       ],
                     ),
                   ),
+
+
+                  (widget.status=="Completed"||widget.status=="Processing")?SizedBox():
+                  Opacity(
+                    opacity: 0.7,
+                    child: Container(
+                      margin:const EdgeInsets.symmetric(horizontal: 8, vertical: 15),
+                      padding:const EdgeInsets.symmetric(vertical: 10),
+                      decoration: BoxDecoration(
+                          color:(widget.status=="Unavailable"||widget.status=="Blocked")?Colors.redAccent.shade100 :Colors.orange.shade200,
+                          borderRadius: BorderRadius.circular(8)
+                      ),
+                      width: double.infinity,
+                      // BLocked
+                      child: Text((widget.status=="Blocked")?'This campaign has been blocked due to policy':
+                      // Unavailable
+                      (widget.status=="Unavailable")?
+                      "The link is no longer available on ${widget.social}. "
+                      "This campaign cannot run until a valid and accessible link is provided.":
+                      // Paused
+                      'This campaign is currently paused and is not visible to task.'
+                          'To resume it, tap the Activate button.'
+                        , textAlign: TextAlign.center,
+                        style: textTheme.displaySmall?.copyWith(color: Colors.black87, fontSize: 14, height: 1.6),),
+                    ),
+                  ),
+
+                  if(widget.status=="Unavailable"||widget.status=="Blocked")
+                  GestureDetector(
+                      onTap: (){
+                        launchUrl(Uri.parse('https://socialtask.xyz/privacy-policy/'));
+                      },
+                      child:const Text("Please review our Privacy Policy",
+                        style: TextStyle(color: Colors.blue, fontWeight: FontWeight.bold, fontSize: 12),))
                 ],
               ),
             ),
-            SizedBox(height: 40,),
+           const SizedBox(height: 40,),
             Text('List of those who completed the task', style: textTheme.displaySmall?.copyWith(fontSize: 16, color: theme.onPrimaryContainer),),
             Container(
               margin: const EdgeInsets.symmetric(horizontal: 60, vertical: 2),

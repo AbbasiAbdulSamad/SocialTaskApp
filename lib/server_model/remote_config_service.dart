@@ -25,7 +25,7 @@ class RemoteConfigService {
 
       // Defaults
       await _remoteConfig.setDefaults({
-        'minimum_app_version': '1.5.0',
+        'minimum_app_version': '2.5.0',
         'review_mode': true,
       });
 
@@ -57,7 +57,7 @@ class RemoteConfigService {
   /// Version Getter
   String get minimumRequiredVersion {
     final version = _remoteConfig.getString('minimum_app_version');
-    return version.isNotEmpty ? version : '1.5.0';
+    return version.isNotEmpty ? version : '2.5.0';
   }
 
   /// SharedPreferences based Review Mode
@@ -116,7 +116,7 @@ class RemoteConfigService {
                 begin: Alignment.topRight,
                 end: Alignment.bottomLeft,
               ),
-              border: Border.all(color: theme.onPrimaryContainer, width: 1.5),
+              border: Border.all(color: theme.onPrimaryContainer, width: 1),
               borderRadius: BorderRadius.circular(12),
             ),
             padding: const EdgeInsets.all(20),

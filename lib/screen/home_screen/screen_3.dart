@@ -141,15 +141,26 @@ class _Screen3State extends State<Screen3> with WidgetsBindingObserver{
           if (snapshot.connectionState == ConnectionState.waiting) {
             return ShimmerLoader.homeTasksShimmerLoading(context);
           }
+          if (snapshot.hasError) {
+            return Ui.buildNoInternetUI(_theme, _textTheme, true, "Error !",
+                'Request timed out.\nSomething went wrong.', Icons.error,
+                    ()=> FetchDataService.fetchData(context, forceRefresh: true));
+          }
 
           return Consumer<AllCampaignsProvider>(
             builder: (context, allCampaignsProvider, child) {
               if (allCampaignsProvider.isLoading) {
                 return  Ui.loading(context);
+              } else if (allCampaignsProvider.errorMessage == "User Error") {
+                WidgetsBinding.instance.addPostFrameCallback((_) {
+                  Helper.logout();
+                });
+                return SizedBox();
               } else if (allCampaignsProvider.errorMessage.isNotEmpty) {
                 return Ui.buildNoInternetUI(_theme, _textTheme, true, allCampaignsProvider.errorMessage.toString(),
                     'Unstable network connection. Request timed out. Please check your internet connection.', Icons.portable_wifi_off_rounded,
                         ()=> FetchDataService.fetchData(context, forceRefresh: true));
+                return SizedBox();
               } else if (allCampaignsProvider.allCampaigns.isEmpty) {
                 return Ui.buildNoInternetUI(_theme, _textTheme, false, 'No Tasks Found',
                     'Your tasks may be completed, please wait for new tasks and check back later.', Icons.content_paste_search_outlined,
@@ -164,8 +175,6 @@ class _Screen3State extends State<Screen3> with WidgetsBindingObserver{
                   itemCount: allCampaignsProvider.allCampaigns.length,
                   itemBuilder: (context, index) {
                     final campaign = allCampaignsProvider.allCampaigns[index];
-
-
 
                     return InkWell(
                       onLongPress: () {
@@ -251,7 +260,6 @@ class _Screen3State extends State<Screen3> with WidgetsBindingObserver{
                                       reward: campaign['CostPer'],
                                       campaignId: campaign['_id'],
                                       screenFrom: 1,));
-
                               }
                             }
                           } else {
@@ -320,7 +328,7 @@ class _Screen3State extends State<Screen3> with WidgetsBindingObserver{
                                         mainAxisAlignment: MainAxisAlignment.start,
                                         children: [
                                           (isReview)? Text((campaign["social"]=="YouTube") ?"YT":
-                                          (campaign["social"]=="TikTok")?"TT":
+                                          (campaign["social"]=="TikTok")?"TT":(campaign["social"]=="Website")?"Web":
                                           "Insta", style: TextStyle(fontWeight: FontWeight.w800),)
 
                                               :Image.asset("assets/ico/${(campaign["social"]=="YouTube") ?"youtube_icon.webp":

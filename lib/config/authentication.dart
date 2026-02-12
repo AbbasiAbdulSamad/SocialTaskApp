@@ -91,7 +91,7 @@ class _AuthenticationState extends State<Authentication> {
 
            bool userExists = await checkUserExists(context);
            if (!userExists) return null;
-
+           if (!mounted) return userCredential;
            Helper.navigateAndRemove(context, const Home(onPage: 1));
 
            await LocalNotificationManager.saveNotification(

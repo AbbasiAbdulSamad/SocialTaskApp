@@ -233,7 +233,7 @@ class AllCampaignsProvider with ChangeNotifier {
       _errorMessage = "Network error!";
       _allCampaigns = [];
     }
-
+    debugPrint(_errorMessage);
     _isLoading = false;
     WidgetsBinding.instance.addPostFrameCallback((_) {
       notifyListeners();
