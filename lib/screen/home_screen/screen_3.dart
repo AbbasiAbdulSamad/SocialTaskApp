@@ -29,6 +29,7 @@ class Screen3 extends StatefulWidget {
   _Screen3State createState() => _Screen3State();
 }
 class _Screen3State extends State<Screen3> with WidgetsBindingObserver{
+  final ScrollController _scrollController = ScrollController();
   late Future<void> _fetchDataFuture;
   bool _internetCheck = true;
   String? lastTikTokUrl;
@@ -39,11 +40,28 @@ class _Screen3State extends State<Screen3> with WidgetsBindingObserver{
     super.initState();
     _fetchDataFuture = FetchDataService.fetchData(context, forceRefresh: true);
     WidgetsBinding.instance.addObserver(this);
+
+    // Scroll listener
+    _scrollController.addListener(_onScroll);
   }
+
+  void _onScroll() {
+    final provider = Provider.of<AllCampaignsProvider>(context, listen: false);
+
+    if (_scrollController.position.pixels >=
+        _scrollController.position.maxScrollExtent - 200 &&
+        !provider.isLoadingMore &&
+        provider.hasMore) {
+      // ✅ Scroll pe next page fetch karna hai
+      provider.fetchAllCampaigns(context: context, forceRefresh: false);
+    }
+  }
+
 
   @override
   void dispose() {
     WidgetsBinding.instance.removeObserver(this);
+    _scrollController.dispose();
     super.dispose();
   }
 
@@ -171,11 +189,12 @@ class _Screen3State extends State<Screen3> with WidgetsBindingObserver{
                 color: _theme.onPrimaryContainer,
                 onRefresh: () => FetchDataService.fetchData(context, forceRefresh: true),
                 child: ListView.builder(
+                  controller: _scrollController,
                   physics: AlwaysScrollableScrollPhysics(),
-                  itemCount: allCampaignsProvider.allCampaigns.length,
+                  itemCount: allCampaignsProvider.allCampaigns.length + (allCampaignsProvider.hasMore ? 1 : 0),
                   itemBuilder: (context, index) {
-                    final campaign = allCampaignsProvider.allCampaigns[index];
-
+                    if (index < allCampaignsProvider.allCampaigns.length) {
+                      final campaign = allCampaignsProvider.allCampaigns[index];
                     return InkWell(
                       onLongPress: () {
                         allCampaignsProvider.enterSelectionMode(campaign['_id'].toString());
@@ -478,6 +497,16 @@ class _Screen3State extends State<Screen3> with WidgetsBindingObserver{
                       ),
 
                     );
+                    } else if (allCampaignsProvider.isLoadingMore) {
+                      // ---------- BOTTOM LOADER ----------
+                      return Padding(padding: EdgeInsets.symmetric(vertical: 25),
+                        child: Center(
+                          child: Ui.loading(context),),
+                      );
+                    } else {
+                      return const SizedBox.shrink(); // no extra blank space
+                    }
+
                   },
                 ),
               );

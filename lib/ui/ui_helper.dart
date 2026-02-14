@@ -10,7 +10,7 @@ import 'package:url_launcher/url_launcher.dart';
 import 'button.dart';
 
 class Ui{
-  static loading(BuildContext context){
+  static loading(BuildContext context, {String loadingText="Loading..."}){
     ColorScheme theme = Theme.of(context).colorScheme;
     return Center(
       child: Column(spacing: 12,
@@ -18,13 +18,13 @@ class Ui{
         crossAxisAlignment: CrossAxisAlignment.center,
         children: [
           CircularProgressIndicator(color: theme.onPrimaryContainer,),
-          Text('Loading...', style: TextStyle(fontFamily: '3rdRoboto', fontSize: 16, color: theme.onPrimaryContainer, decoration: TextDecoration.none),)
+          Text(loadingText, style: TextStyle(fontFamily: '3rdRoboto', fontSize: 16, color: theme.onPrimaryContainer, decoration: TextDecoration.none),)
         ],
       ),
     );
   }
 
-  static screenLoading(BuildContext context){
+  static screenLoading(BuildContext context, {String loadinText="Loading..."}){
     ColorScheme theme = Theme.of(context).colorScheme;
     return Positioned.fill(
       child: Container(
@@ -38,7 +38,7 @@ class Ui{
                   borderRadius: BorderRadius.circular(15),
                   border: Border.all(color: theme.onPrimaryFixed, width: 0.5)
               ),
-              child: loading(context)),
+              child: loading(context, loadingText: loadinText)),
         ),
       ),
     );
@@ -230,13 +230,13 @@ class Ui{
   }
 
 // Progress Bar Widget
-  static Widget progressBar(double percent, String centertText, double height, double radius) {
+  static Widget progressBar(double percent, String centertText, double height, double radius, {Color lineColor=Colors.green}) {
     return LinearPercentIndicator(
       animation: true,
       lineHeight: height,
       animationDuration: 2000,
       barRadius: Radius.circular(radius),
-      progressColor: Colors.green,
+      progressColor: lineColor,
       backgroundColor: Colors.grey[400],
       percent: percent,
       center: Text(

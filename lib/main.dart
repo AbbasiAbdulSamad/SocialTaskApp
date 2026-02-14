@@ -11,6 +11,7 @@ import 'package:app/screen/task_screen/Tiktok_Task/tiktok_App_overlay.dart';
 import 'package:app/server_model/LocalNotificationManager.dart';
 import 'package:app/server_model/local_notifications.dart';
 import 'package:app/server_model/overlay_timer_provider.dart';
+import 'package:app/server_model/provider/campaigns_action.dart';
 import 'package:app/server_model/provider/leaderboard_provider.dart';
 import 'package:app/server_model/provider/leaderboard_reward.dart';
 import 'package:app/server_model/provider/reward_services.dart';
@@ -78,9 +79,10 @@ Future<void> main() async {
   runApp(
     MultiProvider(
       providers: [
-        ChangeNotifierProvider(create: (_) => TaskTimerProvider()),
+        ChangeNotifierProvider(create: (_) => CampaignsAction()),
         ChangeNotifierProvider(create: (_) => InternetProvider()),
         ChangeNotifierProvider(create: (_) => UserProvider()),
+        ChangeNotifierProvider(create: (_) => RewardProvider(), lazy: true),
         ChangeNotifierProvider(create: (_) => RewardProvider(), lazy: true),
         ChangeNotifierProvider(create: (_) => LeaderboardProvider(), lazy: true),
         ChangeNotifierProvider(create: (_) => LevelUpProvider(), lazy: true),

@@ -25,7 +25,7 @@ class RemoteConfigService {
 
       // Defaults
       await _remoteConfig.setDefaults({
-        'minimum_app_version': '2.5.0',
+        'minimum_app_version': '2.5.1',
         'review_mode': true,
       });
 
@@ -57,7 +57,7 @@ class RemoteConfigService {
   /// Version Getter
   String get minimumRequiredVersion {
     final version = _remoteConfig.getString('minimum_app_version');
-    return version.isNotEmpty ? version : '2.5.0';
+    return version.isNotEmpty ? version : '2.5.1';
   }
 
   /// SharedPreferences based Review Mode

@@ -203,7 +203,7 @@ class _Screen2State extends State<Screen2> with WidgetsBindingObserver{
                     ()=> FetchDataService.fetchData(context, forceRefresh: true));
           }
           if (snapshot.connectionState == ConnectionState.waiting) {
-            return ShimmerLoader.homeTasksShimmerLoading(context);
+            return ShimmerLoader.oneTaskShimmerLoading(context);
           }
           if (snapshot.hasError) {
             return Ui.buildNoInternetUI(theme, textTheme, true, "Error !",

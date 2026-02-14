@@ -11,20 +11,25 @@ class AllCampaignsProvider with ChangeNotifier {
   List<Map<String, dynamic>> _originalCampaigns = [];
 
   bool _isLoading = false;
+  bool _isLoadingMore = false;
+  bool _hasMore = true;
   String _errorMessage = "";
 
   List<String>? _selectedSocial;
   List<String>? _selectedCategories;
   List<String>? _selectedOptions;
 
+  int _currentPage = 1;
+  final int _limit = 20;
+
   // ----------------------------
   // SELECTION MODE & Selected Tasks
   // ----------------------------
   bool _isSelectionMode = false;
   List<String> _selectedTaskIds = [];
+
   // CHECK IF ANY TASKS ARE HIDDEN
   bool get hasHiddenTasks => _hiddenTasksWithExpiry.isNotEmpty;
-
 
   // ----------------------------
   // HIDDEN TASKS (SharedPreferences)
@@ -32,6 +37,8 @@ class AllCampaignsProvider with ChangeNotifier {
   Map<String, String> _hiddenTasksWithExpiry = {}; // taskId -> expiry ISO string
 
   bool get isSelectionMode => _isSelectionMode;
+  bool get isLoadingMore => _isLoadingMore;
+  bool get hasMore => _hasMore;
   List<String> get selectedTaskIds => _selectedTaskIds;
   List<String> get hiddenTaskIds => _hiddenTasksWithExpiry.keys.toList();
 
@@ -66,7 +73,6 @@ class AllCampaignsProvider with ChangeNotifier {
     await prefs.remove('hiddenTasksMap'); // remove from storage
     _applyFilters(); // refresh the campaigns list
   }
-
 
   // ----------------------------
   // HIDE TASKS WITH DURATION
@@ -166,31 +172,43 @@ class AllCampaignsProvider with ChangeNotifier {
 
       return matchCategory && matchOption && matchSocial && !isHidden;
     }).toList();
+
+    // ✅ Sort: oldest first
+    _allCampaigns.sort((a, b) => DateTime.parse(a['createdAt']).compareTo(DateTime.parse(b['createdAt'])));
+
     notifyListeners();
   }
 
   // ----------------------------
-  // FETCH DATA
+  // FETCH DATA WITH PAGINATION
   // ----------------------------
   Future<void> fetchAllCampaigns({required BuildContext context, bool forceRefresh = false}) async {
-    if (!forceRefresh) return;
+    if (_isLoading || _isLoadingMore) return;
 
-    _isLoading = true;
+    if (forceRefresh) {
+      _currentPage = 1;
+      _hasMore = true;
+      _allCampaigns.clear();
+      _originalCampaigns.clear();
+      _isLoading = true;
+    } else {
+      _isLoadingMore = true;
+    }
+
     _errorMessage = "";
-    WidgetsBinding.instance.addPostFrameCallback((_) {
-      notifyListeners();
-    });
+    notifyListeners();
 
     String? token = await Helper.getAuthToken();
     if (token == null) {
       _isLoading = false;
+      _isLoadingMore = false;
       notifyListeners();
       return;
     }
 
     try {
       final response = await http.get(
-        Uri.parse(ApiPoints.campaignFiltered),
+        Uri.parse('${ApiPoints.campaignFiltered}?page=$_currentPage&limit=$_limit'),
         headers: {
           'Content-Type': 'application/json',
           'Authorization': 'Bearer $token',
@@ -198,25 +216,16 @@ class AllCampaignsProvider with ChangeNotifier {
       );
 
       if (response.statusCode == 200) {
-        try {
-          List<dynamic> campaigns = jsonDecode(response.body);
-          _originalCampaigns = campaigns.cast<Map<String, dynamic>>();
-
-          // Load hidden tasks from SharedPreferences
-          await loadHiddenTasks();
-          _applyFilters();
-        } catch (e) {
-          debugPrint("⚠️ JSON Decode Error: $e");
-          _errorMessage = "Invalid response from server!";
-          _allCampaigns = [];
-          WidgetsBinding.instance.addPostFrameCallback((_) {
-            Navigator.pushAndRemoveUntil(
-              context,
-              MaterialPageRoute(builder: (_) => Authentication()),
-                  (route) => false,
-            );
-          });
+        List<dynamic> campaigns = jsonDecode(response.body);
+        if (campaigns.isEmpty || campaigns.length < _limit) {
+          _hasMore = false;
         }
+
+        _originalCampaigns.addAll(campaigns.cast<Map<String, dynamic>>());
+        await loadHiddenTasks(); // refresh hidden tasks
+        _applyFilters();
+
+        _currentPage++; // next page for scroll
       } else {
         try {
           final decodedError = jsonDecode(response.body);
@@ -226,17 +235,14 @@ class AllCampaignsProvider with ChangeNotifier {
         } catch (e) {
           _errorMessage = "Failed to fetch Tasks";
         }
-        _allCampaigns = [];
       }
     } catch (e) {
       debugPrint("❌ Exception: $e");
       _errorMessage = "Network error!";
-      _allCampaigns = [];
     }
-    debugPrint(_errorMessage);
+
     _isLoading = false;
-    WidgetsBinding.instance.addPostFrameCallback((_) {
-      notifyListeners();
-    });
+    _isLoadingMore = false;
+    notifyListeners();
   }
 }

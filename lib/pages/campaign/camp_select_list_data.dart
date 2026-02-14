@@ -24,5 +24,5 @@ final List<Map<String, dynamic>> instagram = [
 ];
 
 final List<Map<String, dynamic>> website = [
-  {'name': 'Website Visitors Traffic', 'page': Website_LinkGetting(goPage: 'Visitors',)},
+  {'name': 'Website Visitors', 'page': Website_LinkGetting(goPage: 'Visitors',)},
 ];
